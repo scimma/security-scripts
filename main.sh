@@ -1,7 +1,8 @@
 #!/bin/sh
 
 # init by making scripts executable
-chmod 755 RedButton/*.sh
+chmod 755 Buttons/*.sh
+chmod 755 Audit/*.sh
 
 # defaults -- provide them up here, and they can be used in the help printoutrepository= ~donaldp/
 role=scimma_test_power_user
@@ -19,23 +20,34 @@ Options
    -t     test mode "dry run" button engagement that simulates -e command
    -a     audit mode
             possible audits:
+            all - run all audits
             dependencies - checks for dependencies installed
+            repo - checks if repo is up to date and consistency
             privileges - checks if AWS CLI user has sufficient privileges
-
+            policies - checks what privileges the AWS role has
 EOF
 }
 
 buttonEnable () {
   case $1 in
-    RED)    ./RedButton/depriv.sh -r $2 ; ./RedButton/ec2stop.sh ;;
+    RED)    ./Buttons/depriv.sh -r $2 ; ./Buttons/ec2stop.sh ;;
     YELLOW) echo "yellow button not implemented yet" ;;
-    GREEN)  ./RedButton/priv.sh $2 ;;
+    GREEN)  ./Buttons/priv.sh $2 ;;
   esac
   echo "$1 button engaged"
 }
 
 buttonTheater () {
   echo "$1 simulated"
+}
+
+auditRun () {
+  case $1 in
+    all)          exit 0 ;;
+    dependencies) ./Audit/dependencies.sh ;;
+    repo) git remote show origin ;;
+  esac
+  echo "$1 audit complete"
 }
 
 # option processing  $OPTARG fetches the argument
@@ -58,7 +70,17 @@ shift `expr $OPTIND - 1`
 
 #echo $button $*
 
-# button on scripts
+# audit scripts
+if [ -n "$audit" ]; then
+  echo "$audit audit will be run"
+  case $audit in
+    all)          echo "All audits will be run" ;;
+    dependencies) auditRun $audit  ;;
+    repo) auditRun $audit ;;
+  esac
+fi
+
+# button scripts
 if [ -n "$button" ]; then
   case $action in
     ENABLE)   echo "$button will be enabled" ; buttonEnable $button $role ;;
