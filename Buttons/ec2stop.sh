@@ -5,7 +5,7 @@
 echo "$0 temporarily disabled"
 exit 0
 
-for region in `aws ec2 describe-regions | jq -r .Regions[].RegionName`
+for region in `aws ec2 describe-regions --output json  | jq -r .Regions[].RegionName`
 do
   echo "Stopping region $region..."
   aws ec2 describe-instances --region $region | \

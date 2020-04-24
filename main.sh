@@ -23,8 +23,9 @@ Options
             all - run all audits
             dependencies - checks for dependencies installed
             repo - checks if repo is up to date and consistency
-            privileges - checks if AWS CLI user has sufficient privileges
-            policies - checks what privileges the AWS role has
+            myprivileges - checks if current AWS CLI user has sufficient privileges
+            policies - checks what policies the target AWS role has
+            whoami - describes current user
 EOF
 }
 
@@ -76,7 +77,7 @@ if [ -n "$audit" ]; then
   case $audit in
     all)          echo "All audits will be run" ;;
     dependencies) auditRun $audit  ;;
-    repo) auditRun $audit ;;
+    *) auditRun $audit ;;
   esac
 fi
 
