@@ -46,13 +46,15 @@ auditRun () {
   case $1 in
     all)          exit 0 ;;
     dependencies) ./Audit/dependencies.sh ;;
+    myprivileges) ./Audit/privileges.sh ;;
+    policies) ./Audit/policies.sh -r $2 ;;
     repo) git remote show origin ;;
   esac
   echo "$1 audit complete"
 }
 
 # option processing  $OPTARG fetches the argument
-while getopts hxb:eta: opt
+while getopts hxb:r:eta: opt
 do
   case "$opt" in
       h) printHelp ; exit 0 ;;
@@ -76,7 +78,7 @@ if [ -n "$audit" ]; then
   echo "$audit audit will be run"
   case $audit in
     all)          echo "All audits will be run" ;;
-    dependencies) auditRun $audit  ;;
+    policies) auditRun $audit $role ;;
     *) auditRun $audit ;;
   esac
 fi
