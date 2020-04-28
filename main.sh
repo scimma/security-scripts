@@ -9,18 +9,17 @@ role=scimma_test_power_user
 
 printHelp () {
 cat - <<EOF
-run a program in various modes
-    ./debug.sh program
+Security scripts for SCiMMA AWS
 Options
    -h     print help and exit
    -x     debugme : turn on shell tracing (e.g. set -x)
    -b     button to toggle: RED, YELLOW or GREEN
    -r     role to apply the button to (default: ${role})
    -e     enable the specified button
-   -t     test mode "dry run" button engagement that simulates -e command
+   -t     TODO: test mode "dry run" button engagement that simulates -e command
    -a     audit mode
             possible audits:
-            all - run all audits
+            TODO: all - run all audits
             dependencies - checks for dependencies installed
             repo - checks if repo is up to date and consistency
             myprivileges - checks if current AWS CLI user has sufficient privileges
@@ -48,6 +47,7 @@ auditRun () {
     dependencies) ./Audit/dependencies.sh ;;
     myprivileges) ./Audit/privileges.sh ;;
     policies) ./Audit/policies.sh -r $2 ;;
+    whoami) ./Audit/whoami.sh ;;
     repo) git remote show origin ;;
   esac
   echo "$1 audit complete"
