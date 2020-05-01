@@ -3,6 +3,7 @@
 # init by making scripts executable
 chmod 755 Buttons/*.sh
 chmod 755 Audit/*.sh
+chmod 755 Theater/*.sh
 
 # defaults -- provide them up here, and they can be used in the help printoutrepository= ~donaldp/
 role=scimma_test_power_user
@@ -19,7 +20,7 @@ Options
    -t     TODO: test mode "dry run" button engagement that simulates -e command
    -a     audit mode
             possible audits:
-            TODO: all - run all audits
+            all - run all audits
             dependencies - checks for dependencies installed
             repo - checks if repo is up to date and consistency
             myprivileges - checks if current AWS CLI user has sufficient privileges
@@ -38,12 +39,17 @@ buttonEnable () {
 }
 
 buttonTheater () {
+  case $1 in
+    RED)    ./Theater/red.sh ; ./Theater/ec2fake.sh ;;
+    YELLOW) echo "yellow button not implemented yet" ;;
+    GREEN)  ./Theater/green.sh $2 ;;
+  esac
   echo "$1 simulated"
 }
 
 auditRun () {
   case $1 in
-    all)          exit 0 ;;
+    all) auditRun dependencies ; auditRun myprivileges ; auditRun policies $2 ; auditRun whoami ; auditRun repo  ;;
     dependencies) ./Audit/dependencies.sh ;;
     myprivileges) ./Audit/privileges.sh ;;
     policies) ./Audit/policies.sh -r $2 ;;
@@ -64,9 +70,10 @@ do
       e) action=ENABLE ;;
       t) action=THEATER ;;
       a) audit=$OPTARG ;;
-      $\*?) printHelp; exit 1 ;;
+      *) printHelp; exit 1 ;;
   esac;
 done
+if [ $OPTIND -eq 1 ]; then printHelp ; exit 0; fi
 
 #get rid of processed  options $* is now arguements.
 shift `expr $OPTIND - 1`
@@ -75,11 +82,10 @@ shift `expr $OPTIND - 1`
 
 # audit scripts
 if [ -n "$audit" ]; then
-  echo "$audit audit will be run"
   case $audit in
-    all)          echo "All audits will be run" ;;
-    policies) auditRun $audit $role ;;
-    *) auditRun $audit ;;
+    all) echo "All audits will be run" ; auditRun all $role ;;
+    policies) echo "$audit audit will be run" ; auditRun $audit $role ;;
+    *) echo "$audit audit will be run" ; auditRun $audit ;;
   esac
 fi
 
@@ -87,6 +93,6 @@ fi
 if [ -n "$button" ]; then
   case $action in
     ENABLE)   echo "$button will be enabled" ; buttonEnable $button $role ;;
-    THEATER)  echo "$button will be simulated" ;;
+    THEATER)  echo "$button will be simulated" ; buttonTheater $button ;;
   esac
 fi

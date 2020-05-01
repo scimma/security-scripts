@@ -22,5 +22,5 @@ do
   esac;
 done
 
-echo $role role reported the following polciies attached:
+echo $role role reported the following policies attached:
 aws iam list-attached-role-policies --role-name $role | jq -r ".AttachedPolicies[].PolicyName"
