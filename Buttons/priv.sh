@@ -22,8 +22,13 @@ do
   esac;
 done
 
-# is this sufficient? shall we detach everything instead?
 
-echo "Stripping $role of ReadOnlyAccess and attaching ProposedPoweruser"
+for policy in `aws iam list-attached-role-policies --role-name scimma_test_power_user | jq -r ".AttachedPolicies[].PolicyArn"`
+do
+  echo "Detaching $policy..."
+  aws iam detach-role-policy --role-name $role --policy-arn $policy
+done
+
+echo "Attaching ProposedPoweruser and RoleManagementWithCondition to $role"
 aws iam attach-role-policy --role-name $role --policy-arn arn:aws:iam::585193511743:policy/ProposedPoweruser
-aws iam detach-role-policy --role-name $role --policy-arn arn:aws:iam::aws:policy/ReadOnlyAccess
+aws iam attach-role-policy --role-name $role --policy-arn arn:aws:iam::585193511743:policy/RoleManagementWithCondition
