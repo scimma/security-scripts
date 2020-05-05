@@ -1,5 +1,5 @@
 # get logged user
-me=`aws sts get-caller-identity | jq -r '.Arn'`
+me=`aws sts get-caller-identity --output json | jq -r '.Arn'`
 
 # run test
 test=`aws iam simulate-principal-policy --policy-source-arn $me --action-names "iam:DetachRolePolicy" \

@@ -23,7 +23,7 @@ do
 done
 
 
-for policy in `aws iam list-attached-role-policies --role-name scimma_test_power_user | jq -r ".AttachedPolicies[].PolicyArn"`
+for policy in `aws iam list-attached-role-policies --role-name scimma_test_power_user --output json | jq -r ".AttachedPolicies[].PolicyArn"`
 do
   echo "Detaching $policy..."
   aws iam detach-role-policy --role-name $role --policy-arn $policy

@@ -8,15 +8,17 @@ exit 0
 for region in `aws ec2 describe-regions --output json  | jq -r .Regions[].RegionName`
 do
   echo "Stopping region $region..."
-  aws ec2 describe-instances --region $region | \
+  aws ec2 describe-instances --region $region --output json | \
     jq -r .Reservations[].Instances[].InstanceId | \
       xargs -L 1 -I {} aws ec2 modify-instance-attribute \
         --region $region \
         --no-disable-api-termination \
-        --instance-id {}
-  aws ec2 describe-instances --region $region | \
+        --instance-id {} \
+        --output json
+  aws ec2 describe-instances --region $region --output json | \
     jq -r .Reservations[].Instances[].InstanceId | \
       xargs -L 1 -I {} aws ec2 stop-instances \
         --region $region \
-        --instance-id {}
+        --instance-id {} \
+        --output json
 done

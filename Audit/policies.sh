@@ -23,4 +23,4 @@ do
 done
 
 echo $role role reported the following policies attached:
-aws iam list-attached-role-policies --role-name $role | jq -r ".AttachedPolicies[].PolicyName"
+aws iam list-attached-role-policies --role-name $role --output json | jq -r ".AttachedPolicies[].PolicyName"

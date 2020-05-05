@@ -27,7 +27,7 @@ done
 # is this sufficient? shall we detach everything instead?
 
 echo "Stripping $role of ProposedPoweruser and attaching ReadOnlyAccess"
-me=`aws sts get-caller-identity | jq -r '.Arn'`
+me=`aws sts get-caller-identity --output json | jq -r '.Arn'`
 test=`aws iam simulate-principal-policy --policy-source-arn $me --action-names "iam:DetachRolePolicy" \
 "iam:AttachRolePolicy" --output json`
 

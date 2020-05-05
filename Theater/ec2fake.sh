@@ -4,7 +4,7 @@
 # temporary script to not mess with ongoing development
 
 # get logged user
-me=`aws sts get-caller-identity | jq -r '.Arn'`
+me=`aws sts get-caller-identity --output json | jq -r '.Arn'`
 
 # run test
 test=`aws iam simulate-principal-policy --policy-source-arn $me --action-names "ec2:DescribeRegions" \
@@ -15,7 +15,7 @@ stopin=`echo $test | jq -r '.EvaluationResults[] | select(.EvalActionName=="ec2:
 modattr=`echo $test | jq -r '.EvaluationResults[] | select(.EvalActionName=="ec2:ModifyInstanceAttribute") | .EvalDecision'`
 
 echo "ec2:DescribeRegions simulation result: $regions"
-for region in `aws ec2 describe-regions --output json  | jq -r .Regions[].RegionName`
+for region in `aws ec2 describe-regions --output json | jq -r .Regions[].RegionName`
 do
   echo "Stopping region $region..."
   sleep 1
