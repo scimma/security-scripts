@@ -28,10 +28,6 @@ do
   esac;
 done
 
-# temporary script to not mess with ongoing development
-echo "$0 temporarily disabled"
-exit 0
-
 # get all regions and start the loop
 for region in `aws ec2 describe-regions --output json --profile $profile | jq -r .Regions[].RegionName`
 do

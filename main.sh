@@ -11,7 +11,7 @@ bold=$(tput bold)
 normal=$(tput sgr0)
 
 # defaults
-role=scimma_test_power_user
+role=scimma_power_user
 profile=scimma-uiuc-aws-admin
 
 
@@ -39,8 +39,8 @@ ${bold}OPTIONS${normal}
    -r     role to apply the button to (default: ${role})
    -b     button to toggle:
             ${bold}RED${normal} deprivileges the role specified by -r parameter
-              to be read-only and stops all EC2 instances in all regions. The
-              instances will shut down, but not terminated.
+              to be read-only and stops all EC2 instances in all regions star-
+              ted by any user. The instances will shut down, but not terminated.
             ${bold}GREEN${normal} restores privileges to the role specified
               by -r parameter
 

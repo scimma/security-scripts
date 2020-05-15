@@ -1,6 +1,6 @@
 #!/bin/sh
 # simulate getting the red button engaged
-role=scimma_test_power_user
+role=scimma_power_user
 profile=scimma-uiuc-aws-admin
 
 printHelp () {
