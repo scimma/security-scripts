@@ -1,12 +1,14 @@
+#!/bin/sh
 # simulate getting the red button engaged
 role=scimma_test_power_user
 profile=scimma-uiuc-aws-admin
 
 printHelp () {
+# help script
 cat - <<EOF
-run a program in various modes
-    ./debug.sh program
-Options
+DESCRIPTION
+   RED button simulation that checks if the CLI user has correct permissions
+OPTIONS
    -h     print help and exit
    -x     debugme : turn on shell tracing (e.g. set -x)
    -r     role to deprivilege (default: ${role})
@@ -14,7 +16,7 @@ Options
 EOF
 }
 
-# option processing  $OPTARG fetches the argument
+# option processing, $OPTARG fetches the argument
 while getopts hxr:p: opt
 do
   case "$opt" in
@@ -26,8 +28,7 @@ do
   esac;
 done
 
-# is this sufficient? shall we detach everything instead?
-
+# echo real text and simulate policy detachment policy
 echo "Stripping $role of ProposedPoweruser and attaching ReadOnlyAccess"
 me=`aws sts get-caller-identity --output json --profile $profile | jq -r '.Arn'`
 test=`aws iam simulate-principal-policy --policy-source-arn $me --action-names "iam:DetachRolePolicy" \

@@ -1,71 +1,115 @@
 #!/bin/sh
+# main script that launches all the others
 
 # init by making scripts executable
 chmod 755 Buttons/*.sh
 chmod 755 Audit/*.sh
-chmod 755 Theater/*.sh
+chmod 755 Test/*.sh
 
-# defaults -- provide them up here, and they can be used in the help printoutrepository= ~donaldp/
+# formatting vars
+bold=$(tput bold)
+normal=$(tput sgr0)
+
+# defaults
 role=scimma_test_power_user
 profile=scimma-uiuc-aws-admin
 
 
 printHelp () {
+# help function
 cat - <<EOF
-Security scripts for SCiMMA AWS
-Options
+${bold}NAME${normal}
+   security-scripts - security scripts for SCiMMA AWS
+
+${bold}SYNOPSIS${normal}
+   ./main.sh [-b RED] [-e] ...
+   ./main.sh [-a all] ...
+   ./main.sh -h
+
+${bold}DESCRIPTION${normal}
+   security-scripts is a shell script bundle that allows rapidly
+   suspending/reinstating AWS role access and stopping EC2 acti-
+   vity. The bundle has self-assessment and dry run capabilities
+
+${bold}OPTIONS${normal}
+   SETTINGS:
    -h     print help and exit
-   -x     debugme : turn on shell tracing (e.g. set -x)
-   -b     button to toggle: RED, YELLOW or GREEN
+   -x     debugme: turn on shell tracing (e.g. set -x)
    -p     CLI profile to use (default: ${profile})
    -r     role to apply the button to (default: ${role})
+   -b     button to toggle:
+            ${bold}RED${normal} deprivileges the role specified by -r parameter
+              to be read-only and stops all EC2 instances in all regions. The
+              instances will shut down, but not terminated.
+            ${bold}GREEN${normal} restores privileges to the role specified
+              by -r parameter
+
+   OPERATION:
    -e     enable the specified button
-   -t     TODO: test mode "dry run" button engagement that simulates -e command
-   -a     audit mode
-            possible audits:
-            all - run all audits
-            dependencies - checks for dependencies installed
-            repo - checks if repo is up to date and consistency
-            myprivileges - checks if current AWS CLI user has sufficient privileges
-            policies - checks what policies the target AWS role has
-            roles - lists all IAM roles and their descriptions
-            whoami - describes current user
+   -t     test mode "dry run" button engagement that simulates -e command
+
+   AUDIT:
+   -a     audit mode; available audits:
+            all           run all audits
+            dependencies  checks for dependencies installed
+            myprivileges  checks if current CLI user has sufficient privileges
+            policies      checks what policies the target AWS role has
+            repo          checks if repo is up to date and consistency
+            roles         lists all IAM roles and their descriptions
+            whoami        describes current user
+
+${bold}AUTHOR${normal}
+   Vladislav Ekimtcov (https://github.com/VladislavEkimtcov/)
 EOF
 }
 
+buttonConfirmation () {
+# Yes/No to engage button or quit
+  read -p "Engage $1 button? [y/n] " -n 1 -r
+  echo
+  if [[ ! $REPLY =~ ^[Yy]$ ]]
+  then
+      echo "$1 button aborted"
+      exit 1
+  fi
+}
+
 buttonEnable () {
+# button engagement function
   case $1 in
-    RED)    ./Buttons/depriv.sh -r $2 -p $3; ./Buttons/ec2stop.sh -p $3 ;;
-    YELLOW) echo "yellow button not implemented yet" ;;
-    GREEN)  ./Buttons/priv.sh -r $2 -p $3 ;;
+    RED) buttonConfirmation $1; ./Buttons/depriv.sh -r $2 -p $3; ./Buttons/ec2stop.sh -p $3 ;;
+    # YELLOW) echo "yellow button not implemented yet" ;;
+    GREEN) buttonConfirmation $1; ./Buttons/priv.sh -r $2 -p $3 ;;
   esac
   echo "$1 button engaged"
 }
 
-buttonTheater () {
+buttonTest () {
+# button simulation function
   case $1 in
-    RED)    ./Theater/red.sh -r $2 -p $3 ; ./Theater/ec2fake.sh -p $3 ;;
-    YELLOW) echo "yellow button not implemented yet" ;;
-    GREEN)  ./Theater/green.sh -r $2 -p $3 ;;
+    RED) buttonConfirmation $1; ./Test/red.sh -r $2 -p $3; ./Test/ec2fake.sh -p $3 ;;
+    # YELLOW) echo "yellow button not implemented yet" ;;
+    GREEN) buttonConfirmation $1; ./Test/green.sh -r $2 -p $3 ;;
   esac
   echo "$1 simulated"
 }
 
 auditRun () {
   case $1 in
-    all) auditRun dependencies; auditRun myprivileges $2 $3; auditRun policies $2 $3; auditRun whoami $2 $3; auditRun roles $2 $3; auditRun repo $2 $3 ;;
+    all) auditRun dependencies; auditRun myprivileges $2 $3; auditRun policies $2 $3;
+      auditRun repo $2 $3; auditRun roles $2 $3; auditRun whoami $2 $3; ;;
     dependencies) ./Audit/dependencies.sh ;;
-    myprivileges) ./Audit/privileges.sh -p $3;;
-    policies) ./Audit/policies.sh -r $2 -p $3;;
-    whoami) ./Audit/whoami.sh -p $3;;
-    roles) ./Audit/roles.sh -p $3;;
+    myprivileges) ./Audit/privileges.sh -p $3 ;;
+    policies) ./Audit/policies.sh -r $2 -p $3 ;;
+    whoami) ./Audit/whoami.sh -p $3 ;;
+    roles) ./Audit/roles.sh -p $3 ;;
     repo) git remote show origin ;;
   esac
   echo "$1 audit complete"
   echo "_________________"
 }
 
-# option processing  $OPTARG fetches the argument
+# option processing, $OPTARG fetches the argument
 while getopts hxb:p:r:eta: opt
 do
   case "$opt" in
@@ -75,7 +119,7 @@ do
       p) profile=$OPTARG ;;
       r) role=$OPTARG ;;
       e) action=ENABLE ;;
-      t) action=THEATER ;;
+      t) action=TEST ;;
       a) audit=$OPTARG ;;
       *) printHelp; exit 1 ;;
   esac;
@@ -86,19 +130,19 @@ if [ $OPTIND -eq 1 ]; then printHelp ; exit 0; fi
 shift `expr $OPTIND - 1`
 
 
-# audit scripts
+# audit script selection
 if [ -n "$audit" ]; then
   case $audit in
-    all) echo "All audits will be run" ; auditRun all $role $profile ;;
-    policies) echo "$audit audit will be run" ; auditRun $audit $role $profile ;;
-    *) echo "$audit audit will be run" ; auditRun $audit $role $profile ;;
+    all) echo "All audits will be run"; auditRun all $role $profile ;;
+    policies) echo "$audit audit will be run"; auditRun $audit $role $profile ;;
+    *) echo "$audit audit will be run"; auditRun $audit $role $profile ;;
   esac
 fi
 
-# button scripts
+# button script selection logic
 if [ -n "$button" ]; then
   case $action in
-    ENABLE)   echo "$button will be enabled" ; buttonEnable $button $role $profile;;
-    THEATER)  echo "$button will be simulated" ; buttonTheater $button $role $profile;;
+    ENABLE) echo "$button will be enabled"; buttonEnable $button $role $profile ;;
+    TEST) echo "$button will be simulated"; buttonTest $button $role $profile ;;
   esac
 fi

@@ -1,18 +1,23 @@
+#!/bin/sh
+# current user ARN retrieving script
+
 # defaults
 profile=scimma-uiuc-aws-admin
 
+
 printHelp () {
+# help script
 cat - <<EOF
-run a program in various modes
-    ./debug.sh program
-Options
+DESCRIPTION
+   Retrieve the IAM of the current CLI logon
+OPTIONS
    -h     print help and exit
-   -x     debugme : turn on shell tracing (e.g. set -x)
+   -x     debugme: turn on shell tracing (e.g. set -x)
    -p     CLI profile to use (default: ${profile})
 EOF
 }
 
-# option processing  $OPTARG fetches the argument
+# option processing, $OPTARG fetches the argument
 while getopts hxp: opt
 do
   case "$opt" in
@@ -25,5 +30,4 @@ done
 
 # get logged user
 me=`aws sts get-caller-identity --output json --profile $profile | jq -r '.Arn'`
-
 echo $me

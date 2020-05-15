@@ -1,13 +1,18 @@
+#!/bin/sh
+# AWS Roles listing script
+
 # defaults
 profile=scimma-uiuc-aws-admin
 
+
 printHelp () {
+# help function
 cat - <<EOF
-run a program in various modes
-    ./debug.sh program
-Options
+DESCRIPTION
+   List existing AWS Roles
+OPTIONS
    -h     print help and exit
-   -x     debugme : turn on shell tracing (e.g. set -x)
+   -x     debugme: turn on shell tracing (e.g. set -x)
    -p     CLI profile to use (default: ${profile})
 EOF
 }
@@ -23,6 +28,6 @@ do
   esac;
 done
 
-
+# echo and list roles
 echo "AWS reported the following roles existing:"
 aws iam list-roles --output json --profile $profile | jq -r '.Roles[] | "ROLE: " + .RoleName + " DESCRIPTION: " + .Description'
