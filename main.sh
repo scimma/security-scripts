@@ -29,14 +29,16 @@ ${bold}SYNOPSIS${normal}
 ${bold}DESCRIPTION${normal}
    security-scripts is a shell script bundle that allows rapidly
    suspending/reinstating AWS role access and stopping EC2 acti-
-   vity. The bundle has self-assessment and dry run capabilities
+   vity, regardless or any association with the role being de-
+   privileged. The bundle has self-assessment and dry run capa-
+   bilities
 
 ${bold}OPTIONS${normal}
    SETTINGS:
    -h     print help and exit
    -x     debugme: turn on shell tracing (e.g. set -x)
-   -p     CLI profile to use (default: ${profile})
-   -r     role to apply the button to (default: ${role})
+   -p     AWS CLI profile to use (default: ${profile})
+   -r     AWS role to apply the button to (default: ${role})
    -b     button to toggle:
             ${bold}RED${normal} deprivileges the role specified by -r parameter
               to be read-only and stops all EC2 instances in all regions star-
