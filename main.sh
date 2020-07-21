@@ -1,10 +1,11 @@
 #!/bin/sh
 # main script that launches all the others
 
-# init by making scripts executable
+# init by making scripts executable and updating the tool
 chmod 755 Buttons/*.sh
 chmod 755 Audit/*.sh
 chmod 755 Test/*.sh
+git pull
 
 # formatting vars
 bold=$(tput bold)
