@@ -6,7 +6,7 @@ Documentation: https://docs.google.com/document/d/1-uugzBGf24aNEdYzWA7ao5yvHPHl8
 ## Buttons
 Rapidly privilege/deprivilege AWS roles and stop EC2 instances
 
-## Theater
+## Test
 "Dry run" scripts that simulate the real buttons getting pressed
 
 ## Audit
