@@ -2,10 +2,10 @@
 # main script that launches all the others
 
 # init by making scripts executable and updating the tool
-chmod 755 Buttons/*.sh
-chmod 755 Audit/*.sh
-chmod 755 Test/*.sh
-git pull
+chmod 755 bin/Buttons/*.sh
+chmod 755 bin/Audit/*.sh
+chmod 755 tests/*.sh
+# git pull
 
 # formatting vars
 bold=$(tput bold)
@@ -30,7 +30,7 @@ ${bold}SYNOPSIS${normal}
 ${bold}DESCRIPTION${normal}
    security-scripts is a shell script bundle that allows rapidly
    suspending/reinstating AWS role access and stopping EC2 acti-
-   vity, regardless or any association with the role being de-
+   vity, regardless of any association with the role being de-
    privileged. The bundle has self-assessment and dry run capa-
    bilities
 
@@ -80,9 +80,9 @@ buttonConfirmation () {
 buttonEnable () {
 # button engagement function
   case $1 in
-    RED) buttonConfirmation $1; ./Buttons/depriv.sh -r $2 -p $3; ./Buttons/ec2stop.sh -p $3 ;;
+    RED) buttonConfirmation $1; ./bin/Buttons/depriv.sh -r $2 -p $3; ./bin/Buttons/ec2stop.sh -p $3 ;;
     # YELLOW) echo "yellow button not implemented yet" ;;
-    GREEN) buttonConfirmation $1; ./Buttons/priv.sh -r $2 -p $3 ;;
+    GREEN) buttonConfirmation $1; ./bin/Buttons/priv.sh -r $2 -p $3 ;;
   esac
   echo "$1 button engaged"
 }
@@ -90,9 +90,9 @@ buttonEnable () {
 buttonTest () {
 # button simulation function
   case $1 in
-    RED) buttonConfirmation $1; ./Test/red.sh -r $2 -p $3; ./Test/ec2fake.sh -p $3 ;;
+    RED) buttonConfirmation $1; ./tests/red.sh -r $2 -p $3; ./tests/ec2fake.sh -p $3 ;;
     # YELLOW) echo "yellow button not implemented yet" ;;
-    GREEN) buttonConfirmation $1; ./Test/green.sh -r $2 -p $3 ;;
+    GREEN) buttonConfirmation $1; ./tests/green.sh -r $2 -p $3 ;;
   esac
   echo "$1 simulated"
 }
@@ -101,11 +101,11 @@ auditRun () {
   case $1 in
     all) auditRun dependencies; auditRun myprivileges $2 $3; auditRun policies $2 $3;
       auditRun repo $2 $3; auditRun roles $2 $3; auditRun whoami $2 $3; ;;
-    dependencies) ./Audit/dependencies.sh ;;
-    myprivileges) ./Audit/privileges.sh -p $3 ;;
-    policies) ./Audit/policies.sh -r $2 -p $3 ;;
-    whoami) ./Audit/whoami.sh -p $3 ;;
-    roles) ./Audit/roles.sh -p $3 ;;
+    dependencies) ./bin/Audit/dependencies.sh ;;
+    myprivileges) ./bin/Audit/privileges.sh -p $3 ;;
+    policies) ./bin/Audit/policies.sh -r $2 -p $3 ;;
+    whoami) ./bin/Audit/whoami.sh -p $3 ;;
+    roles) ./bin/Audit/roles.sh -p $3 ;;
     repo) git remote show origin ;;
   esac
   echo "$1 audit complete"
