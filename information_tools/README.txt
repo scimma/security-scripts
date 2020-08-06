@@ -1,5 +1,5 @@
-uses a virtual environment
+To use these tools you must
 
-cd this directory
-made with python3 -m venv ./
-source ./bin/activate
+1) cd to this directory
+2) $ source setup.sh
+
