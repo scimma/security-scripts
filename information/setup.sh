@@ -8,3 +8,4 @@
 PYTHONPATH="${PYTHONPATH:+${PYTHONPATH}:}$PWD/lib"
 export PYTHONPATH=$PYTHONPATH
 echo $PYTHONPATH 2>/dev/stderr
+pip install tabulate
