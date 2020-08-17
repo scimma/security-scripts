@@ -11,7 +11,7 @@ Options available via <command> --help
 """
 import logging
 import subprocess
-import information.lib.shlog as shlog
+import shlog
 
 def main(args):
    """
@@ -57,7 +57,7 @@ if __name__ == "__main__":
 
    import argparse 
    import configparser
-   import information.lib.aws_utils as au
+   import aws_utils as au
 
    config = configparser.ConfigParser()
    config.read_file(open('defaults.cfg'))
