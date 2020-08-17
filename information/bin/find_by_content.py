@@ -64,7 +64,7 @@ def find_string(obj, valuematch,truncate=90):
 
 def main(args):
    """
-   Dump cloudtail json event recordsfrom the vault having a
+   Dump cloudtail json event records from the vault having a
    some value matching the globstring.
 
    A vault file is a dictionary of "Records" containing an array
@@ -73,20 +73,20 @@ def main(args):
    different json schema.
    """
    import glob
-   import os 
+   import os
+   from pathlib import Path
+   import gzip
 
    if not any(ext in args.searchglob for ext in ["*", "?"]):
        logging.warning(args.searchglob + " does not have an * or ?")
-           
-   for vfile in glob.glob(os.path.join(args.vaultdir,"*.json")):
-       logging.info("searching " + vfile)
-       
-       with open(vfile,'r') as f:
+
+   for path in Path(os.path.expanduser(args.vaultdir)).rglob('*.json.gz'):
+       with gzip.open(path.absolute(), 'rb') as f:
            data = json.loads(f.read())
-           for item in data['Records']:
-               result = find_string(item, args.searchglob)
-               if result : 
-                   print(json.dumps(item, indent=4, sort_keys=True))
+       for item in data['Records']:
+           result = find_string(item, args.searchglob)
+           if result :
+               print(json.dumps(item, indent=4, sort_keys=True))
    
 
 if __name__ == "__main__":
@@ -96,17 +96,16 @@ if __name__ == "__main__":
 
    config = configparser.ConfigParser()
    config.read_file(open('defaults.cfg'))
-   vaultdir = config.get("DEFAULT", "vault", fallback="./vault")
-   profile  = config.get("DEFAULT", "profile", fallback="sciimma-aws-admin")
-   loglevel = config.get("DEFAULT", "loglevel",fallback="INFO")
+   vaultdir = config.get("FIND_BY_CONTENT", "vaultdir", fallback="~/.trailscraper")
+   profile  = config.get("DEFAULT", "profile", fallback="default")
+   loglevel = config.get("FIND_BY_CONTENT", "loglevel",fallback="INFO")
  
    
    """Create command line arguments"""
    parser = argparse.ArgumentParser(description=__doc__, formatter_class=argparse.RawDescriptionHelpFormatter)
-   parser.add_argument('--profile','-p',default=profile,
-             help='aws profile to use')
+   parser.add_argument('--profile','-p',default=profile,help='aws profile to use')
    parser.add_argument('--debug'   ,'-d',help='print debug info', default=False, action='store_true')
-   parser.add_argument('--loglevel','-l',help="Level for  reporning e.r DEBUG, INFO, WARN", default="INFO")
+   parser.add_argument('--loglevel','-l',help="Level for reporting e.r DEBUG, INFO, WARN", default=loglevel)
    parser.add_argument('--vaultdir'     ,help='vault directory def:%s' % vaultdir, default=vaultdir)
    parser.add_argument('searchglob'     ,help='string to search for, in form of a glob')
 
