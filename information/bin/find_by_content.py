@@ -3,61 +3,80 @@
 Search the cloudtrail vault for strings
 with the value given by searchglob.
 
+Perform caseblind search if indicated.
+TUncate matched string if indicated.
 
-Optons available via <command> --help
+Options available via <command> --help
 """
 
 import logging
 import json
-       
-def extract_value(obj, key):
-    """Pull all values of specified key from nested JSON."""
-    arr = []
+import fnmatch
 
-    def extract(obj, arr, key):
-        """Recursively search for values of key in JSON tree."""
-        if isinstance(obj, dict):
-            for k, v in obj.items():
-                if isinstance(v, (dict, list)):
-                    extract(v, arr, key)
-                elif k == key:
-                    arr.append(v)
-        elif isinstance(obj, list):
-            for item in obj:
-                extract(item, arr, key)
-        return arr
+class Cmp:
+   """
+    make a optionally case blind comparistio of two strings using a glob
 
-    results = extract(obj, arr, key)
-    return results
+    Optionally post process a match with a truncation rule
+    """
+   def __init__(self, args):
+        self.truncate       = args.truncate
+        self.caseblind     = args.caseblind
+        self.searchglob    = args.searchglob
+        if self.caseblind: self.searchglob.upper()
+   def match(self, value):
+       # Determine if string is a match
+       # Set self.matched to most recent matched string.
+       if type(value) is not type("") :
+            #bullet proof unexpected type
+           value = "%s" % value
+       cmp_value = value
+       if self.caseblind: cmp_value = value.upper()
+       isMatch=  fnmatch.fnmatch(cmp_value, self.searchglob)
+       if isMatch:
+           self.matched = value[:self.truncate]
+       else:
+           self.matched = ""
+       return isMatch
 
-def find_string(obj, valuematch,truncate=90):
+def find_string(obj, valuematch, c):
     """return a list of key, value pairs where value matches valuematch
    
        Valuematch can be specifies as a glob style "wildcard"
        truncate any string to indicated length.
     """
-    import fnmatch
     import copy
     arr = []
     context = []
 
 
-    def match(obj, arr, valuematch, truncate):
+    def match(obj, arr, valuematch, c):
         """Recursively search for values"""
         if isinstance(obj, dict):
             for k, v in obj.items():
                 if isinstance(v, (dict, list)):
-                    match(v, arr, valuematch,  truncate )
-                elif type(v) == type("") and fnmatch.fnmatch(v,valuematch):
-                    arr.append([type(v),k,v[0:truncate]])
-                else: #don;t return binary objects or failed to find.
-                    pass
+                    #recurr if composite type
+                    match(v, arr, valuematch, c )
+                elif c.match(v):
+                    # save base type that matches
+                    arr.append([k, c.matched])
+                else:
+                    # no match, let it go
+                    logging.debug("skipping: %s", v)
         elif isinstance(obj, list):
             for item in obj:
-                match(item, arr, valuematch, truncate)
+                if isinstance(item, (dict, list)):
+                    #recurr if composite type
+                    match(item, arr, valuematch, c)
+                elif c.match(item):
+                    # is it a basetype that matches?
+                    arr.append([c.matched])
+                else:
+                    # no match, let it go
+                    logging.debug("skipping: %s", item)
         return arr
 
-    results = match(obj, arr, valuematch, truncate)
+    results = match(obj, arr, valuematch, c)
     return results
 
 
@@ -77,6 +96,7 @@ def main(args):
    from pathlib import Path
    import gzip
 
+   c = Cmp(args)
    if not any(ext in args.searchglob for ext in ["*", "?"]):
        logging.warning(args.searchglob + " does not have an * or ?")
 
@@ -84,7 +104,7 @@ def main(args):
        with gzip.open(path.absolute(), 'rb') as f:
            data = json.loads(f.read())
        for item in data['Records']:
-           result = find_string(item, args.searchglob)
+           result = find_string(item, args.searchglob, c)
            if result :
                print(json.dumps(item, indent=4, sort_keys=True))
    
@@ -96,10 +116,10 @@ if __name__ == "__main__":
 
    config = configparser.ConfigParser()
    config.read_file(open('defaults.cfg'))
-   vaultdir = config.get("FIND_BY_CONTENT", "vaultdir", fallback="~/.trailscraper")
-   profile  = config.get("DEFAULT", "profile", fallback="default")
-   loglevel = config.get("FIND_BY_CONTENT", "loglevel",fallback="INFO")
- 
+   vaultdir  = config.get("FIND_BY_CONTENT", "vaultdir", fallback="~/.trailscraper")
+   profile   = config.get("DEFAULT", "profile", fallback="default")
+   loglevel  = config.get("FIND_BY_CONTENT", "loglevel",fallback="INFO")
+
    
    """Create command line arguments"""
    parser = argparse.ArgumentParser(description=__doc__, formatter_class=argparse.RawDescriptionHelpFormatter)
@@ -107,10 +127,12 @@ if __name__ == "__main__":
    parser.add_argument('--debug'   ,'-d',help='print debug info', default=False, action='store_true')
    parser.add_argument('--loglevel','-l',help="Level for reporting e.r DEBUG, INFO, WARN", default=loglevel)
    parser.add_argument('--vaultdir'     ,help='vault directory def:%s' % vaultdir, default=vaultdir)
+   parser.add_argument('--caseblind'     ,help='caseblind compare', action='store_true')
+   parser.add_argument('--truncate'     ,help='Truncate strings longer than ', default=1000, type=int)
    parser.add_argument('searchglob'     ,help='string to search for, in form of a glob')
 
    args = parser.parse_args()
    logging.basicConfig(level=args.loglevel)
-
+   logging.debug(args)
    main(args)
 
