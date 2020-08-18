@@ -79,6 +79,30 @@ def find_string(obj, valuematch, c):
     results = match(obj, arr, valuematch, c)
     return results
 
+def time_ordered_events(args):
+   """
+   Return  a list of [date, path] pairs, sorted by increasing date.
+   
+   Construct the list based on files in the vault, considering only
+   the first timestanp in the file holding th evnets. Given the vault
+   files are small timeslices, this should hlpe produce a event strean
+   that is nearly time ordered.
+   """
+   import os
+   from pathlib import Path
+   import gzip
+   
+   list = []
+   for path in Path(os.path.expanduser(args.vaultdir)).rglob('*.json.gz'):
+      with gzip.open(path.absolute(), 'rb') as f:
+         data = json.loads(f.read())
+         list.append ("{} {}".format(data["Records"][0]["eventTime"],  path.absolute()))
+   list.sort()
+   list = [l.split(" ") for l in list]
+   logging.debug("first date, file available is {}".format(list[0] ))
+   logging.debug("last  date, file available is {}".format(list[-1]))
+                                                          
+   return list
 
 
 def main(args):
@@ -100,15 +124,14 @@ def main(args):
    if not any(ext in args.searchglob for ext in ["*", "?"]):
        logging.warning(args.searchglob + " does not have an * or ?")
 
-   for path in Path(os.path.expanduser(args.vaultdir)).rglob('*.json.gz'):
-       with gzip.open(path.absolute(), 'rb') as f:
+   for date, path in time_ordered_events(args):
+      with gzip.open(path, 'rb') as f:
            data = json.loads(f.read())
-       for item in data['Records']:
-           result = find_string(item, args.searchglob, c)
-           if result :
-               print(json.dumps(item, indent=4, sort_keys=True))
+           for item in data['Records']:
+              result = find_string(item, args.searchglob, c)
+              if result :
+                 print(json.dumps(item, indent=4, sort_keys=True))
    
-
 if __name__ == "__main__":
 
    import argparse 
