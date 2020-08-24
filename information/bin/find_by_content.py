@@ -122,14 +122,19 @@ def main(args):
    if not any(ext in args.searchglob for ext in ["*", "?"]):
        logging.warning(args.searchglob + " does not have an * or ?")
 
+   nitems = 0
+   nfound = 0
    for date, path in time_ordered_events(args):
-      with gzip.open(path, 'rb') as f:
+       with gzip.open(path, 'rb') as f:
            data = json.loads(f.read())
            for item in data['Records']:
+              nitems += 1
               result = find_string(item, args.searchglob, c)
               if result :
                  print(json.dumps(item, indent=4, sort_keys=True))
-   
+                 nfound += 1
+   logging.info("{} of {} items returned".format(nfound, nitems))
+                
 if __name__ == "__main__":
 
    import argparse 
