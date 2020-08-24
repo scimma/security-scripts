@@ -119,7 +119,7 @@ if __name__ == "__main__":
     logging.basicConfig(level=args.loglevel)
 
     import boto3
-    args.session = boto3.Session(profile_name=args.profile)
+    # args.session = boto3.Session(profile_name=args.profile)
 
     if not args.func:  # there are no subfunctions
         parser.print_help()
