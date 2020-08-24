@@ -17,8 +17,9 @@ def main(args):
    """
    Download Cloudtrail logs to the vault directory.
 
-   A vault file is a dictionary of "Records" containing an array
-   of json objects.  A vault is a directory tree of some depth.
+   A vault file is bushy directory tree that is stored under
+   $HOME/.trailscraper. teh leaves are (many jason) files, each
+   covering a small slice of time. The files contain AWS event records.
    """
    # retrieve regions
    import regex as re
