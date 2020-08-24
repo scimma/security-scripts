@@ -9,11 +9,6 @@ AWS console.
 A config file, default.config can be used to supply
 defaults for command line options.
 
-[Default]
-vault=vault
-profile=scimma-aws-admin
-loglevel=NORMAL
-
 Shell users can construct simplw analysis filters.
 using jq and sort, uniq, tabulate or even grep
 

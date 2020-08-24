@@ -17,13 +17,12 @@ class Cmp:
    """
     make a optionally case blind comparistio of two strings using a glob
 
-    Optionally post process a match with a truncation rule
     """
    def __init__(self, args):
-        self.truncate       = args.truncate
         self.caseblind     = args.caseblind
         self.searchglob    = args.searchglob
         if self.caseblind: self.searchglob.upper()
+        
    def match(self, value):
        # Determine if string is a match
        # Set self.matched to most recent matched string.
@@ -34,7 +33,7 @@ class Cmp:
        if self.caseblind: cmp_value = value.upper()
        isMatch=  fnmatch.fnmatch(cmp_value, self.searchglob)
        if isMatch:
-           self.matched = value[:self.truncate]
+           self.matched = value
        else:
            self.matched = ""
        return isMatch
@@ -43,7 +42,6 @@ def find_string(obj, valuematch, c):
     """return a list of key, value pairs where value matches valuematch
    
        Valuematch can be specifies as a glob style "wildcard"
-       truncate any string to indicated length.
     """
     import copy
     arr = []
@@ -151,7 +149,6 @@ if __name__ == "__main__":
    parser.add_argument('--loglevel','-l',help="Level for reporting e.r DEBUG, INFO, WARN", default=loglevel)
    parser.add_argument('--vaultdir'     ,help='vault directory def:%s' % vaultdir, default=vaultdir)
    parser.add_argument('--caseblind'     ,help='caseblind compare', action='store_true')
-   parser.add_argument('--truncate'     ,help='Truncate strings longer than ', default=1000, type=int)
    parser.add_argument('searchglob'     ,help='string to search for, in form of a glob')
 
    args = parser.parse_args()

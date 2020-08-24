@@ -2,9 +2,10 @@
 Data Acquisition and Tests/Information for Scimma AWS Tagging
 
 This module has code to collect data from all allowed
-AWS regions and check that the tags needed for
-AWS-level accounting and AWS-level incident response
-are present.
+AWS regions and buid a relational database.
+
+There is code to check that the tags needed for AWS-level
+accounting and AWS-level incident response are present.
 
 """
 
@@ -16,14 +17,19 @@ import measurements
 import shlog
 
 class Tags(measurements.Dataset):
+    """
+    Load information from the resource tagging api into a relational table.
+
+    Optional method to clean the data of non-SCiMMA concerns.
+    """
     def __init__(self, args, name, q):
         measurements.Dataset.__init__(self, args, name, q)
         self.table_name = "tags"
         
     def make_data(self):
         """
-        Make a tabe called TAGS based on tagging data.
-        Ths collection of data is based on teh resourcetaggingapi
+        Make a table called TAGS based on tagging data.
+        This collection of data is based on the resourcetaggingapi
         """ 
         shlog.normal("beginning to make %s data" % self.name) 
         # Make a flattened table for the tag data.
@@ -132,5 +138,5 @@ class Test_standard_tags(measurements.Measurement):
         self.df = self.q.q_to_df(sql)
 
 
-
+        
 

@@ -8,5 +8,5 @@
 PYTHONPATH="${PYTHONPATH:+${PYTHONPATH}:}$PWD/lib"
 export PYTHONPATH=$PYTHONPATH
 echo $PYTHONPATH 2>/dev/stderr
-pip install tabulate
-pip install trailscraper
+pip show tabulate     > /dev/null || pip install tabulate
+pip show trailscraper > /dev/null || pip install trailscraper
