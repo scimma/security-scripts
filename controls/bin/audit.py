@@ -6,6 +6,7 @@ or reprivilege a role.
 Options available via <command> --help
 """
 import logging
+import boto3
 
 def dependencies():
     """
@@ -168,7 +169,7 @@ if __name__ == "__main__":
     args = parser.parse_args()
     logging.basicConfig(level=args.loglevel)
 
-    import boto3
+
     # args.session = boto3.Session(profile_name=args.profile)
     logging.getLogger('boto3').setLevel(logging.ERROR)
     logging.getLogger('botocore').setLevel(logging.ERROR)

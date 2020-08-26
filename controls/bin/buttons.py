@@ -6,6 +6,7 @@ or reprivilege a role.
 Options available via <command> --help
 """
 import logging
+import boto3
 
 def detacher(role):
     """
@@ -49,11 +50,12 @@ def priv(args):
     logging.debug(response)
 
 
-def ec2stop(args):
+def ec2stop(args, dryrun=False):
     """
     Make a request to stop all ec2 instances
     :return:
     """
+    from botocore.exceptions import ClientError
     import aws_utils as au
     regions = au.decribe_regions_df(args)
     # regions = {'RegionName':['us-east-2']}
@@ -74,10 +76,20 @@ def ec2stop(args):
             logging.debug(response)
             # ...and perform halt
             logging.info('Stopping instance ' + instance + ' in region ' + region)
-            response = client.stop_instances(
-                InstanceIds=[instance],
-                Force=True
-            )
+            try:
+                response = client.stop_instances(
+                    InstanceIds=[instance],
+                    DryRun=dryrun,
+                    Force=True
+                )
+            except ClientError as ce:
+                if dryrun:
+                    # client error is expected when simulating
+                    logging.info('Stop simulation succeeded with code:')
+                    logging.info(ce)
+                else:
+                    # we might actually want to catch real exceptions
+                    raise ClientError
     pass
 
 
@@ -118,7 +130,7 @@ if __name__ == "__main__":
     args = parser.parse_args()
     logging.basicConfig(level=args.loglevel)
 
-    import boto3
+
     # args.session = boto3.Session(profile_name=args.profile)
 
     if not args.func:  # there are no subfunctions
