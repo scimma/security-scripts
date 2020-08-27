@@ -62,8 +62,9 @@ def find_string(obj, valuematch, c):
                     # save base type that matches
                     arr.append([k, c.matched])
                 else:
-                    # no match, let it go
-                    logging.debug("skipping: %s", v)
+                    # no match, let go
+                    pass
+                    #logging.debug("skipping: %s", v)
         elif isinstance(obj, list):
             for item in obj:
                 if isinstance(item, (dict, list)):
@@ -74,7 +75,8 @@ def find_string(obj, valuematch, c):
                     arr.append([c.matched])
                 else:
                     # no match, let it go
-                    logging.debug("skipping: %s", item)
+                    pass
+                    #logging.debug("skipping: %s", item)
         return arr
 
     results = match(obj, arr, valuematch, c)
@@ -94,14 +96,16 @@ def time_ordered_event_archives(args, template_path):
    event strean that is "pretty good" nearly time ordered.
    """
    import os
-   from pathlib import Path
+   import glob
    import gzip
    
+
+   template_path = os.path.expanduser(template_path)
    list = []
-   for path in Path(os.path.expanduser(args.vaultdir)).rglob('*.json.gz'):
-      with gzip.open(path.absolute(), 'rb') as f:
+   for path in glob.glob(template_path):
+      with gzip.open(path, 'rb') as f:
          data = json.loads(f.read())
-         list.append ("{} {}".format(data["Records"][0]["eventTime"],  path.absolute()))
+         list.append ("{} {}".format(data["Records"][0]["eventTime"], path))
    list.sort() #sort on date
    list = [l.split(" ") for l in list]
    logging.debug("first date, file available is {}".format(list[0] ))
@@ -138,8 +142,9 @@ def  get_all_template_paths(args):
 
 def filter_template_paths_by_date_range(args, all_paths):
    """
-   Filter a list  paths, retaining those consitent with user-supplied date range
+   Filter a list  of template paths, retaining those consitent with user-supplied date range
 
+   
    """
    anchor_date = args.date
    datedelta = args.datedelta
@@ -157,8 +162,9 @@ def filter_template_paths_by_date_range(args, all_paths):
       for d in dates:
          if d in p:
             filtered.append(p)
+            logging.debug('path used satified {}'.format(p))
             break
-   logging.debug('paths satified {}'.format(filtered))
+
    return filtered
 
 
