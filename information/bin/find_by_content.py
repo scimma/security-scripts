@@ -4,18 +4,20 @@ Search the cloudtrail vault for strings
 with the value given by searchglob.
 
 Perform caseblind search if indicated.
-TUncate matched string if indicated.
+Truncate matched string if indicated.
 
-Options available via <command> --help
+ptions available via <command> --help
 """
 
 import logging
 import json
 import fnmatch
+from datetime import date,timedelta
+import os
 
 class Cmp:
    """
-    make a optionally case blind comparistio of two strings using a glob
+    make a optiony case blind comparison of two strings using a glob
 
     """
    def __init__(self, args):
@@ -39,9 +41,10 @@ class Cmp:
        return isMatch
 
 def find_string(obj, valuematch, c):
-    """return a list of key, value pairs where value matches valuematch
+    """
+    Return a list of key, value pairs where value matches valuematch
    
-       Valuematch can be specifies as a glob style "wildcard"
+   Valuematch can be specifies as a glob style "wildcard"
     """
     import copy
     arr = []
@@ -77,14 +80,18 @@ def find_string(obj, valuematch, c):
     results = match(obj, arr, valuematch, c)
     return results
 
-def time_ordered_events(args):
+################################################################
+#
+#
+###############################################################
+def time_ordered_event_archives(args, template_path):
    """
-   Return  a list of [date, path] pairs, sorted by increasing date.
+   Return  a list of paths, sorted by increasing date.
    
-   Construct the list based on files in the vault, considering only
-   the first timestanp in the file holding th evnets. Given the vault
-   files are small timeslices, this should hlpe produce a event strean
-   that is nearly time ordered.
+   Construct the list based the template (ie  havig  wildcards),
+   Considering only the first timestamp in the file holding the events.
+   Given the vault files are small timeslices, this should  produce an
+   event strean that is "pretty good" nearly time ordered.
    """
    import os
    from pathlib import Path
@@ -95,12 +102,65 @@ def time_ordered_events(args):
       with gzip.open(path.absolute(), 'rb') as f:
          data = json.loads(f.read())
          list.append ("{} {}".format(data["Records"][0]["eventTime"],  path.absolute()))
-   list.sort()
+   list.sort() #sort on date
    list = [l.split(" ") for l in list]
    logging.debug("first date, file available is {}".format(list[0] ))
-   logging.debug("last  date, file available is {}".format(list[-1]))
-                                                          
-   return list
+   logging.debug("last  date, file available is {}".format(list[-1]))                                                          
+   return [ l[1] for l in list ]
+
+###################################################################
+#
+#
+###################################################################
+
+def  get_all_template_paths(args):
+   """
+   Return a globbed path to all event files for each  date.
+
+   The template covers all AWS regions.
+   e.g  logs/Scimma-event-trail/AWSLogs/585193511743/CloudTrail/*/2020/08/20/*.json.gz
+   """
+   from pathlib import Path
+   import glob
+   root = os.path.join(args.vaultdir, args.datepath)
+   root = Path(os.path.expanduser(root)) # gt rit of any laeding ~
+   root = "{}".format(root)              # go figure have to make it a string
+   dir_filter = os.path.join(root,'*/20[0-9][0-9]/[0-9][0-9]/[0-9][0-9]/')
+   paths = {os.path.dirname(p)  for p in glob.glob(dir_filter)}  # all paths into  set
+   paths = {p.replace(root,'') for p in paths}                   # reduce to unique site/y/m/d
+   paths = {os.path.join(*p.split('/')[2:]) for p in  paths}     # strip off site
+   #Now path is just the date component e.g 2020/08/22, one for each date in the store
+   #Compose into full template
+   paths  = [os.path.join(args.vaultdir,args.datepath,"*",p,"*.json.gz") for p in  paths]
+   paths.sort()                                                  # assure oldset to recent 
+   return paths
+
+
+def filter_template_paths_by_date_range(args, all_paths):
+   """
+   Filter a list  paths, retaining those consitent with user-supplied date range
+
+   """
+   anchor_date = args.date
+   datedelta = args.datedelta
+   if datedelta == 0 : return all_paths
+   if datedelta < 0:
+      range_parameters = [datedelta, 1]
+   else:
+      range_parameters =  [0, datedelta + 1]
+   dates = [anchor_date + timedelta(days=i) for i in range(*range_parameters) ]
+   dates = ["{}".format(d) for d in dates]
+   dates = [d.replace("-", "/") for d in dates]
+   logging.info("requested dates {}".format(dates))
+   filtered = []
+   for p in all_paths          :
+      for d in dates:
+         if d in p:
+            filtered.append(p)
+            break
+   logging.debug('paths satified {}'.format(filtered))
+   return filtered
+
 
 
 def main(args):
@@ -122,10 +182,13 @@ def main(args):
    if not any(ext in args.searchglob for ext in ["*", "?"]):
        logging.warning(args.searchglob + " does not have an * or ?")
 
+   all_template_paths = get_all_template_paths(args)
+   filtered_template_paths = filter_template_paths_by_date_range(args, all_template_paths)
    nitems = 0
-   nfound = 0
-   for date, path in time_ordered_events(args):
-       with gzip.open(path, 'rb') as f:
+   nfound = 0 
+   for template_path in filtered_template_paths:
+      for file in time_ordered_event_archives(args, template_path):
+       with gzip.open(file, 'rb') as f:
            data = json.loads(f.read())
            for item in data['Records']:
               nitems += 1
@@ -140,6 +203,7 @@ if __name__ == "__main__":
    import argparse 
    import configparser
 
+
    config = configparser.ConfigParser()
    config.read_file(open('defaults.cfg'))
    vaultdir  = config.get("FIND_BY_CONTENT", "vaultdir", fallback="~/.trailscraper")
@@ -153,10 +217,15 @@ if __name__ == "__main__":
    parser.add_argument('--debug'   ,'-d',help='print debug info', default=False, action='store_true')
    parser.add_argument('--loglevel','-l',help="Level for reporting e.r DEBUG, INFO, WARN", default=loglevel)
    parser.add_argument('--vaultdir'     ,help='vault directory def:%s' % vaultdir, default=vaultdir)
-   parser.add_argument('--caseblind'     ,help='caseblind compare', action='store_true')
+   parser.add_argument('--caseblind'    ,help='caseblind compare', action='store_true')
+   parser.add_argument('--date'         ,help='anchor date, e.g 2021-4-30',
+                                         type=(lambda x : date.fromisoformat(x)),
+                                         default=date.today())
+   parser.add_argument('--datedelta'    ,help='day offset from date  (e.g. -5:five days prior)', type=int, default = 0) 
    parser.add_argument('searchglob'     ,help='string to search for, in form of a glob')
 
    args = parser.parse_args()
+   args.datepath = "logs/Scimma-event-trail/AWSLogs/585193511743/CloudTrail/"
    logging.basicConfig(level=args.loglevel)
    logging.debug(args)
    main(args)
