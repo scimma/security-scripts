@@ -129,10 +129,26 @@ class Test_standard_tags(measurements.Measurement):
         
         sql = '''
               SELECT
-                 distinct value
+                 distinct value 
               FROM
                  tags
               WHERE  tag = "Service"
+
+               '''
+        self.df = self.q.q_to_df(sql)
+
+    def inf_service_resources(self):
+        """
+        List AWS resources associated with services.
+        """
+        shlog.normal("Reporting resources associated with a service")
+        
+        sql = '''
+              SELECT value, short_arn, arn
+              FROM
+                 tags
+              WHERE  tag = "Service"
+              ORDER by value, arn
 
                '''
         self.df = self.q.q_to_df(sql)
