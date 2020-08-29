@@ -20,7 +20,6 @@ from threading import Lock
 
 s_print_lock = Lock()
 client = boto3.client('s3')
-global_count = 0
 total_keys = 0
 
 
@@ -64,7 +63,7 @@ def progress_bar(iteration, total):
     """
     perc = round((iteration/total)*100, 2)
     bar = ('░'*19).replace('░','█',int(round(perc/5,0))) + '░'
-    return str("{:.2f}".format(perc)).zfill(5) + '% [' + bar + ']'
+    return str("{:.2f}".format(perc)).zfill(6) + '% [' + bar + ']'
 
 
 
@@ -92,8 +91,7 @@ def main(args):
        logging.info('error parsing bucket ' + args.bucket + ', s3://bucket/prefix format is expected')
        exit(0)
 
-   # get vault content
-   vault_content = list_target_objects(full_vault)
+   logging.info('Building key dictionary...')
 
    # init s3 and get bucket contents
    bucket_content = []
@@ -131,7 +129,6 @@ def s3download(keys):
     :return: None
     """
     global client # because multithreading can't stomach calls to clients defined within threads
-    global global_count # because multithreading counts too fast for its good
     global total_keys
     dest_pathname = os.path.split(keys['filepath'])  # [0] is dir path, [1] is file name
     # prep landing folder
@@ -139,11 +136,9 @@ def s3download(keys):
         Path(dest_pathname[0]).mkdir(parents=True, exist_ok=True)
     if os.path.isfile(keys['filepath']):
         s_print(progress_bar(keys['count'], total_keys) + ' ' + dest_pathname[1] + ' already downloaded, skipping...', flush=True)
-        global_count += 1
     else:
         s_print(progress_bar(keys['count'], total_keys) + ' Downloading ' + str(keys['filepath']), flush=True)
         client.download_file(keys['bucket'], keys['key'], keys['filepath'])
-        global_count += 1
 
 
 if __name__ == "__main__":
