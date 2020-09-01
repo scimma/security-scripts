@@ -145,7 +145,6 @@ if __name__ == "__main__":
 
    import argparse 
    import configparser
-   import aws_utils as au
 
    config = configparser.ConfigParser()
    config.read_file(open('defaults.cfg'))
