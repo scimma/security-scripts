@@ -8,7 +8,7 @@ Options available via <command> --help
 import logging
 import boto3
 
-def dependencies():
+def dependencies(args):
     """
     perform a check for installed third-party applications
     :return: None
@@ -41,25 +41,27 @@ def dependencies():
                   """)
 
 
-def policies():
+def policies(args):
     """
     list policies attached to a specified role
     :return: None
     """
     logging.info('Listing policies attached to ' + args.role)
+    boto3.setup_default_session(profile_name=args.profile)
     client = boto3.client('iam')
     response = client.list_attached_role_policies(RoleName=args.role)
     for policy in response['AttachedPolicies']:
         logging.info(policy['PolicyName'] + '//' + policy['PolicyArn'])
 
 
-def privileges():
+def privileges(args):
     """
     check if the current CLI user has sufficient privileges
     :return: None
     """
-    me = whoami()
+    me = whoami(args)
     logging.info('Simulating needed administrative actions for ' + me)
+    boto3.setup_default_session(profile_name=args.profile)
     client = boto3.client('iam')
     response = client.simulate_principal_policy(
         PolicySourceArn=me,
@@ -69,7 +71,7 @@ def privileges():
     for result in response['EvaluationResults']:
         logging.info('Action: ' + result['EvalActionName'] + '// Simulation result: ' + result['EvalDecision'])
 
-def repo():
+def repo(args):
     """
     repository checks script
     :return: None
@@ -79,7 +81,7 @@ def repo():
     os.system('git remote show origin')
 
 
-def roles():
+def roles(args):
     """
     List existing AWS Roles
     :return: None
@@ -91,24 +93,25 @@ def roles():
         logging.info('Role: ' + role['RoleName'])
 
 
-def whoami():
+def whoami(args):
     """
     retrieve current user's ARN
     :return: String
     """
     logging.info('Retrieving caller identity')
+    boto3.setup_default_session(profile_name=args.profile)
     client = boto3.client('sts')
     response = client.get_caller_identity()
     logging.info('AWS returned caller identity ' + response['Arn'])
     return response['Arn']
 
 
-def all():
+def all(args):
     """
     run all audits simultaneously
     :return: None
     """
-    audits = ['dependencies()', 'policies()', 'privileges()', 'repo()', 'roles()', 'whoami()']
+    audits = ['dependencies(args)', 'policies(args)', 'privileges(args)', 'repo(args)', 'roles(args)', 'whoami(args)']
     for audit in audits:
         print('_________________')
         exec(audit)
@@ -170,7 +173,6 @@ if __name__ == "__main__":
     logging.basicConfig(level=args.loglevel)
 
 
-    # args.session = boto3.Session(profile_name=args.profile)
     logging.getLogger('boto3').setLevel(logging.ERROR)
     logging.getLogger('botocore').setLevel(logging.ERROR)
     logging.getLogger('nose').setLevel(logging.ERROR)
@@ -178,5 +180,5 @@ if __name__ == "__main__":
     if not args.func:  # there are no subfunctions
         parser.print_help()
         exit(1)
-    args.func()
+    args.func(args)
 
