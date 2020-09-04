@@ -118,7 +118,7 @@ def all(args):
     """
     audits = ['dependencies(args)', 'policies(args)', 'privileges(args)', 'repo(args)', 'roles(args)', 'whoami(args)']
     for audit in audits:
-        print('_________________')
+        logging.info('_________________')
         exec(audit)
 
 
