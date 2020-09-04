@@ -8,7 +8,14 @@ Options available via <command> --help
 import logging
 import boto3
 
-def detacher(role):
+logging.getLogger('boto3').setLevel(logging.CRITICAL)
+logging.getLogger('botocore').setLevel(logging.CRITICAL)
+logging.getLogger('nose').setLevel(logging.CRITICAL)
+logging.getLogger('boto').setLevel(logging.CRITICAL)
+logging.getLogger('s3transfer').setLevel(logging.CRITICAL)
+
+
+def detacher(args, role):
     """
     Loop through all policies attached to a role and detach them
     :return:
@@ -25,9 +32,10 @@ def depriv(args):
     Make a request to deprivilege the target role to no permissions
     :return: None
     """
+    boto3.setup_default_session(profile_name=args.profile)
     iam = boto3.resource('iam')
     role = iam.Role(args.role)
-    detacher(role)
+    detacher(args, role)
     # attach read-only
     logging.info('Attaching ReadOnlyAccess to ' + args.role)
     response = role.attach_policy(PolicyArn='arn:aws:iam::aws:policy/ReadOnlyAccess')
@@ -39,9 +47,10 @@ def priv(args):
     Make a request to elevate the target role to ProposedPoweruser
     :return: None
     """
+    boto3.setup_default_session(profile_name=args.profile)
     iam = boto3.resource('iam')
     role = iam.Role(args.role)
-    detacher(role)
+    detacher(args, role)
     # attach read-only
     logging.info('Attaching ProposedPoweruser and RoleManagementWithCondition to ' + args.role)
     response = role.attach_policy(PolicyArn='arn:aws:iam::585193511743:policy/ProposedPoweruser')

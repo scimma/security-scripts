@@ -34,6 +34,27 @@ def control_audit(args):
     audit.all(args)
 
 
+def control_red_button(args):
+    """
+    Deprivilege target role and stop all ec2 instances
+    :param args:
+    :return:
+    """
+    from security_scripts.controls import buttons
+    buttons.depriv(args)
+    # TODO: add ec2stop
+
+
+def control_green_button(args):
+    """
+    Reprivilege target role
+    :param args:
+    :return:
+    """
+    from security_scripts.controls import buttons
+    buttons.priv(args)
+
+
 def catcher():
     import argparse
     import configparser
@@ -71,6 +92,14 @@ def catcher():
     # control parser
     control_audit_parser = subparsers.add_parser('control_audit', parents=[parent_parser], description=control_audit.__doc__)
     control_audit_parser.set_defaults(func=control_audit)
+
+    # green button parser
+    green_parser = subparsers.add_parser('control_green_button', parents=[parent_parser], description=control_green_button.__doc__)
+    green_parser.set_defaults(func=control_green_button)
+
+    # red button parser
+    red_parser = subparsers.add_parser('control_red_button', parents=[parent_parser], description=control_red_button.__doc__)
+    red_parser.set_defaults(func=control_red_button)
 
 
     args = parser.parse_args()
