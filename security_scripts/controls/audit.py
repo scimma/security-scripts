@@ -8,6 +8,11 @@ Options available via <command> --help
 import logging
 import boto3
 
+logging.getLogger('boto3').setLevel(logging.ERROR)
+logging.getLogger('botocore').setLevel(logging.ERROR)
+logging.getLogger('nose').setLevel(logging.ERROR)
+
+
 def dependencies(args):
     """
     perform a check for installed third-party applications
@@ -168,14 +173,8 @@ if __name__ == "__main__":
     all_parser = subparsers.add_parser('all', description=all.__doc__)
     all_parser.set_defaults(func=all)
 
-
     args = parser.parse_args()
     logging.basicConfig(level=args.loglevel)
-
-
-    logging.getLogger('boto3').setLevel(logging.ERROR)
-    logging.getLogger('botocore').setLevel(logging.ERROR)
-    logging.getLogger('nose').setLevel(logging.ERROR)
 
     if not args.func:  # there are no subfunctions
         parser.print_help()
