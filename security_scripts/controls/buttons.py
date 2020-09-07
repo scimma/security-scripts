@@ -53,9 +53,9 @@ def priv(args):
     detacher(args, role)
     # attach read-only
     logging.info('Attaching ProposedPoweruser and RoleManagementWithCondition to ' + args.role)
-    response = role.attach_policy(PolicyArn='arn:aws:iam::585193511743:policy/ProposedPoweruser')
+    response = role.attach_policy(PolicyArn='arn:aws:iam::' + args.accountid + ':policy/ProposedPoweruser')
     logging.debug(response)
-    response = role.attach_policy(PolicyArn='arn:aws:iam::585193511743:policy/RoleManagementWithCondition')
+    response = role.attach_policy(PolicyArn='arn:aws:iam::' + args.accountid + ':policy/RoleManagementWithCondition')
     logging.debug(response)
 
 

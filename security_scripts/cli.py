@@ -9,69 +9,57 @@ sensitive to a config file.
 
 Options available via <command> --help
 """
+import argparse
 
 
 def inf_vault(args):
-    """
-    Build local event log vault
-    """
+    """Build local event log vault"""
     from security_scripts.information import vault
     vault.main(args)
 
 
-def inf_find():
-    """
-    Information functions that allow for forensic investigations of AWS logs
-    """
-    print('inf vault')
+def inf_find(args):
+    """Search logs in vault for a string"""
+    from security_scripts.information import find_by_content
+    find_by_content.main(args)
 
 
 def inf_v():
-    """
-    Information functions that allow for forensic investigations of AWS logs
-    """
+    """Information functions that allow for forensic investigations of AWS logs"""
     # todo: s3, tags
     print('inf vault')
 
 
 def control(args):
-    """
-    Controlling functions that allow for influencing AWS account
-    """
+    """Controlling functions that allow for influencing AWS account"""
     print('control launch')
 
 
 def control_audit(args):
-    """
-    Run all available audits
-    """
+    """Run all available audits"""
     from security_scripts.controls import audit  # this doesn't work in terminal, only IDEs and in package form
     audit.all(args)
 
 
 def control_red_button(args):
-    """
-    Deprivilege target role and stop all ec2 instances
-    """
+    """Deprivilege target role and stop all ec2 instances"""
     from security_scripts.controls import buttons
     buttons.depriv(args)
     buttons.ec2stop(args, False)
 
 
 def control_green_button(args):
-    """
-    Reprivilege target role
-    """
+    """Reprivilege target role"""
     from security_scripts.controls import buttons
     buttons.priv(args)
 
 
 
 def catcher():
-    import argparse
     import configparser
     import logging
     import sys
+    from datetime import date, timedelta
 
     config = configparser.ConfigParser()
 
@@ -89,12 +77,13 @@ def catcher():
     bucket = config.get("DOWNLOAD", "bucket", fallback='s3://scimma-processes/Scimma-event-trail')
     accountid = config.get("DOWNLOAD", "accountid", fallback="585193511743")
 
-
+    # argparse.ArgumentDefaultsHelpFormatter doesn't work...
     """Create command line arguments"""
     parent_parser = argparse.ArgumentParser(add_help=False, description=__doc__, formatter_class=argparse.RawDescriptionHelpFormatter)
-    parent_parser.add_argument('--loglevel', '-l', help="Level for reporting e.g. DEBUG, INFO, WARN", default=loglevel)
-    parent_parser.add_argument('--profile', '-p', default=profile, help='~/.aws/config profile to use')
-    parent_parser.add_argument('--role', '-r', default=target_role, help='target role for actions')
+    parent_parser.add_argument('--loglevel', '-l', help="Level for reporting e.g. DEBUG, INFO, WARN (default: %(default)s)", default=loglevel)
+    parent_parser.add_argument('--profile', '-p', default=profile, help='~/.aws/config profile to use (default: %(default)s)')
+    parent_parser.add_argument('--role', '-r', default=target_role, help='target role for actions (default: %(default)s)')
+    parent_parser.add_argument('--accountid', '-a', help='AWS account id to use for log and policy arns (default: %(default)s)', default=accountid)
 
 
     parser = argparse.ArgumentParser(add_help=False)
@@ -103,9 +92,20 @@ def catcher():
     # vault parser
     inf_vault_parser = subparsers.add_parser('inf_vault', parents=[parent_parser], description=inf_vault.__doc__)
     inf_vault_parser.set_defaults(func=inf_vault)
-    inf_vault_parser.add_argument('--bucket', '-b', help='bucket with cloudtail logs', default=bucket)
-    inf_vault_parser.add_argument('--vaultdir', '-v', help='path to directory containing AWS logs', default=vaultdir)
-    inf_vault_parser.add_argument('--accountid', '-a', help='AWS account id', default=accountid)
+    inf_vault_parser.add_argument('--bucket', '-b', help='bucket with cloudtail logs (default: %(default)s)', default=bucket)
+    inf_vault_parser.add_argument('--vaultdir', '-v', help='path to directory containing AWS logs (default: %(default)s)', default=vaultdir)
+
+    # find parser
+    inf_find_parser = subparsers.add_parser('inf_find', parents=[parent_parser], description=inf_find.__doc__)
+    inf_find_parser.set_defaults(func=inf_find)
+    inf_find_parser.add_argument('--vaultdir', '-v', help='path to directory containing AWS logs (default: %(default)s)', default=vaultdir)
+    inf_find_parser.add_argument('--caseblind', '-c', help='caseblind compare (default: %(default)s)', action='store_true')
+    inf_find_parser.add_argument('--date', '-d', help='anchor date, e.g 2021-4-30 (default: %(default)s)',
+                                 type=(lambda x: date.fromisoformat(x)),
+                                 default=date.today())
+    inf_find_parser.add_argument('--datedelta', '-dd', help='day offset from date  (e.g. -5:five days prior) (default: %(default)s)', type=int, default=0)
+    inf_find_parser.add_argument('searchglob', help='string to search for, in form of a glob. this goes at the end of the command')
+
 
     # audit parser
     control_audit_parser = subparsers.add_parser('control_audit', parents=[parent_parser], description=control_audit.__doc__)
@@ -120,18 +120,31 @@ def catcher():
     red_parser = subparsers.add_parser('control_red_button', parents=[parent_parser], description=control_red_button.__doc__)
     red_parser.set_defaults(func=control_red_button)
 
-
     args = parser.parse_args()
+    args.datepath = "logs/Scimma-event-trail/AWSLogs/" + args.accountid + "/CloudTrail/"
     if len(sys.argv) == 1:
-        parser.print_help()
+        parser_help(parser)
         sys.exit()
 
     if not args.func or not args:  # there are no subfunctions
-        parser.print_help()
+        parser_help(parser)
         exit(1)
     logging.basicConfig(level=args.loglevel)
 
     args.func(args)
+
+
+def parser_help(parser):
+    parser.print_help()
+    subparsers_actions = [
+        action for action in parser._actions
+        if isinstance(action, argparse._SubParsersAction)]
+    for subparsers_action in subparsers_actions:
+        # get all subparsers and print help
+        for choice, subparser in subparsers_action.choices.items():
+            print("\nArgument '{}':".format(choice))
+            print('\t' + subparser.description)
+            print("\tType 'sc {} -h' for use information".format(choice))
 
 
 if __name__ == "__main__":

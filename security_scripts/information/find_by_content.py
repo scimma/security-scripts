@@ -122,7 +122,7 @@ def  get_all_template_paths(args):
    Return a globbed path to all event files for each  date.
 
    The template covers all AWS regions.
-   e.g  logs/Scimma-event-trail/AWSLogs/585193511743/CloudTrail/*/2020/08/20/*.json.gz
+   e.g  logs/Scimma-event-trail/AWSLogs/acct_id/CloudTrail/*/2020/08/20/*.json.gz
    """
    from pathlib import Path
    import glob
@@ -223,17 +223,17 @@ if __name__ == "__main__":
    parser.add_argument('--profile','-p',default=profile,help='aws profile to use')
    parser.add_argument('--debug'   ,'-d',help='print debug info', default=False, action='store_true')
    parser.add_argument('--loglevel','-l',help="Level for reporting e.r DEBUG, INFO, WARN", default=loglevel)
-   parser.add_argument('--vaultdir'     ,help='vault directory def:%s' % vaultdir, default=vaultdir)
+   parser.add_argument('--vaultdir', '-v',help='vault directory def:%s' % vaultdir, default=vaultdir)
    parser.add_argument('--accountid', help='AWS account id', default=accountid)
-   parser.add_argument('--caseblind'    ,help='caseblind compare', action='store_true')
-   parser.add_argument('--date'         ,help='anchor date, e.g 2021-4-30',
+   parser.add_argument('--caseblind', '-c',help='caseblind compare', action='store_true')
+   parser.add_argument('--date', '-d',help='anchor date, e.g 2021-4-30',
                                          type=(lambda x : date.fromisoformat(x)),
                                          default=date.today())
-   parser.add_argument('--datedelta'    ,help='day offset from date  (e.g. -5:five days prior)', type=int, default = 0) 
-   parser.add_argument('searchglob'     ,help='string to search for, in form of a glob')
+   parser.add_argument('--datedelta','-dd',help='day offset from date  (e.g. -5:five days prior)', type=int, default = 0)
+   parser.add_argument('searchglob'     ,help='string to search for, in form of a glob. this goes at the end of the command')
 
    args = parser.parse_args()
-   args.datepath = "logs/Scimma-event-trail/AWSLogs/" + args.accountid + "/CloudTrail/" # fix
+   args.datepath = "logs/Scimma-event-trail/AWSLogs/" + args.accountid + "/CloudTrail/"
    logging.basicConfig(level=args.loglevel)
    logging.debug(args)
    main(args)
