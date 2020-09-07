@@ -65,9 +65,9 @@ def ec2stop(args, dryrun=False):
     :return:
     """
     from botocore.exceptions import ClientError
-    import aws_utils as au
-    regions = au.decribe_regions_df(args)
-    # regions = {'RegionName':['us-east-2']}
+    from security_scripts.information.lib import aws_utils as au # only works in plugin and IDE
+    regions = au.decribe_regions_df(args) # use for deployment
+    # regions = {'RegionName':['us-east-2']} # test mode
     for region in regions['RegionName']:
         logging.info('Stopping region ' + region)
         # init connection to region and get instances there
