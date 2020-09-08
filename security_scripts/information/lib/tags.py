@@ -12,9 +12,9 @@ accounting and AWS-level incident response are present.
 import boto3
 import pandas as pd
 import sqlite3
-import aws_utils
-import measurements
-import shlog
+from security_scripts.information.lib import aws_utils
+from security_scripts.information.lib import measurements
+import logging
 
 class Tags(measurements.Dataset):
     """
@@ -31,15 +31,16 @@ class Tags(measurements.Dataset):
         Make a table called TAGS based on tagging data.
         This collection of data is based on the resourcetaggingapi
         """ 
-        shlog.normal("beginning to make %s data" % self.name) 
+        logging.info("beginning to make %s data" % self.name)
         # Make a flattened table for the tag data.
         # one tag, value pair in each record.
         sql = "create table IF NOT EXISTS tags (short_arn text, tag text, value text, arn text)"
-        shlog.verbose(sql)
+        logging.debug(sql)
         self.q.q(sql)
 
         # Get the tags for each region.
         # accomidate the boto3 API can retul data in pages.
+        boto3.setup_default_session(profile_name=self.args.profile)
         self.args.session = boto3.Session(profile_name=self.args.profile)
         region_name_list = aws_utils.decribe_regions_df(self.args)['RegionName']
         for region_name in region_name_list:
@@ -66,7 +67,7 @@ class Tags(measurements.Dataset):
         by the scimma project they are set by our UIUC AWS provider
         """
 
-        shlog.normal("beginning to clean %s data" % self.name) 
+        logging.info("beginning to clean %s data" % self.name)
         sql = '''
         DELETE FROM
             tags
@@ -76,7 +77,7 @@ class Tags(measurements.Dataset):
                     )
         '''
         self.q.q(sql)
-        shlog.normal("%s data prepared" % self.name)
+        logging.info("%s data prepared" % self.name)
     
 class Test_standard_tags(measurements.Measurement):
     def __init__(self, args, name, q):
@@ -86,7 +87,7 @@ class Test_standard_tags(measurements.Measurement):
         """
         Test for ARN's missing either Critiality or Service tags.
         """
-        shlog.normal("performing test for Criticality and Service Tags")
+        logging.info("performing test for Criticality and Service Tags")
 
         sql = '''
               SELECT
@@ -106,7 +107,7 @@ class Test_standard_tags(measurements.Measurement):
         """
         Test for ARN's that have criticality, but not one of the standard values
         """
-        shlog.normal("looking for non standard criticality values")
+        logging.info("looking for non standard criticality values")
 
         sql = '''
               SELECT
@@ -125,7 +126,7 @@ class Test_standard_tags(measurements.Measurement):
         """
         List unique service names found tags in the running system
         """
-        shlog.normal("Reporting on unique service names")
+        logging.info("Reporting on unique service names")
         
         sql = '''
               SELECT
@@ -141,7 +142,7 @@ class Test_standard_tags(measurements.Measurement):
         """
         List AWS resources associated with services.
         """
-        shlog.normal("Reporting resources associated with a service")
+        logging.info("Reporting resources associated with a service")
         
         sql = '''
               SELECT value, short_arn, arn

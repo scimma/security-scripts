@@ -6,14 +6,14 @@ Check consistenty of AWS implementation with SCIMMA rules.
 Optons available via <command> --help
 """
 
-import shlog
+import logging
 
        
 def main(args):
-   import vanilla_utils
-   import tags
+   from security_scripts.information.lib import vanilla_utils
+   from security_scripts.information.lib import tags
    
-   shlog.verbose(args)
+   # shlog.verbose(args)
    q=vanilla_utils.Q(args.dbfile)
 
    tag_data = tags.Tags(args,"TAGS",q)
@@ -43,13 +43,13 @@ if __name__ == "__main__":
    parser = argparse.ArgumentParser(description=__doc__, formatter_class=argparse.RawDescriptionHelpFormatter)
    parser.add_argument('--profile','-p',default=profile,
              help='aws profile to use')
-   parser.add_argument('--debug'   ,'-d',help='print debug info', default=False, action='store_true')
-   parser.add_argument('--loglevel','-l',help=shlog.helptext, default="NORMAL")
-   parser.add_argument('--dbfile'       ,help='database file to use def:%s' % dbfile, default=dbfile)
-   parser.add_argument('--dump'         ,help="dump data and quit, do not apply test", default=False, action='store_true' )
+   parser.add_argument('--debug'   ,'-d' , help='print debug info', default=False, action='store_true')
+   parser.add_argument('--loglevel', '-l', help="Level for reporting e.g. DEBUG, INFO, WARN", default=loglevel)
+   parser.add_argument('--dbfile','-df'  , help='database file to use def:%s' % dbfile, default=dbfile)
+   parser.add_argument('--dump', '-du'   , help="dump data and quit, do not apply test", default=False, action='store_true' )
 
    args = parser.parse_args()
-   shlog.basicConfig(level=args.loglevel)
+   logging.basicConfig(level=args.loglevel)
 
    main(args)
 

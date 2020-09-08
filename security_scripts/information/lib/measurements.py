@@ -5,7 +5,7 @@ The Database class loads information into a relational DB.
 THe Measurement class uses the relational db.
 The two classes do not otherwise communicate.
 """
-import shlog
+import logging
 import pandas as pd
 
 class Dataset:
@@ -35,7 +35,7 @@ class Dataset:
         This method is useful after the make_data and clean steps
         """
         sql = "select * from %s" % (self.table_name)
-        shlog.verbose(sql)
+        logging.debug(sql)
         df = self.q.q_to_df(sql)
         print(wrapped_ascii_table(df))
 
@@ -80,7 +80,7 @@ class Measurement:
         for key in dir(self):
             if key[0:len(prefix)] == prefix:
                 #import pdb; pdb.set_trace()
-                shlog.normal("starting analysis: %s" % (key))
+                logging.info("starting analysis: %s" % (key))
                 self.current_test = key
                 self.__getattribute__(key)()
                 report_func() #differnt report format for test/analysis

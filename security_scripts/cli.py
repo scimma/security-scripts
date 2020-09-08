@@ -25,20 +25,15 @@ def inf_find(args):
 
 
 def inf_s3(args):
-    """Print S3 storage resource on stdout."""
+    """Print S3 storage resource on stdout"""
     from security_scripts.information import s3_report
     s3_report.main(args)
 
 
-def inf_v():
-    """Information functions that allow for forensic investigations of AWS logs"""
-    # todo: s3, tags
-    print('inf vault')
-
-
-def control(args):
-    """Controlling functions that allow for influencing AWS account"""
-    print('control launch')
+def inf_tag(args):
+    """Check consistenty of AWS implementation with SCIMMA rules"""
+    from security_scripts.information import tag_report
+    tag_report.main(args)
 
 
 def control_audit(args):
@@ -82,6 +77,7 @@ def catcher():
     profile = config.get("DEFAULT", "profile", fallback="scimma-uiuc-aws-admin")
     bucket = config.get("DOWNLOAD", "bucket", fallback='s3://scimma-processes/Scimma-event-trail')
     accountid = config.get("DOWNLOAD", "accountid", fallback="585193511743")
+    dbfile = config.get("TAG_REPORT", "dbfile", fallback=":memory:")
 
     # argparse.ArgumentDefaultsHelpFormatter doesn't work...
     """Create command line arguments"""
@@ -98,7 +94,7 @@ def catcher():
     # vault parser
     inf_vault_parser = subparsers.add_parser('inf_vault', parents=[parent_parser], description=inf_vault.__doc__)
     inf_vault_parser.set_defaults(func=inf_vault)
-    inf_vault_parser.add_argument('--bucket', '-b', help='bucket with cloudtail logs (default: %(default)s)', default=bucket)
+    inf_vault_parser.add_argument('--bucket', '-b', help='bucket with cloudtail logs (default: :memory:)', default=bucket)
     inf_vault_parser.add_argument('--vaultdir', '-v', help='path to directory containing AWS logs (default: %(default)s)', default=vaultdir)
 
     # find parser
@@ -115,6 +111,13 @@ def catcher():
     # s3 parser
     inf_s3_parser = subparsers.add_parser('inf_s3', parents=[parent_parser], description=inf_s3.__doc__)
     inf_s3_parser.set_defaults(func=inf_s3)
+
+    # tag parser
+    inf_tag_parser = subparsers.add_parser('inf_tag', parents=[parent_parser], description=inf_tag.__doc__)
+    inf_tag_parser.set_defaults(func=inf_tag)
+    inf_tag_parser.add_argument('--dbfile', '-df', help='database file to use (default: :memory:)', default=dbfile)
+    inf_tag_parser.add_argument('--dump', '-du', help="dump data and quit, do not apply test (default: %(default)s)",
+                                default=False, action='store_true')
 
     # audit parser
     control_audit_parser = subparsers.add_parser('control_audit', parents=[parent_parser], description=control_audit.__doc__)

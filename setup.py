@@ -17,6 +17,7 @@ setuptools.setup(
     package_data={
         "": ["*.cfg"] # carry what is yours
     },
+    install_requires=['boto3','tabulate'],
     entry_points={
         'console_scripts': ['sc=security_scripts.cli:catcher'],
     },
