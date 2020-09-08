@@ -24,6 +24,12 @@ def inf_find(args):
     find_by_content.main(args)
 
 
+def inf_s3(args):
+    """Print S3 storage resource on stdout."""
+    from security_scripts.information import s3_report
+    s3_report.main(args)
+
+
 def inf_v():
     """Information functions that allow for forensic investigations of AWS logs"""
     # todo: s3, tags
@@ -106,6 +112,9 @@ def catcher():
     inf_find_parser.add_argument('--datedelta', '-dd', help='day offset from date  (e.g. -5:five days prior) (default: %(default)s)', type=int, default=0)
     inf_find_parser.add_argument('searchglob', help='string to search for, in form of a glob. this goes at the end of the command')
 
+    # s3 parser
+    inf_s3_parser = subparsers.add_parser('inf_s3', parents=[parent_parser], description=inf_s3.__doc__)
+    inf_s3_parser.set_defaults(func=inf_s3)
 
     # audit parser
     control_audit_parser = subparsers.add_parser('control_audit', parents=[parent_parser], description=control_audit.__doc__)
@@ -121,7 +130,6 @@ def catcher():
     red_parser.set_defaults(func=control_red_button)
 
     args = parser.parse_args()
-    args.datepath = "logs/Scimma-event-trail/AWSLogs/" + args.accountid + "/CloudTrail/"
     if len(sys.argv) == 1:
         parser_help(parser)
         sys.exit()
@@ -131,6 +139,7 @@ def catcher():
         exit(1)
     logging.basicConfig(level=args.loglevel)
 
+    args.datepath = "logs/Scimma-event-trail/AWSLogs/" + args.accountid + "/CloudTrail/"
     args.func(args)
 
 

@@ -7,15 +7,15 @@ Beginning of a script to tell us more.
 Options available via <command> --help
 """
 
-import shlog
+import logging
 
        
 def main(args):
    import subprocess
    
-   shlog.verbose(args)
+   logging.info(args)
    cmd = "aws s3api  list-buckets --profile {} --output json ".format(args.profile)
-   shlog.verbose(cmd)
+   logging.info(cmd)
    ret = subprocess.run(cmd, shell=True, check=True)
    
 
@@ -33,10 +33,10 @@ if __name__ == "__main__":
    parser = argparse.ArgumentParser(description=__doc__, formatter_class=argparse.RawDescriptionHelpFormatter)
    parser.add_argument('--profile','-p',default=profile,
              help='aws profile to use')
-   parser.add_argument('--loglevel','-l',help=shlog.helptext, default="INFO")
+   parser.add_argument('--loglevel', '-l', help="Level for reporting e.g. DEBUG, INFO, WARN", default=loglevel)
 
    args = parser.parse_args()
-   shlog.basicConfig(format="s3_report.py: %(message)s'", level=args.loglevel)
+   logging.basicConfig(level=args.loglevel)
 
    main(args)
 
