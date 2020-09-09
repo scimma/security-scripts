@@ -26,7 +26,7 @@ if __name__ == "__main__":
 
    config = configparser.ConfigParser()
    config.read_file(open('defaults.cfg'))
-   profile  = config.get("S3_REPORT",'profile', fallback='scimma-uiuc-aws-admin')
+   profile  = config.get("DEFAULT",'profile', fallback='scimma-uiuc-aws-admin')
    loglevel = config.get("S3_REPORT", "loglevel",fallback="INFO")
    
    """Create command line arguments"""

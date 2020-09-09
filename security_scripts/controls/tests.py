@@ -6,7 +6,8 @@ or reprivilege a role.
 Options available via <command> --help
 """
 import logging
-
+from security_scripts.controls.audit import whoami as w
+import boto3
 
 def depriv(args):
     """
@@ -15,7 +16,7 @@ def depriv(args):
     """
     logging.info('Simulating depriv...')
     logging.info('Attaching ReadOnlyAccess to ' + args.role)
-    check()
+    check(args)
 
 
 def priv(args):
@@ -25,15 +26,16 @@ def priv(args):
     """
     logging.info('Simulating priv...')
     logging.info('Attaching ProposedPoweruser and RoleManagementWithCondition to ' + args.role)
-    check()
+    check(args)
 
 
-def check():
+def check(args):
     """
     actual check
     :return:
     """
-    me = w()
+    me = w(args)
+    boto3.setup_default_session(profile_name=args.profile)
     client = boto3.client('iam')
     response = client.simulate_principal_policy(
         PolicySourceArn=me,
@@ -52,7 +54,8 @@ def ec2stop(args):
     :return: None
     """
     logging.info('Simulating ec2stop')
-    me = w()
+    me = w(args)
+    boto3.setup_default_session(profile_name=args.profile)
     client = boto3.client('iam')
     response = client.simulate_principal_policy(
         PolicySourceArn=me,
@@ -64,7 +67,7 @@ def ec2stop(args):
         else:
             logging.info('AWS reported ' + me + ' is not allowed to perform ec2:StopInstances!')
 
-    from buttons import ec2stop as e
+    from security_scripts.controls.buttons import ec2stop as e
     e(args, True)
 
 
@@ -107,14 +110,12 @@ if __name__ == "__main__":
     args = parser.parse_args()
     logging.basicConfig(level=args.loglevel)
 
-    import boto3
 
     args.session = boto3.Session(profile_name=args.profile)
     logging.getLogger('boto3').setLevel(logging.ERROR)
     logging.getLogger('botocore').setLevel(logging.ERROR)
     logging.getLogger('nose').setLevel(logging.ERROR)
 
-    from audit import whoami as w
 
     if not args.func:  # there are no subfunctions
         parser.print_help()

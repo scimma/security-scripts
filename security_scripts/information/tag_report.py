@@ -12,8 +12,7 @@ import logging
 def main(args):
    from security_scripts.information.lib import vanilla_utils
    from security_scripts.information.lib import tags
-   
-   # shlog.verbose(args)
+
    q=vanilla_utils.Q(args.dbfile)
 
    tag_data = tags.Tags(args,"TAGS",q)
@@ -35,7 +34,7 @@ if __name__ == "__main__":
 
    config = configparser.ConfigParser()
    config.read_file(open('defaults.cfg'))
-   profile  = config.get("TAG_REPORT", "profile")
+   profile  = config.get("DEFAULT", "profile")
    loglevel = config.get("TAG_REPORT", "loglevel",fallback="NORMAL")
    dbfile =   config.get("TAG_REPORT", "dbfile"  ,fallback=":memory:") 
    

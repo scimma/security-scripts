@@ -213,7 +213,7 @@ if __name__ == "__main__":
    config = configparser.ConfigParser()
    config.read_file(open('defaults.cfg'))
    vaultdir  = config.get("FIND_BY_CONTENT", "vaultdir", fallback="~/.vault")
-   profile   = config.get("DEFAULT", "profile", fallback="default")
+   profile   = config.get("DEFAULT", "profile", fallback="scimma-uiuc-aws-admin")
    loglevel  = config.get("FIND_BY_CONTENT", "loglevel",fallback="INFO")
    accountid = config.get("DOWNLOAD", "accountid", fallback="585193511743")
 
@@ -226,7 +226,7 @@ if __name__ == "__main__":
    parser.add_argument('--vaultdir', '-v',help='vault directory def:%s' % vaultdir, default=vaultdir)
    parser.add_argument('--accountid', help='AWS account id', default=accountid)
    parser.add_argument('--caseblind', '-c',help='caseblind compare', action='store_true')
-   parser.add_argument('--date', '-d',help='anchor date, e.g 2021-4-30',
+   parser.add_argument('--date', '-da',help='anchor date, e.g 2021-4-30',
                                          type=(lambda x : date.fromisoformat(x)),
                                          default=date.today())
    parser.add_argument('--datedelta','-dd',help='day offset from date  (e.g. -5:five days prior)', type=int, default = 0)

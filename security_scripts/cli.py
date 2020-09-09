@@ -54,6 +54,18 @@ def control_green_button(args):
     from security_scripts.controls import buttons
     buttons.priv(args)
 
+def test_red_button(args):
+    """Test deprivilege and ec2-stopping abilities"""
+    from security_scripts.controls import tests
+    tests.depriv(args)
+    tests.ec2stop(args)
+
+
+def test_green_button(args):
+    """Test reprivileging abilities"""
+    from security_scripts.controls import tests
+    tests.priv(args)
+
 
 
 def catcher():
@@ -102,7 +114,7 @@ def catcher():
     inf_find_parser.set_defaults(func=inf_find)
     inf_find_parser.add_argument('--vaultdir', '-v', help='path to directory containing AWS logs (default: %(default)s)', default=vaultdir)
     inf_find_parser.add_argument('--caseblind', '-c', help='caseblind compare (default: %(default)s)', action='store_true')
-    inf_find_parser.add_argument('--date', '-d', help='anchor date, e.g 2021-4-30 (default: %(default)s)',
+    inf_find_parser.add_argument('--date', '-da', help='anchor date, e.g 2021-4-30 (default: %(default)s)',
                                  type=(lambda x: date.fromisoformat(x)),
                                  default=date.today())
     inf_find_parser.add_argument('--datedelta', '-dd', help='day offset from date  (e.g. -5:five days prior) (default: %(default)s)', type=int, default=0)
@@ -127,10 +139,18 @@ def catcher():
     green_parser = subparsers.add_parser('control_green_button', parents=[parent_parser], description=control_green_button.__doc__)
     green_parser.set_defaults(func=control_green_button)
 
-
     # red button parser
     red_parser = subparsers.add_parser('control_red_button', parents=[parent_parser], description=control_red_button.__doc__)
     red_parser.set_defaults(func=control_red_button)
+
+    # green button test
+    test_green_parser = subparsers.add_parser('test_green_button', parents=[parent_parser], description=test_green_button.__doc__)
+    test_green_parser.set_defaults(func=test_green_button)
+
+    # red button test
+    test_red_parser = subparsers.add_parser('test_red_button', parents=[parent_parser], description=test_red_button.__doc__)
+    test_red_parser.set_defaults(func=test_red_button)
+
 
     args = parser.parse_args()
     if len(sys.argv) == 1:

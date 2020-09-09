@@ -159,7 +159,7 @@ if __name__ == "__main__":
    config = configparser.ConfigParser()
    config.read_file(open('defaults.cfg'))
    vaultdir = config.get("DOWNLOAD", "vaultdir", fallback="~/.vault")
-   profile  = config.get("DEFAULT", "profile", fallback="default")
+   profile  = config.get("DEFAULT", "profile", fallback="scimma-uiuc-aws-admin")
    accountid = config.get("DOWNLOAD", "accountid",fallback="585193511743")
    loglevel = config.get("DOWNLOAD", "loglevel",fallback="INFO")
    bucket   = config.get("DOWNLOAD", "bucket")

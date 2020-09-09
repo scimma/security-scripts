@@ -66,6 +66,7 @@ def ec2stop(args, dryrun=False):
     """
     from botocore.exceptions import ClientError
     from security_scripts.information.lib import aws_utils as au # only works in plugin and IDE
+    args.session = boto3.Session(profile_name=args.profile)
     regions = au.decribe_regions_df(args) # use for deployment
     # regions = {'RegionName':['us-east-2']} # test mode
     for region in regions['RegionName']:
