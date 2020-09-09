@@ -33,6 +33,7 @@ if __name__ == "__main__":
    import argparse 
    import configparser
 
+   """ get defaults from configuration system"""
    config = configparser.ConfigParser()
    config.read_file(open('defaults.cfg'))
    profile  = config.get("TAG_REPORT", "profile")
