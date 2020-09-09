@@ -8,16 +8,28 @@ Options available via <command> --help
 """
 
 import shlog
+import boto3
+import botocore
+import sys
 
-       
 def main(args):
-   import subprocess
-   
-   shlog.verbose(args)
-   cmd = "aws s3api  list-buckets --profile {} --output json ".format(args.profile)
-   shlog.verbose(cmd)
-   ret = subprocess.run(cmd, shell=True, check=True)
-   
+
+   # Retrieve the list of existing buckets
+   s3 = boto3.client('s3')
+   response = s3.list_buckets()
+
+   # Output the bucket names
+   print('Existing buckets:')
+   for bucket in response['Buckets']:
+      print(bucket)
+      result = s3.get_bucket_acl(Bucket=bucket["Name"])["Owner"]
+      print(result)
+      try: 
+         result = s3.get_bucket_policy(Bucket=bucket["Name"])
+         print(result["Policy"])
+      except botocore.exceptions.ClientError:
+         print(sys.exc_info()[0])
+      
 
 if __name__ == "__main__":
 
