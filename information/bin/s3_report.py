@@ -11,6 +11,7 @@ import shlog
 import boto3
 import botocore
 import sys
+import json
 
 def main(args):
 
@@ -22,13 +23,15 @@ def main(args):
    print('Existing buckets:')
    for bucket in response['Buckets']:
       print(bucket)
-      result = s3.get_bucket_acl(Bucket=bucket["Name"])["Owner"]
-      print(result)
+      result = s3.get_bucket_acl(Bucket=bucket["Name"])["Grants"]
+      result = json.dumps(result, sort_keys=True, indent=4)
       try: 
-         result = s3.get_bucket_policy(Bucket=bucket["Name"])
-         print(result["Policy"])
+         result = s3.get_bucket_policy_status( Bucket=bucket["Name"])
+         print(result["PolicyStatus"])
+         #result = s3.get_bucket_policy(Bucket=bucket["Name"])
+         #print(result["Policy"])
       except botocore.exceptions.ClientError:
-         print(sys.exc_info()[0])
+         print("{'IsPublic': False}")  # the default if no policy.
       
 
 if __name__ == "__main__":
