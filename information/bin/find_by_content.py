@@ -212,7 +212,7 @@ if __name__ == "__main__":
 
    config = configparser.ConfigParser()
    config.read_file(open('defaults.cfg'))
-   vaultdir  = config.get("FIND_BY_CONTENT", "vaultdir", fallback="~/.trailscraper")
+   vaultdir  = config.get("FIND_BY_CONTENT", "vaultdir", fallback="~/.vault")
    profile   = config.get("DEFAULT", "profile", fallback="default")
    loglevel  = config.get("FIND_BY_CONTENT", "loglevel",fallback="INFO")
 
