@@ -47,6 +47,7 @@ if __name__ == "__main__":
    parser.add_argument('--loglevel','-l',help=shlog.helptext, default="NORMAL")
    parser.add_argument('--dbfile'       ,help='database file to use def:%s' % dbfile, default=dbfile)
    parser.add_argument('--dump'         ,help="dump data and quit, do not apply test", default=False, action='store_true' )
+   parser.add_argument('--only'         ,help="only run reports matching glob", default="*")
 
    args = parser.parse_args()
    shlog.basicConfig(level=args.loglevel)
