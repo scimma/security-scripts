@@ -27,6 +27,7 @@ class Dataset:
         """  Remove items that are not relevant"""
         pass
 
+
     def print_data(self):
         """
         Print the dataset
@@ -59,9 +60,14 @@ class Measurement:
         self.name=name
         self.df = None
         self.current_test=None
+        self.listonly = args.listonly
 
-        self._call_analysis_methods("tst_",self._print_test_report)
-        self._call_analysis_methods("inf_",self._print_information_report)
+        if self.listonly:
+            self._print_tests("tst_")
+            self._print_tests("inf_")
+        else:
+            self._call_analysis_methods("tst_",self._print_test_report)
+            self._call_analysis_methods("inf_",self._print_information_report)
         
     def _call_analysis_methods(self,prefix, report_func):
         """
@@ -77,14 +83,31 @@ class Measurement:
         """
         
 
+        for name, func in self._list_tests(prefix):
+            shlog.normal("starting analysis: %s" % (name))
+            func()
+            report_func()
+            
+
+    def _list_tests(self, prefix):
+        """
+        return list of all tests
+
+        each list element is a parit of  [ascii_name, function-to-call]
+        """
+        list = []
         for key in dir(self):
             if key[0:len(prefix)] == prefix:
-                #import pdb; pdb.set_trace()
-                shlog.normal("starting analysis: %s" % (key))
-                self.current_test = key
-                self.__getattribute__(key)()
-                report_func() #differnt report format for test/analysis
+                list.append([key, self.__getattribute__(key)])
+        return list
 
+    def _print_tests(self, prefix):
+        """
+        print a list of available tests with the indicated prefix
+        """
+        for test, _ in self._list_tests(prefix):
+            print(test)
+        
 
     def _is_violation_detected(self):
         """Indicate that a test has not suceeded """
