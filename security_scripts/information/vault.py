@@ -74,7 +74,7 @@ def progress_bar(iteration, total):
 
 
 
-def main(args):
+def vault_main(args):
    """
    Download Cloudtrail logs to the vault directory.
 
@@ -151,6 +151,32 @@ def s3download(keys):
         client.download_file(keys['bucket'], keys['key'], keys['filepath'])
 
 
+def parser_builder(parent_parser, parser, config, remote=False):
+    """Get a parser and return it with additional options
+    :param parent_parser: top-level parser that will receive a subcommand; can be None if remote=False
+    :param parser: (sub)parser in need of additional arguments
+    :param config: ingested config file in config object format
+    :param remote: whenever we
+    :return: parser with amended options
+    """
+    bucket = config.get("DOWNLOAD", "bucket", fallback='s3://scimma-processes/Scimma-event-trail')
+    vaultdir = config.get("DEFAULT", "vaultdir", fallback="~/.vault")
+
+    if remote:
+        # augment remote parser with a new subcommand
+        inf_vault_parser = parser.add_parser('inf_vault', parents=[parent_parser], description=vault_main.__doc__)
+        inf_vault_parser.set_defaults(func=vault_main)
+        # arguments will be attached to subcommand
+        target_parser = inf_vault_parser
+    else:
+        # augments will be added to local parser
+        target_parser = parser
+    target_parser.add_argument('--bucket', '-b', help='bucket with cloudtail logs (default: %(default)s)',default=bucket)
+    target_parser.add_argument('--vaultdir', '-v',help='path to directory containing AWS logs (default: %(default)s)',default=vaultdir)
+    return parser
+
+
+
 if __name__ == "__main__":
 
    import argparse 
@@ -158,25 +184,24 @@ if __name__ == "__main__":
 
    config = configparser.ConfigParser()
    config.read_file(open('defaults.cfg'))
-   vaultdir = config.get("DOWNLOAD", "vaultdir", fallback="~/.vault")
    profile  = config.get("DEFAULT", "profile", fallback="scimma-uiuc-aws-admin")
    accountid = config.get("DOWNLOAD", "accountid",fallback="585193511743")
    loglevel = config.get("DOWNLOAD", "loglevel",fallback="INFO")
-   bucket   = config.get("DOWNLOAD", "bucket")
    
    
    """Create command line arguments"""
    parser = argparse.ArgumentParser(description=__doc__, formatter_class=argparse.RawDescriptionHelpFormatter)
    parser.add_argument('--profile','-p',default=profile,help='aws profile to use')
-   parser.add_argument('--debug'   ,'-d',help='print debug info', default=False, action='store_true')
    parser.add_argument('--loglevel','-l',help="Level for reporting e.g. DEBUG, INFO, WARN", default=loglevel)
-   parser.add_argument('--vaultdir'     ,help='vault directory def:%s' % vaultdir, default=vaultdir)
-   parser.add_argument('--bucket'       ,help='bucket with cloudtail logs', default=bucket)
    parser.add_argument('--accountid', help='AWS account id', default=accountid)
+
+   parser = parser_builder(None, parser, config, False)
 
    args = parser.parse_args()
    logging.basicConfig(level=args.loglevel)
 
-   main(args)
+
+
+   vault_main(args)
 
 
