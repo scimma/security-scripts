@@ -22,9 +22,13 @@ def main(args):
    # Output the bucket names
    print('Existing buckets:')
    for bucket in response['Buckets']:
+      name=bucket["Name"]
       print(bucket)
-      result = s3.get_bucket_acl(Bucket=bucket["Name"])["Grants"]
+      result = s3.get_bucket_acl(Bucket=name)["Grants"]
       result = json.dumps(result, sort_keys=True, indent=4)
+      print(result)
+      region = s3.head_bucket(Bucket=name)['ResponseMetadata']['HTTPHeaders']['x-amz-bucket-region']
+      print(region)
       try: 
          result = s3.get_bucket_policy_status( Bucket=bucket["Name"])
          print(result["PolicyStatus"])
