@@ -23,7 +23,9 @@ def main(args):
    print('Existing buckets:')
    for bucket in response['Buckets']:
       name=bucket["Name"]
-      print(bucket)
+      # arn can be computed from aws partition (e.g aws, aws-us-gov) and bucket name
+      arn="arn:{}:s3:::{}".format("aws",name)
+      print("***", bucket, arn)
       result = s3.get_bucket_acl(Bucket=name)["Grants"]
       result = json.dumps(result, sort_keys=True, indent=4)
       print(result)

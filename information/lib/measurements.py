@@ -28,7 +28,6 @@ class Dataset:
         """  Remove items that are not relevant"""
         pass
 
-
     def print_data(self):
         """
         Print the dataset
