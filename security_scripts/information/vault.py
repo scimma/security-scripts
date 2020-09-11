@@ -3,18 +3,12 @@
 Update (or create) a vault directory populated with files
 from Cloudtrail logs.
 
-The command uses the shell "trailscraper", which provides
-for incremental updates of the files. The command is
-sensitive to a config file.
-
 Options available via <command> --help
 """
 import os
 import boto3
 import logging
-import regex as re
 from pathlib import Path
-import multiprocessing as mp
 from threading import Lock
 
 logging.getLogger('boto3').setLevel(logging.CRITICAL)
@@ -75,13 +69,11 @@ def progress_bar(iteration, total):
 
 
 def vault_main(args):
-   """
-   Download Cloudtrail logs to the vault directory.
+   """Download Cloudtrail logs to the vault directory.
 
    A vault file is bushy directory tree that is stored under
-   $HOME/.vault. teh leaves are (many jason) files, each
-   covering a small slice of time. The files contain AWS event records.
-   """
+   $HOME/.vault. the leaves are (many json) files, each
+   covering a small slice of time. The files contain AWS event records."""
    # set up client
    boto3.setup_default_session(profile_name=args.profile)
    global client
@@ -93,6 +85,7 @@ def vault_main(args):
    Path(full_vault).mkdir(parents=True, exist_ok=True)
    # expected folder structure: "logs/Scimma-event-trail/AWSLogs/acct_id/CloudTrail/"
 
+   import regex as re
    # regex the bucket and prefix
    try:
        re_bucket = re.findall('(?<=s3:\/\/)(.*?)(?=\/)', args.bucket)[0]
@@ -127,6 +120,7 @@ def vault_main(args):
            Path(dest_pathname).mkdir(parents=True, exist_ok=True)
 
    # download files in a multithread fashion
+   import multiprocessing as mp
    pool = mp.Pool(min(mp.cpu_count(), len(keys)))  # number of workers
    pool.map(s3download, keys, chunksize=1)
    pool.close()

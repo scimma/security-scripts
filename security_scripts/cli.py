@@ -103,33 +103,12 @@ def catcher():
     parser = argparse.ArgumentParser(add_help=False)
     subparsers = parser.add_subparsers()
 
-    # vault parser
-    inf_vault_parser = subparsers.add_parser('inf_vault', parents=[parent_parser], description=inf_vault.__doc__)
-    inf_vault_parser.set_defaults(func=inf_vault)
-    inf_vault_parser.add_argument('--bucket', '-b', help='bucket with cloudtail logs (default: :memory:)', default=bucket)
-    inf_vault_parser.add_argument('--vaultdir', '-v', help='path to directory containing AWS logs (default: %(default)s)', default=vaultdir)
 
     # find parser
     inf_find_parser = subparsers.add_parser('inf_find', parents=[parent_parser], description=inf_find.__doc__)
     inf_find_parser.set_defaults(func=inf_find)
-    inf_find_parser.add_argument('--vaultdir', '-v', help='path to directory containing AWS logs (default: %(default)s)', default=vaultdir)
-    inf_find_parser.add_argument('--caseblind', '-c', help='caseblind compare (default: %(default)s)', action='store_true')
-    inf_find_parser.add_argument('--date', '-da', help='anchor date, e.g 2021-4-30 (default: %(default)s)',
-                                 type=(lambda x: date.fromisoformat(x)),
-                                 default=date.today())
-    inf_find_parser.add_argument('--datedelta', '-dd', help='day offset from date  (e.g. -5:five days prior) (default: %(default)s)', type=int, default=0)
-    inf_find_parser.add_argument('searchglob', help='string to search for, in form of a glob. this goes at the end of the command')
 
-    # s3 parser
-    inf_s3_parser = subparsers.add_parser('inf_s3', parents=[parent_parser], description=inf_s3.__doc__)
-    inf_s3_parser.set_defaults(func=inf_s3)
 
-    # tag parser
-    inf_tag_parser = subparsers.add_parser('inf_tag', parents=[parent_parser], description=inf_tag.__doc__)
-    inf_tag_parser.set_defaults(func=inf_tag)
-    inf_tag_parser.add_argument('--dbfile', '-df', help='database file to use (default: :memory:)', default=dbfile)
-    inf_tag_parser.add_argument('--dump', '-du', help="dump data and quit, do not apply test (default: %(default)s)",
-                                default=False, action='store_true')
 
     # audit parser
     control_audit_parser = subparsers.add_parser('control_audit', parents=[parent_parser], description=control_audit.__doc__)

@@ -9,7 +9,8 @@ Optons available via <command> --help
 import logging
 
        
-def main(args):
+def tag_main(args):
+   """Check consistenty of AWS implementation with SCiMMA rules."""
    from security_scripts.information.lib import vanilla_utils
    from security_scripts.information.lib import tags
 
@@ -25,30 +26,52 @@ def main(args):
 
    a = tags.Test_standard_tags(args, "Tagging Rule Check", q)
    #import pdb; pdb.set_trace()
+
+def parser_builder(parent_parser, parser, config, remote=False):
+    """Get a parser and return it with additional options
+    :param parent_parser: top-level parser that will receive a subcommand; can be None if remote=False
+    :param parser: (sub)parser in need of additional arguments
+    :param config: ingested config file in config object format
+    :param remote: whenever we
+    :return: parser with amended options
+    """
+    dbfile = config.get("TAG_REPORT", "dbfile", fallback=":memory:")
+
+    if remote:
+        # augment remote parser with a new subcommand
+        inf_tag_parser = parser.add_parser('inf_tag', parents=[parent_parser], description=tag_main.__doc__)
+        inf_tag_parser.set_defaults(func=tag_main)
+        # arguments will be attached to subcommand
+        target_parser = inf_tag_parser
+    else:
+        # augments will be added to local parser
+        target_parser = parser
+    target_parser.add_argument('--dbfile', '-df', help='database file to use (default: :memory:)', default=dbfile)
+    target_parser.add_argument('--dump', '-du', help="dump data and quit, do not apply test (default: %(default)s)",
+                                default=False, action='store_true')
+
+    return parser
    
 
 if __name__ == "__main__":
 
-   import argparse 
+   import argparse
    import configparser
 
    config = configparser.ConfigParser()
    config.read_file(open('defaults.cfg'))
    profile  = config.get("DEFAULT", "profile")
    loglevel = config.get("TAG_REPORT", "loglevel",fallback="NORMAL")
-   dbfile =   config.get("TAG_REPORT", "dbfile"  ,fallback=":memory:") 
-   
+
    """Create command line arguments"""
    parser = argparse.ArgumentParser(description=__doc__, formatter_class=argparse.RawDescriptionHelpFormatter)
-   parser.add_argument('--profile','-p',default=profile,
-             help='aws profile to use')
-   parser.add_argument('--debug'   ,'-d' , help='print debug info', default=False, action='store_true')
+   parser.add_argument('--profile', '-p', default=profile, help='aws profile to use')
    parser.add_argument('--loglevel', '-l', help="Level for reporting e.g. DEBUG, INFO, WARN", default=loglevel)
-   parser.add_argument('--dbfile','-df'  , help='database file to use def:%s' % dbfile, default=dbfile)
-   parser.add_argument('--dump', '-du'   , help="dump data and quit, do not apply test", default=False, action='store_true' )
+
+   parser = parser_builder(None, parser, config, False)
 
    args = parser.parse_args()
    logging.basicConfig(level=args.loglevel)
 
-   main(args)
+   tag_main(args)
 

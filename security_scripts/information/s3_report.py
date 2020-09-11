@@ -10,14 +10,35 @@ Options available via <command> --help
 import logging
 
        
-def main(args):
+def s3_main(args):
+   """Print S3 storage resource on stdout."""
    import subprocess
    
    logging.info(args)
    cmd = "aws s3api  list-buckets --profile {} --output json ".format(args.profile)
    logging.info(cmd)
    ret = subprocess.run(cmd, shell=True, check=True)
-   
+
+
+def parser_builder(parent_parser, parser, config, remote=False):
+    """Get a parser and return it with additional options
+    :param parent_parser: top-level parser that will receive a subcommand; can be None if remote=False
+    :param parser: (sub)parser in need of additional arguments
+    :param config: ingested config file in config object format
+    :param remote: whenever we
+    :return: parser with amended options
+    """
+    if remote:
+        # augment remote parser with a new subcommand
+        inf_s3_parser = parser.add_parser('inf_s3', parents=[parent_parser], description=s3_main.__doc__)
+        inf_s3_parser.set_defaults(func=s3_main)
+        # arguments will be attached to subcommand
+        target_parser = inf_s3_parser
+    else:
+        # augments will be added to local parser
+        target_parser = parser
+    return parser
+
 
 if __name__ == "__main__":
 
@@ -35,8 +56,9 @@ if __name__ == "__main__":
              help='aws profile to use')
    parser.add_argument('--loglevel', '-l', help="Level for reporting e.g. DEBUG, INFO, WARN", default=loglevel)
 
+   # no need to augment parser further
    args = parser.parse_args()
    logging.basicConfig(level=args.loglevel)
 
-   main(args)
+   s3_main(args)
 

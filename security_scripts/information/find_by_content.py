@@ -11,7 +11,6 @@ ptions available via <command> --help
 
 import logging
 import json
-import fnmatch
 from datetime import date,timedelta
 import os
 
@@ -20,12 +19,14 @@ class Cmp:
     make a optiony case blind comparison of two strings using a glob
 
     """
+
    def __init__(self, args):
         self.caseblind     = args.caseblind
         self.searchglob    = args.searchglob
         if self.caseblind: self.searchglob.upper()
         
    def match(self, value):
+       import fnmatch
        # Determine if string is a match
        # Set self.matched to most recent matched string.
        if type(value) is not type("") :
@@ -169,19 +170,14 @@ def filter_template_paths_by_date_range(args, all_paths):
 
 
 
-def main(args):
-   """
-   Dump cloudtail json event records from the vault having a
+def find_main(args):
+   """Dump cloudtail json event records from the vault having a
    some value matching the globstring.
 
    A vault file is a dictionary of "Records" containing an array
    of json objects, One json object per cloudtrail event.
    There are a large variety of events, each with a
-   different json schema.
-   """
-   import glob
-   import os
-   from pathlib import Path
+   different json schema."""
    import gzip
 
    c = Cmp(args)
@@ -203,6 +199,36 @@ def main(args):
                  print(json.dumps(item, indent=4, sort_keys=True))
                  nfound += 1
    logging.info("{} of {} items returned".format(nfound, nitems))
+
+
+def parser_builder(parent_parser, parser, config, remote=False):
+    """Get a parser and return it with additional options
+    :param parent_parser: top-level parser that will receive a subcommand; can be None if remote=False
+    :param parser: (sub)parser in need of additional arguments
+    :param config: ingested config file in config object format
+    :param remote: whenever we
+    :return: parser with amended options
+    """
+    vaultdir = config.get("DEFAULT", "vaultdir", fallback="~/.vault")
+
+    if remote:
+        # augment remote parser with a new subcommand
+        inf_find_parser = parser.add_parser('inf_find', parents=[parent_parser], description=find_main.__doc__)
+        inf_find_parser.set_defaults(func=find_main)
+        # arguments will be attached to subcommand
+        target_parser = inf_find_parser
+    else:
+        # augments will be added to local parser
+        target_parser = parser
+    target_parser.add_argument('--vaultdir', '-v',help='path to directory containing AWS logs (default: %(default)s)', default=vaultdir)
+    target_parser.add_argument('--caseblind', '-c', help='caseblind compare (default: %(default)s)',action='store_true')
+    target_parser.add_argument('--date', '-da', help='anchor date, e.g 2021-4-30 (default: %(default)s)',
+                                 type=(lambda x: date.fromisoformat(x)),
+                                 default=date.today())
+    target_parser.add_argument('--datedelta', '-dd',help='day offset from date  (e.g. -5:five days prior) (default: %(default)s)',type=int, default=0)
+    target_parser.add_argument('searchglob',help='string to search for, in form of a glob. this goes at the end of the command')
+    return parser
+
                 
 if __name__ == "__main__":
 
@@ -212,7 +238,6 @@ if __name__ == "__main__":
 
    config = configparser.ConfigParser()
    config.read_file(open('defaults.cfg'))
-   vaultdir  = config.get("FIND_BY_CONTENT", "vaultdir", fallback="~/.vault")
    profile   = config.get("DEFAULT", "profile", fallback="scimma-uiuc-aws-admin")
    loglevel  = config.get("FIND_BY_CONTENT", "loglevel",fallback="INFO")
    accountid = config.get("DOWNLOAD", "accountid", fallback="585193511743")
@@ -221,20 +246,13 @@ if __name__ == "__main__":
    """Create command line arguments"""
    parser = argparse.ArgumentParser(description=__doc__, formatter_class=argparse.RawDescriptionHelpFormatter)
    parser.add_argument('--profile','-p',default=profile,help='aws profile to use')
-   parser.add_argument('--debug'   ,'-d',help='print debug info', default=False, action='store_true')
    parser.add_argument('--loglevel','-l',help="Level for reporting e.r DEBUG, INFO, WARN", default=loglevel)
-   parser.add_argument('--vaultdir', '-v',help='vault directory def:%s' % vaultdir, default=vaultdir)
    parser.add_argument('--accountid', help='AWS account id', default=accountid)
-   parser.add_argument('--caseblind', '-c',help='caseblind compare', action='store_true')
-   parser.add_argument('--date', '-da',help='anchor date, e.g 2021-4-30',
-                                         type=(lambda x : date.fromisoformat(x)),
-                                         default=date.today())
-   parser.add_argument('--datedelta','-dd',help='day offset from date  (e.g. -5:five days prior)', type=int, default = 0)
-   parser.add_argument('searchglob'     ,help='string to search for, in form of a glob. this goes at the end of the command')
 
+   parser = parser_builder(None, parser, config, False)
    args = parser.parse_args()
    args.datepath = "logs/Scimma-event-trail/AWSLogs/" + args.accountid + "/CloudTrail/"
    logging.basicConfig(level=args.loglevel)
    logging.debug(args)
-   main(args)
+   find_main(args)
 

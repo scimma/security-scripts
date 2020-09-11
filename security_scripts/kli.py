@@ -46,6 +46,18 @@ def catcher():
     from security_scripts.information import vault as v
     subparsers = v.parser_builder(parent_parser, subparsers, config, True)
 
+    # request parser augmentation from tag report
+    from security_scripts.information import tag_report as tr
+    subparsers = tr.parser_builder(parent_parser, subparsers, config, True)
+
+    # request parser augmentation from s3 report
+    from security_scripts.information import s3_report as s3r
+    s3r.parser_builder(parent_parser, subparsers, config, True)
+
+    # request parser augmentation from find report
+    from security_scripts.information import find_by_content as f
+    f.parser_builder(parent_parser, subparsers, config, True)
+
 
     # parse args or handle help
     args = parser.parse_args()
