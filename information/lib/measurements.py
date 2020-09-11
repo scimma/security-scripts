@@ -7,6 +7,7 @@ The two classes do not otherwise communicate.
 """
 import shlog
 import pandas as pd
+import fnmatch
 
 class Dataset:
     """
@@ -94,10 +95,12 @@ class Measurement:
         return list of all tests
 
         each list element is a parit of  [ascii_name, function-to-call]
+        filter according to th eglob in args.only
         """
         list = []
         for key in dir(self):
             if key[0:len(prefix)] == prefix:
+                if not fnmatch.fnmatch(key, self.args.only) : continue
                 list.append([key, self.__getattribute__(key)])
         return list
 

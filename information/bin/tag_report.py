@@ -14,6 +14,7 @@ def main(args):
    import tags
    
    shlog.verbose(args)
+   shlog.verbose("only tests matching %s will be considered",(args.only))
    q=vanilla_utils.Q(args.dbfile)
 
    tag_data = tags.Tags(args,"TAGS",q)
