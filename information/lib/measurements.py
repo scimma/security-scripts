@@ -38,7 +38,7 @@ class Dataset:
         sql = "select * from %s" % (self.table_name)
         shlog.verbose(sql)
         df = self.q.q_to_df(sql)
-        print(wrapped_ascii_table(df))
+        print(wrapped_ascii_table(self.args, df))
 
 class Measurement:
     """
@@ -123,7 +123,7 @@ class Measurement:
         print("******* Begin %s ************" % (self.current_test))
         if self._is_violation_detected():
             print("****** Violation Information *****")
-            print(wrapped_ascii_table(self.df))
+            print(wrapped_ascii_table(self.args, self.df))
         else:
             print("passed test")
         print("******* End %s ************" % (self.current_test))
@@ -132,19 +132,22 @@ class Measurement:
         """Generate a information report for a single information analysis """
         print()
         print("******* Begin %s ************" % (self.current_test))
-        print(wrapped_ascii_table(self.df))
+        print(wrapped_ascii_table(self.args,self.df))
         print("******* End %s ************" % (self.current_test))
 
 
 
-def wrapped_ascii_table(df):
+def wrapped_ascii_table(args, df):
     """
     Return a table with long lines wrapped within a table cell, given a df.
 
     The table is formed by tabulate 
     """
     import tabulate
-    scratch = pd.DataFrame()  # do nt alter caller's data
+    scratch = pd.DataFrame()  # do not alter caller's data
+    if args.bare:
+        table =tabulate.tabulate(df, list(df.columns))
+        return table
     for c in list(df.columns):
        #put newlines in the data frame
         scratch[c] = df[c].str.wrap(20)

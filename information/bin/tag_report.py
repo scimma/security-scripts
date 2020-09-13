@@ -39,7 +39,7 @@ if __name__ == "__main__":
    config.read_file(open('defaults.cfg'))
    profile  = config.get("TAG_REPORT", "profile")
    loglevel = config.get("TAG_REPORT", "loglevel",fallback="NORMAL")
-   dbfile =   config.get("TAG_REPORT", "dbfile"  ,fallback=":memory:") 
+   dbfile =   config.get("TAG_REPORT", "dbfile"  ,fallback=":memory:")
    
    """Create command line arguments"""
    parser = argparse.ArgumentParser(description=__doc__, formatter_class=argparse.RawDescriptionHelpFormatter)
@@ -51,6 +51,7 @@ if __name__ == "__main__":
    parser.add_argument('--dump'         ,help="dump data and quit, do not apply test", default=False, action='store_true' )
    parser.add_argument('--listonly'     ,help="list tests and quit", default=False, action='store_true' )
    parser.add_argument('--only'         ,help="only run reports matching glob", default="*")
+   parser.add_argument('--bare'         ,help="print bare report, no wrap, no format", default=False, action='store_true')
 
    args = parser.parse_args()
    shlog.basicConfig(level=args.loglevel)
