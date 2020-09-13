@@ -8,6 +8,7 @@ The two classes do not otherwise communicate.
 import shlog
 import pandas as pd
 import fnmatch
+import os
 
 class Dataset:
     """
@@ -40,6 +41,25 @@ class Dataset:
         df = self.q.q_to_df(sql)
         print(wrapped_ascii_table(self.args, df))
 
+    def _purge_cache_if_old(self):
+        """
+        Determine if database file is too old to use.
+
+        return True if chace db file purged.
+        """
+        timeout = 60*60
+        pathname = self.args.dbfile
+
+        if pathname == ":memory:" : return False
+        dbfile_age =  time.time() - os.stat(pathname)[stat.ST_MTIME]
+        if dbfile_age > timeout:
+            shlog.normal("removing stale databae cache {}".format(pathname))
+            os.remove(pathname)
+            return True
+        else:
+            shlog.normal("using database cache {}".format(pathname))
+            return False
+        
 class Measurement:
     """
     Perform a number of tests against the data
