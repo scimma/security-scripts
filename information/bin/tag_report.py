@@ -18,8 +18,6 @@ def main(args):
    q=vanilla_utils.Q(args.dbfile)
 
    tag_data = tags.Tags(args,"TAGS",q)
-   tag_data.make_data()
-   tag_data.clean_data()
    if args.dump:
       tag_data.print_data()
       exit()

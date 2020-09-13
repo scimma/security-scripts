@@ -25,16 +25,25 @@ class Tags(measurements.Dataset):
     def __init__(self, args, name, q):
         measurements.Dataset.__init__(self, args, name, q)
         self.table_name = "tags"
+        self.make_data()
+        self.clean_data()
         
     def make_data(self):
         """
         Make a table called TAGS based on tagging data.
         This collection of data is based on the resourcetaggingapi
-        """ 
-        shlog.normal("beginning to make %s data" % self.name) 
+
+        If the tags table exists, then we take it data collection
+        would result in duplicate rows. 
+        """
+        if self.does_table_exist():
+            shlog.normal("tags data already collected")
+            return
+
+        shlog.normal("beginning to make {} data".format(self.name)) 
         # Make a flattened table for the tag data.
         # one tag, value pair in each record.
-        sql = "create table IF NOT EXISTS tags (short_arn text, tag text, value text, arn text)"
+        sql = "create table tags (short_arn text, tag text, value text, arn text)"
         shlog.verbose(sql)
         self.q.q(sql)
 

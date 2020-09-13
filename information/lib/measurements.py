@@ -3,12 +3,14 @@ Provide base classes for acquisition of data and for  measurement/analysis.
 
 The Database class loads information into a relational DB.
 THe Measurement class uses the relational db.
-The two classes do not otherwise communicate.
+The two cloasses do not otherwise communicate.
 """
 import shlog
 import pandas as pd
 import fnmatch
 import os
+import time
+import stat
 
 class Dataset:
     """
@@ -21,6 +23,25 @@ class Dataset:
         self.name=name
         self.table_name = None
 
+        import pdb; pdb.set_trace()
+        if  self._did_purge_cache():
+            shlog.normal("no cache, or cach stale, making new data")
+        else:
+            shlog.normal("reusing cache from {}".format(args.dbfile))
+
+    def does_table_exist(self):
+        """
+        Determine if table exist, indicating it has been populated w/ cached data
+        """
+        import sqlite3 #for exception value
+        import pdb; pdb.set_trace()
+        try:
+            sql = "SELECT * FROM {}".format(self.table_name)
+            ans = self.q.q(sql)
+            return True
+        except sqlite3.OperationalError:
+            return False
+        
     def make_data(self):
         """ Build base of data needed for the indicated measurement """
         pass
@@ -41,7 +62,7 @@ class Dataset:
         df = self.q.q_to_df(sql)
         print(wrapped_ascii_table(self.args, df))
 
-    def _purge_cache_if_old(self):
+    def _did_purge_cache(self):
         """
         Determine if database file is too old to use.
 
@@ -50,7 +71,7 @@ class Dataset:
         timeout = 60*60
         pathname = self.args.dbfile
 
-        if pathname == ":memory:" : return False
+        if pathname == ":memory:" : return True
         dbfile_age =  time.time() - os.stat(pathname)[stat.ST_MTIME]
         if dbfile_age > timeout:
             shlog.normal("removing stale databae cache {}".format(pathname))
