@@ -1,6 +1,8 @@
 #!/usr/bin/env python
 """
-Check consistenty of AWS implementation with SCIMMA rules.
+provides  variety  of checks and reports about
+AWS usage for Information Security and AWS
+Resource Management 
 
 
 Optons available via <command> --help
@@ -12,19 +14,22 @@ import shlog
 def main(args):
    import vanilla_utils
    import tags
+   import s3
    
    shlog.verbose(args)
    shlog.verbose("only tests matching %s will be considered",(args.only))
    q=vanilla_utils.Q(args.dbfile)
 
-   tag_data = tags.Tags(args,"TAGS",q)
+   tag_acquire = tags.Tags(args,"TAGS",q)
+   s3_acquire = s3.S3(args, "s3", q)
    if args.dump:
-      tag_data.print_data()
+      tag_acquire.print_data()
+      s3_acquire.print_data()
       exit()
 
-
-   a = tags.Test_standard_tags(args, "Tagging Rule Check", q)
-   #import pdb; pdb.set_trace()
+   # reporting actions are driven by instanitating the classes.
+   tag_reports = tags.Test_standard_tags(args, "Tagging Rule Check", q)
+   s3_reports=s3.Report_s3(args, "s3", q)   
    
 
 if __name__ == "__main__":
@@ -52,6 +57,7 @@ if __name__ == "__main__":
    parser.add_argument('--bare'         ,help="print bare report, no wrap, no format", default=False, action='store_true')
 
    args = parser.parse_args()
+   print (args)
    shlog.basicConfig(level=args.loglevel)
 
    main(args)
