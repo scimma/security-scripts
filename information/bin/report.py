@@ -15,22 +15,25 @@ def main(args):
    import vanilla_utils
    import tags
    import s3
+   import secrets
    
    shlog.verbose(args)
    shlog.verbose("only tests matching %s will be considered",(args.only))
    q=vanilla_utils.Q(args.dbfile)
 
-   tag_acquire = tags.Tags(args,"TAGS",q)
-   s3_acquire = s3.S3(args, "s3", q)
+   tag_acquire = tags.Acquire(args,"TAGS",q)
+   s3_acquire = s3.Acquire(args, "s3", q)
+   secret_acquire = secrets.Acquire(args,"secrets",q)
    if args.dump:
       tag_acquire.print_data()
       s3_acquire.print_data()
+      secret_acquire.print_data()
       exit()
 
    # reporting actions are driven by instanitating the classes.
-   tag_reports = tags.Test_standard_tags(args, "Tagging Rule Check", q)
-   s3_reports=s3.Report_s3(args, "s3", q)   
-   
+   tag_reports = tags.Report(args, "Tagging Rule Check", q)
+   s3_reports=s3.Report(args, "s3", q)   
+   secret_repors = secrets.Report(args,"secrets",q)
 
 if __name__ == "__main__":
 

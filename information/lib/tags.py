@@ -16,7 +16,7 @@ import aws_utils
 import measurements
 import shlog
 
-class Tags(measurements.Dataset):
+class Acquire(measurements.Dataset):
     """
     Load information from the resource tagging api into a relational table.
 
@@ -87,7 +87,7 @@ class Tags(measurements.Dataset):
         self.q.q(sql)
         shlog.normal("%s data prepared" % self.name)
     
-class Test_standard_tags(measurements.Measurement):
+class Report(measurements.Measurement):
     def __init__(self, args, name, q):
          measurements.Measurement.__init__(self, args, name, q)
 

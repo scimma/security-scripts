@@ -18,7 +18,7 @@ import shlog
 import botocore
 import json
 
-class S3(measurements.Dataset):
+class Acquire(measurements.Dataset):
     """
     Load information from the resource tagging api into a relational table.
 
@@ -70,17 +70,11 @@ class S3(measurements.Dataset):
             except botocore.exceptions.ClientError:
                 policy_status = [{"Result" : "None"}]
                 bucket_policy=  [{"Result" : "None"}]
-            sql = '''INSERT INTO s3 VALUES (
-                         '{}',
-                         '{}',
-                         '{}',
-                         '{}',
-                         '{}',
-                         '{}')
-                    '''.format (name, arn, region, json.dumps(grants), json.dumps(policy_status), json.dumps(bucket_policy))
-            self.q.q(sql)
+            sql = '''INSERT INTO s3 VALUES (?,?,?,?,?,?)'''
+            list = (name, arn, region, json.dumps(grants), json.dumps(policy_status), json.dumps(bucket_policy))
+            self.q.executemany(sql,[list])
     
-class Report_s3(measurements.Measurement):
+class Report(measurements.Measurement):
     def __init__(self, args, name, q):
          measurements.Measurement.__init__(self, args, name, q)
 

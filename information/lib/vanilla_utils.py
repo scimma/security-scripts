@@ -32,7 +32,7 @@ class Q:
         timeout = 60*60
         pathname = self.dbfile
 
-        # if memaory DB or file not fond, its "as if" the cache needed to be purgess.
+        # if memory DB or file not fond, its "as if" the cache needed to be purgess.
         if pathname == ":memory:" : return True
         if not os.path.isfile(pathname): return True
         dbfile_age =  time.time() - os.stat(pathname)[stat.ST_MTIME]
@@ -44,7 +44,11 @@ class Q:
             shlog.normal("using database cache {}".format(pathname))
             return False
 
-                                                    
+    def executemany(self, sql, list):
+        result = self.cur.executemany(sql, list)
+        self.conn.commit()
+        return result
+    
     def q(self, sql):
         """Query and return sqlite result"""
         result = self.cur.execute(sql)
@@ -68,3 +72,17 @@ class Q:
         table = tabulate.tabulate(rows, headers=headings)
         return table
 
+
+import datetime
+import json
+class DateTimeEncoder(json.JSONEncoder):
+    """
+    convert json with a date or datetime object to ISO format string
+
+    use when going from JSON in native "dictionalry form" to
+    a string.
+    Example: use with the cls keyword in json.dumps.
+    """
+    def default(self, obj):
+        if isinstance(obj, (datetime.date, datetime.datetime)):
+            return obj.isoformat()
