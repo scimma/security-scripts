@@ -16,6 +16,7 @@ import aws_utils
 import measurements
 import shlog
 import botocore
+import json
 
 class S3(measurements.Dataset):
     """
@@ -25,7 +26,7 @@ class S3(measurements.Dataset):
     """
     def __init__(self, args, name, q):
         measurements.Dataset.__init__(self, args, name, q)
-        self.table_name = "tags"
+        self.table_name = "s3"
         self.make_data()
         self.clean_data()
         
@@ -44,7 +45,7 @@ class S3(measurements.Dataset):
         shlog.normal("beginning to make {} data".format(self.name)) 
         # Make a flattened table for the tag data.
         # one tag, value pair in each record.
-        sql = "create table tags (short_arn text, tag text, value text, arn text)"
+        sql = "create table s3 (bucket text, arn text, region text, grant json, policy_status text, bucket_policy json)"
         shlog.verbose(sql)
         self.q.q(sql)
 
@@ -53,7 +54,6 @@ class S3(measurements.Dataset):
         session = boto3.Session(profile_name=self.args.profile)
         client = session.client('s3')
         response = client.list_buckets()
-        import pdb; pdb.set_trace()
 
         #ignore the 'ResponseMetadata' == seems to be no pagination context in there.
         buckets = response["Buckets"]
@@ -61,94 +61,44 @@ class S3(measurements.Dataset):
             name=bucket["Name"]
             # arn can be computed from aws partition (e.g aws, aws-us-gov) and bucket name
             arn="arn:{}:s3:::{}".format("aws",name)
-            print("***", bucket, arn)
             region = client.head_bucket(Bucket=name)['ResponseMetadata']['HTTPHeaders']['x-amz-bucket-region']
-            print(region)
+            grants = client.get_bucket_acl(Bucket=name)["Grants"]
             try: 
                 result = client.get_bucket_policy_status( Bucket=name)
-                print("policy_status***", result["PolicyStatus"])
-                result = client.get_bucket_policy(Bucket=name)
-                print("policy****",result["Policy"])
+                policy_status = result["PolicyStatus"]
+                bucket_policy = client.get_bucket_policy(Bucket=name)["Policy"]
             except botocore.exceptions.ClientError:
-                print("{'IsPublic': False}")  # the default if no policy.
-
-
+                policy_status = [{"Result" : "None"}]
+                bucket_policy=  [{"Result" : "None"}]
+            sql = '''INSERT INTO s3 VALUES (
+                         '{}',
+                         '{}',
+                         '{}',
+                         '{}',
+                         '{}',
+                         '{}')
+                    '''.format (name, arn, region, json.dumps(grants), json.dumps(policy_status), json.dumps(bucket_policy))
+            self.q.q(sql)
     
-class Test_standard_tags(measurements.Measurement):
+class Report_s3(measurements.Measurement):
     def __init__(self, args, name, q):
          measurements.Measurement.__init__(self, args, name, q)
 
-    def tst_has_standard_tags(self):
+
+    def inf_s3_summary(self):
         """
-        Test for ARN's missing either Critiality or Service tags.
+        Just list information about all the buckets
         """
-        shlog.normal("performing test for Criticality and Service Tags")
-
-        sql = '''
-              SELECT
-                 short_arn, tag, value, arn
-              FROM
-                 tags
-              WHERE arn NOT IN
-                 (select ARN from tags where tag = "Criticality"
-                    INTERSECT
-                  select ARN from tags where tag = "Service"
-                 )
-               '''
-        self.df = self.q.q_to_df(sql)
-
-
-    def tst_has_standard_criticality(self):
-        """
-        Test for ARN's that have criticality, but not one of the standard values
-        """
-        shlog.normal("looking for non standard criticality values")
-
-        sql = '''
-              SELECT
-                 short_arn, tag, value
-              FROM
-                 tags
-              WHERE  tag = "Criticality"
-                 AND
-                     value not in ("Development", "Demonstration", "Production", "Investigation")
-
-               '''
-        self.df = self.q.q_to_df(sql)
-
-
-    def inf_service_names(self):
-        """
-        List unique service names found tags in the running system
-        """
-        shlog.normal("Reporting on unique service names")
+        self.current_test = "general information on all S3 buckets"
+        shlog.normal(self.current_test)
         
         sql = '''
               SELECT
-                 distinct value 
+                 * 
               FROM
-                 tags
-              WHERE  tag = "Service"
-
+                 s3
                '''
         self.df = self.q.q_to_df(sql)
-
-    def inf_service_resources(self):
-        """
-        List AWS resources associated with services.
-        """
-        shlog.normal("Reporting resources associated with a service")
-        
-        sql = '''
-              SELECT value, short_arn, arn
-              FROM
-                 tags
-              WHERE  tag = "Service"
-              ORDER by value, arn
-
-               '''
-        self.df = self.q.q_to_df(sql)
-
 
         
 

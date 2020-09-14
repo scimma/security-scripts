@@ -21,36 +21,12 @@ def main(args):
    shlog.verbose(args)
    shlog.verbose("only tests matching %s will be considered",(args.only))
    q=vanilla_utils.Q(args.dbfile)
-   import pdb; pdb.set_trace()
-   x = s3.S3(args, "s3", q)
-   exit()
-   s3x = boto3.client('s3')
-   response = s3.list_buckets()
+   s3_acquire = s3.S3(args, "s3", q)
+   if args.dump:
+      s3_acquire.print_data()
+      exit()
+   s3_reports=s3.Report_s3(args, "s3", q)
 
-   # Output the bucket names
-   print('Existing buckets:')
-   for bucket in response['Buckets']:
-      name=bucket["Name"]
-      # arn can be computed from aws partition (e.g aws, aws-us-gov) and bucket name
-      arn="arn:{}:s3:::{}".format("aws",name)
-      print("***", bucket, arn)
-      #store "grants" as JSON
-      result = s3.get_bucket_acl(Bucket=name)["Grants"]
-      #not every line has display name
-      #for r in result:
-      #   print ("HEY", r, r["Grantee"]["DisplayName"])
-      result = json.dumps(result, sort_keys=True, indent=4)
-      print(result)
-      region = client.head_bucket(Bucket=name)['ResponseMetadata']['HTTPHeaders']['x-amz-bucket-region']
-      print(region)
-      try: 
-         result = s3.get_bucket_policy_status( Bucket=bucket["Name"])
-         print("policy_status***", result["PolicyStatus"])
-         result = s3.get_bucket_policy(Bucket=bucket["Name"])
-         print("policy****",result["Policy"])
-      except botocore.exceptions.ClientError:
-         print("{'IsPublic': False}")  # the default if no policy.
-      
 
 if __name__ == "__main__":
 
