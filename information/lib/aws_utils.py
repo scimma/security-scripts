@@ -25,14 +25,26 @@ def shortened_arn(arn):
     short_arn = ':'.join([aws_object, components[3], aws_thing, aws_last_few_hex])
     return short_arn 
 
-def mostly_text(str):
-    #A string is usef if > 5 non hex chars
+
+def next_are_hex(strlist):
+    if strlist[0] not in string.hexdigits: return False
+    if strlist[1] not in string.hexdigits: return False
+    if strlist[2] not in string.hexdigits: return False
+    return True
+
+def clean_hex(str):
+
     nchar = len(str)
-    nhex = 0
-    for char in str:
-        if char in string.hexdigits : nhex += 1
-    nonhex = nchar - nhex
-    return (nonhex > 5)
+    str = str+"000"  #pad
+    clist = [c for c in str]
+    outlist =[]
+    stop_chars = ":/-"
+    while len(clist) > 4:
+        c = clist.pop(0)
+        outlist.append(c)
+        if c in stop_chars and  next_are_hex(clist):
+            while len(clist) != 0 and clist[0] in string.hexdigits: clist.pop(0)
+    return "".join(outlist)
 
 def shortened_arn(arn):
     """ make a short arn retaining summary info
@@ -43,19 +55,13 @@ def shortened_arn(arn):
     """
 
     #ensure we are trying to deal with an ARN.
-    shortened_arn = []
-    for component in  arn.split(":"):
-        sublist = []
-        for subcomponent in component.split("/"):
-            if not mostly_text(subcomponent): continue
-            sublist.append(subcomponent)
-        component = "/".join(sublist)
-        if not mostly_text(component): continue
-        shortened_arn.append(component)
-    last_few_hex = arn[-3:] #helps distinguish intances of the same
-    shortened_arn.append(last_few_hex)
-    shortened_arn = ':'.join(shortened_arn)
-    return shortened_arn
+
+    arn = arn.split(":")
+    arn = ":".join(arn[2:])
+    tail = arn[-3:]
+    arn = clean_hex(arn)
+    arn = arn + tail
+    return arn
     
 
 
