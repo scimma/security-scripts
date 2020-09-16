@@ -45,7 +45,7 @@ class Acquire(measurements.Dataset):
         shlog.normal("beginning to make {} data".format(self.name)) 
         # Make a flattened table for the tag data.
         # one tag, value pair in each record.
-        sql = "create table s3 (bucket text, arn text, region text, grant json, policy_status text, bucket_policy json)"
+        sql = "create table s3 (bucket text, arn text, region text, npolicies text, ngrants text, grant json, policy_status text, bucket_policy json)"
         shlog.verbose(sql)
         self.q.q(sql)
 
@@ -63,15 +63,26 @@ class Acquire(measurements.Dataset):
             arn="arn:{}:s3:::{}".format("aws",name)
             region = client.head_bucket(Bucket=name)['ResponseMetadata']['HTTPHeaders']['x-amz-bucket-region']
             grants = client.get_bucket_acl(Bucket=name)["Grants"]
+            ngrants = len(grants)
+ 
             try: 
                 result = client.get_bucket_policy_status( Bucket=name)
                 policy_status = result["PolicyStatus"]
                 bucket_policy = client.get_bucket_policy(Bucket=name)["Policy"]
+                npolicies = len(bucket_policy)
             except botocore.exceptions.ClientError:
                 policy_status = [{"Result" : "None"}]
                 bucket_policy=  [{"Result" : "None"}]
-            sql = '''INSERT INTO s3 VALUES (?,?,?,?,?,?)'''
-            list = (name, arn, region, json.dumps(grants), json.dumps(policy_status), json.dumps(bucket_policy))
+                npolicies = 0
+            except:
+                raise
+    
+            #bucket arn  region npolicies ngrants grant json, policy_status text, bucket_policy json)"
+            sql = '''INSERT INTO s3 VALUES (?,?,?,?,?,?,?,?)'''
+            npolicies = "{}".format(npolicies)
+            ngrants   = "{}".format(ngrants)
+            
+            list = (name, arn, region,  npolicies,  ngrants, json.dumps(grants), json.dumps(policy_status), json.dumps(bucket_policy))
             self.q.executemany(sql,[list])
     
 class Report(measurements.Measurement):
@@ -95,4 +106,35 @@ class Report(measurements.Measurement):
         self.df = self.q.q_to_df(sql)
 
         
+    def inf_s3_bucket_asset_format(self):
+        """
+        Report in format for asset catalog. 
+        """
+        shlog.normal("Reporting on bucket in  asset formant")
+        
+        sql = '''
+              SELECT
+                     'R:Bucket Contents:'||bucket asset,
+                     'D'                          type,
+                     'R:'||region                 "where"
+             FROM  s3
+               '''
+        self.df = self.q.q_to_df(sql)
 
+    def inf_s3_configuraton_asset_format(self):
+        """
+        Report in format for asset catalog. 
+        """
+        shlog.normal("Reporting on bucket configuraiton in asset formant")
+        
+        sql = '''
+              SELECT
+                     'R:Bucket configuration:'||bucket                  asset,
+                     'R:Num policies grants:'||npolicies||','||ngrants  description,
+                     'R:Restrict Access to information'                 'Business Value', 
+                     'D'                                                type,
+                     'R:'||region                                       'where'
+              FROM  s3
+               '''
+
+        self.df = self.q.q_to_df(sql)

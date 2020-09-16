@@ -103,6 +103,7 @@ class Measurement:
                 func()
                 report_func()
             except:
+                print ("Bailing....")
                 shlog.exception("exception in {}".format(name))
                 exit()
             

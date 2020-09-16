@@ -25,13 +25,13 @@ def shortened_arn(arn):
     short_arn = ':'.join([aws_object, components[3], aws_thing, aws_last_few_hex])
     return short_arn 
 
-def mostly_hex(string):
+def mostly_text(str):
     #A string is usef if > 5 non hex chars
-    nchar = len(string)
+    nchar = len(str)
     nhex = 0
-    for char in string:
+    for char in str:
         if char in string.hexdigits : nhex += 1
-    nonhex = nchar = nhex
+    nonhex = nchar - nhex
     return (nonhex > 5)
 
 def shortened_arn(arn):
@@ -45,7 +45,12 @@ def shortened_arn(arn):
     #ensure we are trying to deal with an ARN.
     shortened_arn = []
     for component in  arn.split(":"):
-        if mostly_hex(component): continue
+        sublist = []
+        for subcomponent in component.split("/"):
+            if not mostly_text(subcomponent): continue
+            sublist.append(subcomponent)
+        component = "/".join(sublist)
+        if not mostly_text(component): continue
         shortened_arn.append(component)
     last_few_hex = arn[-3:] #helps distinguish intances of the same
     shortened_arn.append(last_few_hex)

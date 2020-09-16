@@ -53,8 +53,6 @@ class Acquire(measurements.Dataset):
         paginator = client.get_paginator('list_certificates')
         for response in paginator.paginate():
             for certificate in response['CertificateSummaryList']:
-                print(certificate)
-                print (json.dumps(certificate,sort_keys=True, indent=4))
                 arn = certificate["CertificateArn"]
                 domain = certificate["DomainName"]
                 short_arn = aws_utils.shortened_arn(arn)
