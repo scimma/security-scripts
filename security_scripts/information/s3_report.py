@@ -32,11 +32,6 @@ def parser_builder(parent_parser, parser, config, remote=False):
         # augment remote parser with a new subcommand
         inf_s3_parser = parser.add_parser('inf_s3', parents=[parent_parser], description=s3_main.__doc__)
         inf_s3_parser.set_defaults(func=s3_main)
-        # arguments will be attached to subcommand
-        target_parser = inf_s3_parser
-    else:
-        # augments will be added to local parser
-        target_parser = parser
     return parser
 
 

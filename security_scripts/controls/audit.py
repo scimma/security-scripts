@@ -112,14 +112,33 @@ def whoami(args):
 
 
 def all(args):
-    """
-    run all audits simultaneously
-    :return: None
-    """
+    """run all audits simultaneously"""
     audits = ['dependencies(args)', 'policies(args)', 'privileges(args)', 'repo(args)', 'roles(args)', 'whoami(args)']
     for audit in audits:
         logging.info('_________________')
         exec(audit)
+
+
+def parser_builder(parent_parser, parser, config, remote=False):
+    """Get a parser and return it with additional options
+    :param parent_parser: top-level parser that will receive a subcommand; can be None if remote=False
+    :param parser: (sub)parser in need of additional arguments
+    :param config: ingested config file in config object format
+    :param remote: whenever we
+    :return: parser with amended options
+    """
+    target_role = config.get("DEFAULT", "role", fallback="scimma_power_user")
+    if remote:
+        # augment remote parser with a new subcommand
+        control_audit_parser = parser.add_parser('control_audit', parents=[parent_parser], description=all.__doc__)
+        control_audit_parser.set_defaults(func=all)
+        # arguments will be attached to subcommand
+        target_parser = control_audit_parser
+    else:
+        # augments will be added to local parser
+        target_parser = parser
+    target_parser.add_argument('--role', '-r', default=target_role, help='CLI profile to use')
+    return parser
 
 
 if __name__ == "__main__":
@@ -128,15 +147,12 @@ if __name__ == "__main__":
 
     config = configparser.ConfigParser()
     config.read_file(open('defaults.cfg'))
-    target_role  = config.get("DEFAULT", "role", fallback="scimma_power_user")
     profile = config.get("DEFAULT", "profile", fallback="scimma-uiuc-aws-admin")
     loglevel = config.get("BUTTONS", "loglevel", fallback="INFO")
 
     """Create command line arguments"""
     parser = argparse.ArgumentParser(description=__doc__, formatter_class=argparse.RawDescriptionHelpFormatter)
-    parser.add_argument('--debug', '-d', help='print debug info', default=False, action='store_true')
     parser.add_argument('--profile', '-p', default=profile, help='aws profile to use')
-    parser.add_argument('--role', '-r', default=target_role, help='CLI profile to use')
     parser.add_argument('--loglevel', '-l', help="Level for reporting e.g. DEBUG, INFO, WARN", default=loglevel)
 
     # subcommands section
@@ -176,6 +192,7 @@ if __name__ == "__main__":
     args = parser.parse_args()
     logging.basicConfig(level=args.loglevel)
 
+    # no need to augment parser further
     if not args.func:  # there are no subfunctions
         parser.print_help()
         exit(1)

@@ -46,7 +46,7 @@ def parser_builder(parent_parser, parser, config, remote=False):
     else:
         # augments will be added to local parser
         target_parser = parser
-    target_parser.add_argument('--dbfile', '-df', help='database file to use (default: :memory:)', default=dbfile)
+    target_parser.add_argument('--dbfile', '-df', help='database file to use (default: %(default)s)', default=dbfile)
     target_parser.add_argument('--dump', '-du', help="dump data and quit, do not apply test (default: %(default)s)",
                                 default=False, action='store_true')
 

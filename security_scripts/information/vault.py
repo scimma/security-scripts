@@ -155,6 +155,7 @@ def parser_builder(parent_parser, parser, config, remote=False):
     """
     bucket = config.get("DOWNLOAD", "bucket", fallback='s3://scimma-processes/Scimma-event-trail')
     vaultdir = config.get("DEFAULT", "vaultdir", fallback="~/.vault")
+    accountid = config.get("DOWNLOAD", "accountid", fallback="585193511743")
 
     if remote:
         # augment remote parser with a new subcommand
@@ -167,6 +168,7 @@ def parser_builder(parent_parser, parser, config, remote=False):
         target_parser = parser
     target_parser.add_argument('--bucket', '-b', help='bucket with cloudtail logs (default: %(default)s)',default=bucket)
     target_parser.add_argument('--vaultdir', '-v',help='path to directory containing AWS logs (default: %(default)s)',default=vaultdir)
+    target_parser.add_argument('--accountid', help='AWS account id', default=accountid)
     return parser
 
 
@@ -179,7 +181,6 @@ if __name__ == "__main__":
    config = configparser.ConfigParser()
    config.read_file(open('defaults.cfg'))
    profile  = config.get("DEFAULT", "profile", fallback="scimma-uiuc-aws-admin")
-   accountid = config.get("DOWNLOAD", "accountid",fallback="585193511743")
    loglevel = config.get("DOWNLOAD", "loglevel",fallback="INFO")
    
    
@@ -187,7 +188,6 @@ if __name__ == "__main__":
    parser = argparse.ArgumentParser(description=__doc__, formatter_class=argparse.RawDescriptionHelpFormatter)
    parser.add_argument('--profile','-p',default=profile,help='aws profile to use')
    parser.add_argument('--loglevel','-l',help="Level for reporting e.g. DEBUG, INFO, WARN", default=loglevel)
-   parser.add_argument('--accountid', help='AWS account id', default=accountid)
 
    parser = parser_builder(None, parser, config, False)
 

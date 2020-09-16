@@ -127,6 +127,7 @@ def  get_all_template_paths(args):
    """
    from pathlib import Path
    import glob
+   args.datepath = "logs/Scimma-event-trail/AWSLogs/" + args.accountid + "/CloudTrail/"
    root = os.path.join(args.vaultdir, args.datepath)
    root = Path(os.path.expanduser(root)) # gt rit of any laeding ~
    root = "{}".format(root)              # go figure have to make it a string
@@ -210,6 +211,7 @@ def parser_builder(parent_parser, parser, config, remote=False):
     :return: parser with amended options
     """
     vaultdir = config.get("DEFAULT", "vaultdir", fallback="~/.vault")
+    accountid = config.get("DOWNLOAD", "accountid", fallback="585193511743")
 
     if remote:
         # augment remote parser with a new subcommand
@@ -222,6 +224,7 @@ def parser_builder(parent_parser, parser, config, remote=False):
         target_parser = parser
     target_parser.add_argument('--vaultdir', '-v',help='path to directory containing AWS logs (default: %(default)s)', default=vaultdir)
     target_parser.add_argument('--caseblind', '-c', help='caseblind compare (default: %(default)s)',action='store_true')
+    target_parser.add_argument('--accountid', help='AWS account id', default=accountid)
     target_parser.add_argument('--date', '-da', help='anchor date, e.g 2021-4-30 (default: %(default)s)',
                                  type=(lambda x: date.fromisoformat(x)),
                                  default=date.today())
@@ -240,18 +243,17 @@ if __name__ == "__main__":
    config.read_file(open('defaults.cfg'))
    profile   = config.get("DEFAULT", "profile", fallback="scimma-uiuc-aws-admin")
    loglevel  = config.get("FIND_BY_CONTENT", "loglevel",fallback="INFO")
-   accountid = config.get("DOWNLOAD", "accountid", fallback="585193511743")
+
 
    
    """Create command line arguments"""
    parser = argparse.ArgumentParser(description=__doc__, formatter_class=argparse.RawDescriptionHelpFormatter)
    parser.add_argument('--profile','-p',default=profile,help='aws profile to use')
    parser.add_argument('--loglevel','-l',help="Level for reporting e.r DEBUG, INFO, WARN", default=loglevel)
-   parser.add_argument('--accountid', help='AWS account id', default=accountid)
+
 
    parser = parser_builder(None, parser, config, False)
    args = parser.parse_args()
-   args.datepath = "logs/Scimma-event-trail/AWSLogs/" + args.accountid + "/CloudTrail/"
    logging.basicConfig(level=args.loglevel)
    logging.debug(args)
    find_main(args)
