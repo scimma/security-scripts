@@ -162,6 +162,22 @@ class Report(measurements.Measurement):
                '''
         self.df = self.q.q_to_df(sql)
 
+    def inf_tags_bound_to_secrets(self):
+        """
+        Show tags bound to secrets.
+
+        Tagging can be used to control access to secrets.
+        """
+
+        shlog.normal("tags that are bund to secrets")
+        sql = '''
+            SELECT short_arn, tag, value, arn
+            FROM
+              tags
+            WHERE arn like "%secret%"  
+            ORDER BY arn
+        '''
+        self.df = self.q.q_to_df(sql)
 
         
 

@@ -1,14 +1,14 @@
 """
 Provide base classes for acquisition of data and for  measurement/analysis.
 
-The Database class loads information into a relational DB.
-THe Measurement class uses the relational db.
-The two cloasses do not otherwise communicate.
+The Database class loads information into a sqlite relational DB.
+The Measurement class uses the relational db.
+The two classes do not otherwise communicate.
 """
 import shlog
 import pandas as pd
 import fnmatch
-
+import sys
 
 class Dataset:
     """
@@ -99,8 +99,12 @@ class Measurement:
 
         for name, func in self._list_tests(prefix):
             shlog.normal("starting analysis: %s" % (name))
-            func()
-            report_func()
+            try:
+                func()
+                report_func()
+            except:
+                shlog.exception("exception in {}".format(name))
+                exit()
             
 
     def _list_tests(self, prefix):

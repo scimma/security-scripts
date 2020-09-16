@@ -86,3 +86,32 @@ class DateTimeEncoder(json.JSONEncoder):
     def default(self, obj):
         if isinstance(obj, (datetime.date, datetime.datetime)):
             return obj.isoformat()
+
+
+def find_string(obj, valuematch, c):
+    """
+    Return a list of key, value pairs where value matches valuematch
+   
+   Valuematch can be specifies as a glob style "wildcard"
+    """
+    import copy
+    arr = []
+    context = []
+
+
+def flatten_tags(tag_data):
+    '''
+    Flatten the way AWS encodes tags to a single dict for editing JSON
+
+    AWs encodes Tags a a list of dicts
+    e.g [{"Key":"OwnerEmail","Value":"swnelson@uw.edu"},{"Key":"Criticality","Value":"Development"}]
+    this format foes not play well with query tools.
+    return a new dicitionary of the formm  {"OwnerEmail":"swnelson@uw.edu", "Criticality":"Development"}
+    '''
+    retdict = {}
+    import pdb; pdb.set_trace
+    for dict in tag_data:
+        key   = dict["Key"]
+        value = dict["Value"]
+        retdict[key]= value
+    return retdict

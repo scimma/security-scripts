@@ -8,7 +8,7 @@ by default,  not suppressed are NORMAL, WARN and ERROR, meaning:
     WARNING is for messages where someting not normal has occurred, but the program continues
     ERROR is for something that is "contract violating" and the program likely needs to termainate
 
-all meassages, including the trio NORMAL, WARNING and ERROR are suppressed by setting 
+all messages, including the trio NORMAL, WARNING and ERROR are suppressed by setting 
 the logging level to "NONE" It is not suported that the trio of NORMAL, WARNING and 
 ERROR  are  suppressed individually.
 
@@ -60,7 +60,7 @@ normal = logging.fatal
 verbose = logging.warning
 vverbose = logging.info
 debug = logging.debug
-
+exception = logging.exception
 def warn(msg, *args, **kwargs):
     logging.log(LEVELDICT["WARN"], msg, *args, **kwargs)
 def error(msg, *args, **kwargs):

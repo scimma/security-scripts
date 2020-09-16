@@ -1,6 +1,8 @@
 """
 AWS Specifc utilities for general use.
 """
+import string
+
 
 def shortened_arn(arn):
     """ make a short arn retaining summary info
@@ -19,8 +21,37 @@ def shortened_arn(arn):
     aws_object = components[2] #resources manager
     aws_region = components[3] #region
     aws_thing = components[5].split('/')[0]  #specific resource
-    short_arn = ':'.join([aws_object, components[3], aws_thing])
+    aws_last_few_hex = arn[-3:]
+    short_arn = ':'.join([aws_object, components[3], aws_thing, aws_last_few_hex])
     return short_arn 
+
+def mostly_hex(string):
+    #A string is usef if > 5 non hex chars
+    nchar = len(string)
+    nhex = 0
+    for char in string:
+        if char in string.hexdigits : nhex += 1
+    nonhex = nchar = nhex
+    return (nonhex > 5)
+
+def shortened_arn(arn):
+    """ make a short arn retaining summary info
+
+    Short enough not oveflow tty lines.
+    Long enough to give a clue.
+    ARNS do _Not_ have a fixed format, AFAICT.
+    """
+
+    #ensure we are trying to deal with an ARN.
+    shortened_arn = []
+    for component in  arn.split(":"):
+        if mostly_hex(component): continue
+        shortened_arn.append(component)
+    last_few_hex = arn[-3:] #helps distinguish intances of the same
+    shortened_arn.append(last_few_hex)
+    shortened_arn = ':'.join(shortened_arn)
+    return shortened_arn
+    
 
 
 def decribe_regions_df(args):
