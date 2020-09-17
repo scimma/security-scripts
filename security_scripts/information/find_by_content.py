@@ -172,12 +172,12 @@ def filter_template_paths_by_date_range(args, all_paths):
 
 
 def find_main(args):
-   """Dump cloudtail json event records from the vault having a
+   """Dump cloudtail json event records from the vault having
    some value matching the globstring.
 
    A vault file is a dictionary of "Records" containing an array
-   of json objects, One json object per cloudtrail event.
-   There are a large variety of events, each with a
+   of json objects, one json object per cloudtrail event.
+   There is a large variety of events, each with a
    different json schema."""
    import gzip
 

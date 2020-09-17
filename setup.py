@@ -23,7 +23,7 @@ setuptools.setup(
     },
     classifiers=[
         "Programming Language :: Python :: 3",
-        "License :: none",
+        "License :: OSI Approved :: MIT License", # https://pypi.org/pypi?%3Aaction=list_classifiers
         "Operating System :: OS Independent",
     ],
     python_requires='>=3.6',

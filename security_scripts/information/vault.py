@@ -69,7 +69,8 @@ def progress_bar(iteration, total):
 
 
 def vault_main(args):
-   """Download Cloudtrail logs to the vault directory.
+   """Download Cloudtrail logs to the vault directory. Downloads are
+   incremental -- previous downloads are not re-fetched or deleted.
 
    A vault file is bushy directory tree that is stored under
    $HOME/.vault. the leaves are (many json) files, each

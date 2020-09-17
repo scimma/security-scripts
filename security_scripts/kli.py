@@ -20,7 +20,7 @@ def env_control():
     var = 'SCIMMA_SECURITY_CFG'
     val = os.environ.get(var)
     if val:
-        print('Reding custom config file locaiton from $' + var + ' as ' + val)
+        print('Reading custom config file locaiton from $' + var + ' as ' + val)
         return val
     else:
         if platform.system() in ['Linux', 'Darwin']:
@@ -36,7 +36,7 @@ def env_control():
         else:
             # windows
             val = '$HOME\\scimma-security.cfg'
-            os.system("SETX {0} {1} /M".format(var, val))
+            os.system('SETX {0} "{1}" /M'.format(var, val))
             logging.info('$' + var + ' written as system variable with value ' + val)
         return val
 
