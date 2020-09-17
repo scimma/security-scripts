@@ -47,25 +47,16 @@ class Acquire(measurements.Dataset):
         shlog.verbose(sql)
         self.q.q(sql)
 
-        # Get the tags for each region.
-        # accomidate the boto3 API can retul data in pages.
-        self.args.session = boto3.Session(profile_name=self.args.profile)
-        region_name_list = aws_utils.decribe_regions_df(self.args)['RegionName']
-        for region_name in region_name_list:
-            client = self.args.session.client('resourcegroupstaggingapi',region_name=region_name)
-            paginator = client.get_paginator('get_resources')
-            page_iterator = paginator.paginate()
-            
-            # Dig the data out, making one record fo each key, value pair.
-            for page in page_iterator:
-                ResourceMappingList = page['ResourceTagMappingList']
-                for d in ResourceMappingList:
-                    full_arn = d['ResourceARN']
-                    short_arn = aws_utils.shortened_arn(d['ResourceARN'])
-                    for kvdict in d['Tags']:
-                        sql = 'insert into tags values ("%s","%s","%s", "%s")' % (
-                            short_arn, kvdict["Key"], kvdict["Value"], full_arn)
-                        self.q.q(sql)
+        for page in self._pages_all_regions('resourcegroupstaggingapi',  'get_resources'):
+
+            ResourceMappingList = page['ResourceTagMappingList']
+            for d in ResourceMappingList:
+                full_arn = d['ResourceARN']
+                short_arn = aws_utils.shortened_arn(d['ResourceARN'])
+                for kvdict in d['Tags']:
+                    sql = 'insert into tags values ("%s","%s","%s", "%s")' % (
+                           short_arn, kvdict["Key"], kvdict["Value"], full_arn)
+                    self.q.q(sql)
 
     def clean_data(self):
         """

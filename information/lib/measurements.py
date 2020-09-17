@@ -9,6 +9,8 @@ import shlog
 import pandas as pd
 import fnmatch
 import sys
+import boto3
+import aws_utils
 
 class Dataset:
     """
@@ -33,6 +35,25 @@ class Dataset:
         except sqlite3.OperationalError:
             return False
         
+    def _pages_all_regions(self, aws_client_name, aws_function_name):
+        """
+        An interator that gets the pages for all regions.
+
+        aws_client_name = "resorurcemappingapi"
+        functon_name = "get_resources"
+
+        Can be used in for loops producing list of pages on a topic
+        """
+        self.args.session = boto3.Session(profile_name=self.args.profile)
+        region_name_list = aws_utils.decribe_regions_df(self.args)['RegionName']
+        for region_name in region_name_list:
+            client = self.args.session.client(aws_client_name,region_name=region_name)
+            paginator = client.get_paginator(aws_function_name)
+            shlog.verbose('about to iterate: {} {}'.format(aws_client_name, aws_function_name))
+            page_iterator = paginator.paginate()
+            for page in page_iterator:
+                yield page
+
     def make_data(self):
         """ Build base of data needed for the indicated measurement """
         pass
@@ -106,7 +127,6 @@ class Measurement:
                 print ("Bailing....")
                 shlog.exception("exception in {}".format(name))
                 exit()
-            
 
     def _list_tests(self, prefix):
         """

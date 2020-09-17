@@ -51,40 +51,32 @@ class Acquire(measurements.Dataset):
 
         # Get the tags for each region.
         # accomidate the boto3 API can retul data in pages.
-        self.args.session = boto3.Session(profile_name=self.args.profile)
-        region_name_list = aws_utils.decribe_regions_df(self.args)['RegionName']
-        for region_name in region_name_list:
-            client = self.args.session.client('secretsmanager',region_name=region_name)
-            paginator = client.get_paginator('list_secrets')
-            page_iterator = paginator.paginate()
-            
-            # Dig the data out, making one record fo each key, value pair.
-            # enc handles the datetiem classes in AWS json, turns them to ISO strings
-            enc = vanilla_utils.DateTimeEncoder 
-            for page in page_iterator:
-                for secret in page['SecretList']:
-                    arn                = secret['ARN']
-                    short_arn          = aws_utils.shortened_arn(arn)
-                    region             = region_name
-                    name               = secret['Name']
-                    #import pdb; pdb.set_trace()
-                    description        = secret['Description']
-                    lastchangeddate    = datetime.datetime.isoformat(secret['LastChangedDate'])
-                    record             = secret
-                    record["FlatTags"] = vanilla_utils.flatten_tags(secret["Tags"])
-                    record             = json.dumps(secret, cls=enc)
-                    sql = """
+        enc = vanilla_utils.DateTimeEncoder  #converter fo datatime types -- not supported 
+        for page in self._pages_all_regions('secretsmanager', 'list_secrets'):
+
+            for secret in page['SecretList']:
+                #import pdb; pdb.set_trace()                
+                arn                = secret['ARN']
+                short_arn          = aws_utils.shortened_arn(arn)
+                region             = secret["ARN"].split(':')[3]
+                name               = secret['Name']
+                description        = secret['Description']
+                lastchangeddate    = datetime.datetime.isoformat(secret['LastChangedDate'])
+                record             = secret
+                record["FlatTags"] = vanilla_utils.flatten_tags(secret["Tags"])
+                record             = json.dumps(secret, cls=enc)
+                sql = """
                        INSERT INTO secrets VALUES (?, ?, ?, ?, ?, ?, ?)
                          """
-                    list = (short_arn,
+                list = (short_arn,
                             region,
                             name,
                             description,
                             lastchangeddate,
                             arn,
                             record)
-                    shlog.verbose(sql)
-                    self.q.executemany(sql, [list])
+                shlog.verbose(sql)
+                self.q.executemany(sql, [list])
 
 class Report(measurements.Measurement):
     def __init__(self, args, name, q):
