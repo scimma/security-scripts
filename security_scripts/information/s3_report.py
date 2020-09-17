@@ -47,9 +47,8 @@ if __name__ == "__main__":
    
    """Create command line arguments"""
    parser = argparse.ArgumentParser(description=__doc__, formatter_class=argparse.RawDescriptionHelpFormatter)
-   parser.add_argument('--profile','-p',default=profile,
-             help='aws profile to use')
-   parser.add_argument('--loglevel', '-l', help="Level for reporting e.g. DEBUG, INFO, WARN", default=loglevel)
+   parser.add_argument('--profile','-p',default=profile, help='aws profile to use (default: %(default)s)')
+   parser.add_argument('--loglevel', '-l', help="Level for reporting e.g. DEBUG, INFO, WARN (default: %(default)s)", default=loglevel)
 
    # no need to augment parser further
    args = parser.parse_args()

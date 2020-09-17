@@ -1,4 +1,5 @@
 import argparse
+import logging
 
 def parser_help(parser):
     parser.print_help()
@@ -13,9 +14,35 @@ def parser_help(parser):
             print("\tType 'sc {} -h' for use information".format(choice))
 
 
+def env_control():
+    import platform
+    import os
+    var = 'SCIMMA_SECURITY_CFG'
+    val = os.environ.get(var)
+    if val:
+        print('Reding custom config file locaiton from $' + var + ' as ' + val)
+        return val
+    else:
+        if platform.system() in ['Linux', 'Darwin']:
+            # *nixes
+            val = '~/.scimma-security.cfg'
+            with open(os.path.expanduser("~/.bash_profile"), "a") as outfile:
+                outfile.write("export {0}={1}".format(var, val))
+                # pass
+            with open(os.path.expanduser("~/.zshenv"), "a") as outfile:
+                # pass
+                outfile.write("export {0}={1}".format(var, val))
+            print('$' + var + ' written to ~/.bash_profile and ~/.zshenv as ' + val)
+        else:
+            # windows
+            val = '$HOME\\scimma-security.cfg'
+            os.system("SETX {0} {1} /M".format(var, val))
+            logging.info('$' + var + ' written as system variable with value ' + val)
+        return val
+
+
 def catcher():
     import configparser
-    import logging
     import sys
     from datetime import date, timedelta
 
@@ -26,7 +53,10 @@ def catcher():
     script_dir = os.path.dirname(__file__)  # <-- absolute dir the script is in
     rel_path = "cfg/defaults.cfg"
     abs_file_path = os.path.join(script_dir, rel_path)
-    config.read_file(open(abs_file_path))
+    cfg_sources = [abs_file_path, # built-in config for fallback
+                   os.path.expanduser(env_control())  # env value
+                  ]
+    config.read(cfg_sources)
 
     loglevel = config.get("DEFAULT", "loglevel", fallback="INFO")
     profile = config.get("DEFAULT", "profile", fallback="scimma-uiuc-aws-admin")

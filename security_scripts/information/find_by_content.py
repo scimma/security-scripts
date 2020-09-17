@@ -224,7 +224,7 @@ def parser_builder(parent_parser, parser, config, remote=False):
         target_parser = parser
     target_parser.add_argument('--vaultdir', '-v',help='path to directory containing AWS logs (default: %(default)s)', default=vaultdir)
     target_parser.add_argument('--caseblind', '-c', help='caseblind compare (default: %(default)s)',action='store_true')
-    target_parser.add_argument('--accountid', help='AWS account id', default=accountid)
+    target_parser.add_argument('--accountid', help='AWS account id (default: %(default)s)', default=accountid)
     target_parser.add_argument('--date', '-da', help='anchor date, e.g 2021-4-30 (default: %(default)s)',
                                  type=(lambda x: date.fromisoformat(x)),
                                  default=date.today())
@@ -248,8 +248,8 @@ if __name__ == "__main__":
    
    """Create command line arguments"""
    parser = argparse.ArgumentParser(description=__doc__, formatter_class=argparse.RawDescriptionHelpFormatter)
-   parser.add_argument('--profile','-p',default=profile,help='aws profile to use')
-   parser.add_argument('--loglevel','-l',help="Level for reporting e.r DEBUG, INFO, WARN", default=loglevel)
+   parser.add_argument('--profile','-p',default=profile,help='aws profile to use (default: %(default)s)')
+   parser.add_argument('--loglevel','-l',help="Level for reporting e.r DEBUG, INFO, WARN (default: %(default)s)", default=loglevel)
 
 
    parser = parser_builder(None, parser, config, False)

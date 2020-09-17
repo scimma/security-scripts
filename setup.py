@@ -5,7 +5,7 @@ with open("README.md", "r") as fh:
     long_description = fh.read()
 
 setuptools.setup(
-    name="security-scripts", # Replace with your own username
+    name="scimma-security-scripts", # Replace with your own username
     version="1.0b",
     author="Vladislav Ekimtcov, Donald Petravic",
     author_email="ekimtco2@illinois.edu",

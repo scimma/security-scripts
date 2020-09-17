@@ -137,7 +137,7 @@ def parser_builder(parent_parser, parser, config, remote=False):
     else:
         # augments will be added to local parser
         target_parser = parser
-    target_parser.add_argument('--role', '-r', default=target_role, help='CLI profile to use')
+    target_parser.add_argument('--role', '-r', default=target_role, help='AWS role to modify (default: %(default)s)')
     return parser
 
 
@@ -152,8 +152,8 @@ if __name__ == "__main__":
 
     """Create command line arguments"""
     parser = argparse.ArgumentParser(description=__doc__, formatter_class=argparse.RawDescriptionHelpFormatter)
-    parser.add_argument('--profile', '-p', default=profile, help='aws profile to use')
-    parser.add_argument('--loglevel', '-l', help="Level for reporting e.g. DEBUG, INFO, WARN", default=loglevel)
+    parser.add_argument('--profile', '-p', default=profile, help='aws profile to use (default: %(default)s)')
+    parser.add_argument('--loglevel', '-l', help="Level for reporting e.g. DEBUG, INFO, WARN (default: %(default)s)", default=loglevel)
 
     # subcommands section
     parser.set_defaults(func=None)  # if none then there are  subfunctions

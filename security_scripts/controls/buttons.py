@@ -129,16 +129,16 @@ def parser_builder(parent_parser, parser, config, remote=False):
         # green button parser
         green_parser = parser.add_parser('control_green_button', parents=[parent_parser], description=control_green_button.__doc__)
         green_parser.set_defaults(func=control_green_button)
-        green_parser.add_argument('--role', '-r', default=target_role, help='CLI profile to use')
-        green_parser.add_argument('--accountid', help='AWS account id', default=accountid)
+        green_parser.add_argument('--role', '-r', default=target_role, help='AWS role to modify  (default: %(default)s)')
+        green_parser.add_argument('--accountid', help='AWS account id (default: %(default)s)', default=accountid)
         # red button parser
         red_parser = parser.add_parser('control_red_button', parents=[parent_parser], description=control_red_button.__doc__)
         red_parser.set_defaults(func=control_red_button)
-        red_parser.add_argument('--role', '-r', default=target_role, help='CLI profile to use')
-        red_parser.add_argument('--accountid', help='AWS account id', default=accountid)
+        red_parser.add_argument('--role', '-r', default=target_role, help='AWS role to modify  (default: %(default)s)')
+        red_parser.add_argument('--accountid', help='AWS account id (default: %(default)s)', default=accountid)
     else:
         # augments will be added to local parser
-        parser.add_argument('--role', '-r', default=target_role, help='CLI profile to use')
+        parser.add_argument('--role', '-r', default=target_role, help='AWS role to modify  (default: %(default)s)')
     return parser
 
 
@@ -153,8 +153,8 @@ if __name__ == "__main__":
 
     """Create command line arguments"""
     parser = argparse.ArgumentParser(description=__doc__, formatter_class=argparse.RawDescriptionHelpFormatter)
-    parser.add_argument('--profile', '-p', default=profile, help='aws profile to use')
-    parser.add_argument('--loglevel', '-l', help="Level for reporting e.g. DEBUG, INFO, WARN", default=loglevel)
+    parser.add_argument('--profile', '-p', default=profile, help='aws profile to use (default: %(default)s)')
+    parser.add_argument('--loglevel', '-l', help="Level for reporting e.g. DEBUG, INFO, WARN (default: %(default)s)", default=loglevel)
 
     # subcommands section
     parser.set_defaults(func=None)  # if none then there are  subfunctions
