@@ -5,7 +5,7 @@ Documentation: https://docs.google.com/document/d/1-uugzBGf24aNEdYzWA7ao5yvHPHl8
 
 ## Prerequisites
 * Python 3.x
-* AWS CLI
+* AWS CLI (with credentials file)
 * jq
 * Windows or *nix machine
 
