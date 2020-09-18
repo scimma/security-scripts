@@ -17,28 +17,31 @@ def main(args):
    import s3
    import secrets
    import certificates
+   import repos
    
    shlog.verbose(args)
    shlog.verbose("only tests matching %s will be considered",(args.only))
    q=vanilla_utils.Q(args.dbfile)
-
-   tag_acquire = tags.Acquire(args,"TAGS",q)
-   s3_acquire = s3.Acquire(args, "s3", q)
-   secret_acquire = secrets.Acquire(args,"secrets",q)
+   repos_acquire       = repos.Acquire(args,"repos",q)
+   tag_acquire         = tags.Acquire(args,"TAGS",q)
+   s3_acquire          = s3.Acquire(args, "s3", q)
+   secret_acquire      = secrets.Acquire(args,"secrets",q)
    certificate_acquire = certificates.Acquire(args,"TAGS",q)
    if args.dump:
       tag_acquire.print_data()
       s3_acquire.print_data()
       secret_acquire.print_data()
       certificate_acquire.print_data()
+      repos_acquire.print_data()
       exit()
 
    # reporting actions are driven by instanitating the classes.
    tag_reports = tags.Report(args, "Tagging Rule Check", q)
    s3_reports=s3.Report(args, "s3", q)   
    secret_reports = secrets.Report(args,"secrets",q)
-   cert_reports =certificates.Report(args, "Certificates", q)
-
+   cert_reports = certificates.Report(args, "Certificates", q)
+   repo_reports = repos.Report(args, "repos", q)
+   
 if __name__ == "__main__":
 
    import argparse 
