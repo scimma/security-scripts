@@ -27,6 +27,7 @@ def main(args):
    s3_acquire          = s3.Acquire(args, "s3", q)
    secret_acquire      = secrets.Acquire(args,"secrets",q)
    certificate_acquire = certificates.Acquire(args,"TAGS",q)
+   # at this point data is in the relattion DB
    if args.dump:
       tag_acquire.print_data()
       s3_acquire.print_data()
