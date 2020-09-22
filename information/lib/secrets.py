@@ -82,8 +82,6 @@ class Report(measurements.Measurement):
     def __init__(self, args, name, q):
          measurements.Measurement.__init__(self, args, name, q)
 
- 
-
     def inf_secrets_summary(self):
         """
         Summary Report on Secrets
@@ -92,19 +90,31 @@ class Report(measurements.Measurement):
         
         sql = '''
               SELECT * FROM secrets
-               '''
+       '''
+        print("A")
         self.df = self.q.q_to_df(sql)
+        print("B")
 
-    def inf_secrets_asset_format(self):
+    def make_asset_secrets_format(self):
         """
         Report in format for asset catalog. 
         """
-        shlog.normal("Reporting in asset foramant")
+        shlog.normal("building table secret assets ")
         
         sql = '''
-              SELECT name asset, description, "C" type, short_arn "where" from secrets
+              CREATE TABLE asset_data_secrets AS
+                SELECT
+                    "R:Secret held in "||short_arn                               asset,
+                                                                           description,
+                    "D:Data providing access as described"              business_value,
+                    "D:Unauthorized access to SCiMMA AWS accoun holder"       impact_c,
+                    "C"                                                           type,
+                    short_arn                                                  "where"
+                 FROM secrets
                '''
-        self.df = self.q.q_to_df(sql)
+        print("C")
+        r = self.q.q(sql)
+        print("D")
 
 
         

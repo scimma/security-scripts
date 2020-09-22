@@ -100,10 +100,13 @@ class Measurement:
         if self.listonly:
             self._print_tests("tst_")
             self._print_tests("inf_")
+            self._print_tests("make_")
         else:
             self._call_analysis_methods("tst_",self._print_test_report)
             self._call_analysis_methods("inf_",self._print_information_report)
-        
+            self._call_analysis_methods("make_",self._null)
+
+    def _null(self) : pass
     def _call_analysis_methods(self,prefix, report_func):
         """
         Call all methods beginninng with indicated prefix.
@@ -120,13 +123,9 @@ class Measurement:
 
         for name, func in self._list_tests(prefix):
             shlog.normal("starting analysis: %s" % (name))
-            try:
-                func()
-                report_func()
-            except:
-                print ("Bailing....")
-                shlog.exception("exception in {}".format(name))
-                exit()
+            func()
+            report_func()
+
 
     def _list_tests(self, prefix):
         """

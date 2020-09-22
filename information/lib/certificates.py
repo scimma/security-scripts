@@ -42,7 +42,8 @@ class Acquire(measurements.Dataset):
         shlog.normal("beginning to make {} data".format(self.table_name)) 
         # Make a flattened table for the tag data.
         # one tag, value pair in each record.
-        sql = "CREATE TABLE certificates (domain text, arn text, short_arn text, inuseby text, record json)"
+        sql = """CREATE TABLE certificates (asset text, domain text,
+                            arn text, short_arn text, inuseby text, hash arn, ,record json)"""
         shlog.verbose(sql)
         self.q.q(sql)
 
@@ -62,12 +63,15 @@ class Acquire(measurements.Dataset):
                 inuseby = [aws_utils.shortened_arn(arn) for arn in inuseby]
                 inuseby = ",".join(inuseby)
                 enc = vanilla_utils.DateTimeEncoder
+                asset = "Cert:{} for use by {}".format(domain, inuseby)
+                hash = vanilla_utils.tinyhash(arn)
                 record = json.dumps(record, cls=enc)
-                #"CREATE TABLE certificates (domain text, arn text, short_arn text, inuseby text, record json)"
-                sql = "INSERT INTO certificates VALUES (?, ?, ?, ?, ?)"
-                params = (domain, arn, short_arn, inuseby, record)
+                sql = "INSERT INTO certificates VALUES (?, ?, ?, ?, ?, ?, ?)"
+                params = (asset, domain, arn, short_arn, inuseby, hash, record)
                 self.q.executemany(sql, [params])
-                               
+
+
+        
 class Report(measurements.Measurement):
     def __init__(self, args, name, q):
          measurements.Measurement.__init__(self, args, name, q)
@@ -86,24 +90,23 @@ class Report(measurements.Measurement):
                  certificates
                '''
         self.df = self.q.q_to_df(sql)
-
-    def inf_certificate_asset_format(self):
+    def make_asset_format(self):
         """
-        Just list information in assed format
+        Create asset format from fundamental descriptive data
         """
-        self.current_test = "certificate information in asset format"
-        shlog.normal(self.current_test)
-        
         sql = '''
+              CREATE TABLE asset_data_certificates AS
               SELECT
-                  'R: X509 cert for:'||domain    asset,
-                  'R:Protects via:'||inuseby     description,
-                  'C'                            type, 
-                  'R:'||short_arn                "where"
+                  'R:AWS users w/ authority to read/modify X509 cert for:'||domain    asset,
+                  'R:Protects via:'||inuseby               description,
+                  'D:Assures endpoint is Scimma endpoint'  business_value,
+                  'D:Attacker might spoof Scimma Service'  impact_c,
+                  'C'                                      type, 
+                  'R:'||short_arn                          "where"
               FROM
                  certificates
                '''
-        self.df = self.q.q_to_df(sql)
+        shlog.vverbose(sql)
+        self.q.q(sql)
 
         
-

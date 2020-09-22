@@ -45,7 +45,7 @@ class Acquire(measurements.Dataset):
         shlog.normal("beginning to make {} data".format(self.name)) 
         # Make a flattened table for the tag data.
         # one tag, value pair in each record.
-        sql = "create table s3 (bucket text, arn text, region text, npolicies text, ngrants text, grant json, policy_status text, bucket_policy json)"
+        sql = "create table s3 (asset text, bucket text, arn text, region text, npolicies text, ngrants text, grant json, policy_status text, bucket_policy json)"
         shlog.verbose(sql)
         self.q.q(sql)
 
@@ -64,6 +64,7 @@ class Acquire(measurements.Dataset):
             region = client.head_bucket(Bucket=name)['ResponseMetadata']['HTTPHeaders']['x-amz-bucket-region']
             grants = client.get_bucket_acl(Bucket=name)["Grants"]
             ngrants = len(grants)
+            asset = "aws bucket:{}".format(name)
  
             try: 
                 result = client.get_bucket_policy_status( Bucket=name)
@@ -77,12 +78,11 @@ class Acquire(measurements.Dataset):
             except:
                 raise
     
-            #bucket arn  region npolicies ngrants grant json, policy_status text, bucket_policy json)"
-            sql = '''INSERT INTO s3 VALUES (?,?,?,?,?,?,?,?)'''
+            sql = '''INSERT INTO s3 VALUES (?,?,?,?,?,?,?,?,?)'''
             npolicies = "{}".format(npolicies)
             ngrants   = "{}".format(ngrants)
             
-            list = (name, arn, region,  npolicies,  ngrants, json.dumps(grants), json.dumps(policy_status), json.dumps(bucket_policy))
+            list = (asset, name, arn, region,  npolicies,  ngrants, json.dumps(grants), json.dumps(policy_status), json.dumps(bucket_policy))
             self.q.executemany(sql,[list])
     
 class Report(measurements.Measurement):

@@ -29,7 +29,7 @@ class Q:
         import time
         import os
         import stat
-        timeout = 60*60
+        timeout = 60*60*4
         pathname = self.dbfile
 
         # if memory DB or file not fond, its "as if" the cache needed to be purgess.
@@ -115,3 +115,16 @@ def flatten_tags(tag_data):
         value = dict["Value"]
         retdict[key]= value
     return retdict
+
+def tiny_hash(thing):
+    """
+    Provide few digit hash from a string
+
+    The idea is to provide a key identifying a thing in a class
+    by hashing somethign that is associated, acquireable and semi-stable 
+    """
+    import zlib
+    thing = "{}".format(thing)
+    thing = zlib.adler32(thing.encode('utf_8'))
+    thing = hex(thing)[-4:]
+    return thing

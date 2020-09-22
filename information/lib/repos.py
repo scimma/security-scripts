@@ -14,7 +14,7 @@ import vanilla_utils
 
 class Acquire(measurements.Dataset):
     """
-    Load information ffrom giup about repos.
+    Load information from github about repos.
 
     """
     def __init__(self, args, name, q):
@@ -25,11 +25,7 @@ class Acquire(measurements.Dataset):
         
     def make_data(self):
         """
-        Make a table called TAGS based on tagging data.
-        This collection of data is based on the resourcetaggingapi
-
-        If the tags table exists, then we take it data collection
-        would result in duplicate rows. 
+        MAKE DATA FOR GIT REPOS.
         """
         if self.does_table_exist():
             shlog.normal("repos  already collected")
@@ -38,7 +34,7 @@ class Acquire(measurements.Dataset):
         shlog.normal("beginning to make {} data".format(self.name)) 
         # Make a flattened table for the tag data.
         # one tag, value pair in each record.
-        sql = "CREATE TABLE repos (asset text, description text, url text, who text)"
+        sql = "CREATE TABLE repos (name TEXT, description TEXT, url TEXT, who TEXT, hash TEXT, record JSON)"
         shlog.verbose(sql)
         self.q.q(sql)
 
@@ -50,31 +46,60 @@ class Acquire(measurements.Dataset):
         result = subprocess.run(cmd, text=True, capture_output=True, shell=True, check=True)
         result = json.loads(result.stdout)
         for repo in result:
-            asset                         = repo['full_name']
-            description                   = repo['description']
+            name                          = repo['full_name']
+            description                   = "{}(Private={})".format(repo['description'],repo['private'])
             where                         = repo['url'] #url
             who                           = repo['owner']['login']  # is really the account.
-            record                        = result
-            sql = "INSERT INTO repos VALUES (?, ?, ?, ?)"
-            self.q.executemany(sql, [(asset, description, where, who)])
+            hash                          = vanilla_utils.tiny_hash(name)
+            record                        = json.dumps(result)
+            sql = "INSERT INTO repos VALUES (?, ?, ?, ?, ?, ?)"
+            self.q.executemany(sql, [(name, description, where, who, hash, record)])
+
         
+
 class Report(measurements.Measurement):
     def __init__(self, args, name, q):
          measurements.Measurement.__init__(self, args, name, q)
 
-         
-
-    def inf_gitrepo_asset_format(self):
+    def make_asset_data(self):
         """
-        Report in format for asset catalog. 
+        Make asset data for repos 
         """
-        shlog.normal("Reporting in asset foramant")
         
         sql = '''
-              SELECT 'R:'||asset, 'R:'||description, "C" type, 'R:'||url "where", 'R:'||who  from repos
+         CREATE TABLE asset_data_repos  AS
+              SELECT
+                     "git_repo_"||hash                                   tag,
+                     "R:Contents of: "||name                           asset,
+                     "R:Source Materials for "||description      description,
+                     "D:Maintains source files for topic"     business_value,
+                     "D:None, open to public"                       impact_c,
+                     "D"                                                type,
+                     "R:"||url                                       "where",
+                     "R:"||who                                           who  
+               FROM  repos
+        '''
+        shlog.vverbose(sql)
+        r =self.q.q(sql)
+        sql = '''
+            CREATE TABLE asset_data_repo_credentials  AS
+              SELECT
+                     "git_repo_"||hash                                                   tag,
+                     "R:Credentials to administer/read/write Git repo: "||name         asset,
+                     "R: Defines who can drop/write/read the repo "||description description,
+                     "C"                                                                type,
+                     "R: Personal (not SCiMMA controlled github identity "           "where",
+                     "R: Staff authorized to administer/read/write repo"                 who
+              FROM repos
                '''
-        self.df = self.q.q_to_df(sql)
+        shlog.vverbose(sql)
+        r = self.q.q(sql)
 
+         
+
+
+
+    
 
         
 
