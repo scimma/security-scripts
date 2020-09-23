@@ -5,7 +5,7 @@ This module has code to collect data from all allowed
 AWS regions and buid a relational database.
 
 There is code to check that the tags needed for AWS-level
-accounting and AWS-level incident response are present.
+Accounting and AWS-level incident response are present.
 
 """
 
@@ -43,7 +43,7 @@ class Acquire(measurements.Dataset):
         # Make a flattened table for the tag data.
         # one tag, value pair in each record.
         sql = """CREATE TABLE certificates (asset text, domain text,
-                            arn text, short_arn text, inuseby text, hash arn, ,record json)"""
+                            arn text, short_arn text, inuseby text, hash arn, record json)"""
         shlog.verbose(sql)
         self.q.q(sql)
 
@@ -64,7 +64,7 @@ class Acquire(measurements.Dataset):
                 inuseby = ",".join(inuseby)
                 enc = vanilla_utils.DateTimeEncoder
                 asset = "Cert:{} for use by {}".format(domain, inuseby)
-                hash = vanilla_utils.tinyhash(arn)
+                hash = vanilla_utils.tiny_hash(arn)
                 record = json.dumps(record, cls=enc)
                 sql = "INSERT INTO certificates VALUES (?, ?, ?, ?, ?, ?, ?)"
                 params = (asset, domain, arn, short_arn, inuseby, hash, record)

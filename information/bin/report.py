@@ -66,6 +66,7 @@ if __name__ == "__main__":
    parser.add_argument('--listonly'     ,help="list tests and quit", default=False, action='store_true' )
    parser.add_argument('--only'         ,help="only run reports matching glob", default="*")
    parser.add_argument('--bare'         ,help="print bare report, no wrap, no format", default=False, action='store_true')
+   parser.add_argument('--gitcreds'     ,help="github credentials username:password", default="")
 
    args = parser.parse_args()
    print (args)

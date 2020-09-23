@@ -39,11 +39,24 @@ class Acquire(measurements.Dataset):
         self.q.q(sql)
 
         #n.b. beta interface when this was coded
-        cmd = 'curl   -H "Accept: application/vnd.github.inertia-preview+json"   https://api.github.com/orgs/scimma/repos'
+        credentials = self.args.gitcreds
+        if credentials:
+            credentials = " -u " + credentials
+        else:
+            shlog.verbose("github audit will only return information available to anonymous user")
+            
+        cmd = 'curl  -H "Accept: application/vnd.github.inertia-preview+json"   https://api.github.com/orgs/scimma/repos'
+        cmd = cmd +  credentials
+        
         import subprocess
         #n.b check will  throw an execption if curl exits with non 0
         #rik is that we get valid output, lokin of like a "404" page.
         result = subprocess.run(cmd, text=True, capture_output=True, shell=True, check=True)
+        stdout = result.stdout
+        stderr = result.stderr
+        if len(result.stdout) < 200:
+            shlog.verbose("github curl error: stdout:{} stderr:{}".format(stdout, stderr))
+            exit(1)
         result = json.loads(result.stdout)
         for repo in result:
             name                          = repo['full_name']
@@ -74,6 +87,8 @@ class Report(measurements.Measurement):
                      "R:Source Materials for "||description      description,
                      "D:Maintains source files for topic"     business_value,
                      "D:None, open to public"                       impact_c,
+                     "D:contents corrupted"                         impact_i,
+                     "D:users of data disrupted"                    impact_a,
                      "D"                                                type,
                      "R:"||url                                       "where",
                      "R:"||who                                           who  
@@ -84,12 +99,15 @@ class Report(measurements.Measurement):
         sql = '''
             CREATE TABLE asset_data_repo_credentials  AS
               SELECT
-                     "git_repo_"||hash                                                   tag,
-                     "R:Credentials to administer/read/write Git repo: "||name         asset,
-                     "R: Defines who can drop/write/read the repo "||description description,
-                     "C"                                                                type,
-                     "R: Personal (not SCiMMA controlled github identity "           "where",
-                     "R: Staff authorized to administer/read/write repo"                 who
+                     "git_repo_"||hash                                                        tag,
+                     "R:Credentials to administer/read/write Git repo: "||name              asset,
+                     "R:Defines who can drop/write/read the repo "||description       description,
+                     "D:PRovides access control to repo for staff and community "  business_value,
+                     "D:disruption by repo write or rpo admin creds"                     impact_c,
+                     "D:Lost? user uses githuf to replace credential"                    impact_a,
+                     "C"                                                                     type,
+                     "R: Personal (not SCiMMA controlled github identity "                "where",
+                     "R: Staff authorized to administer/read/write repo"                      who
               FROM repos
                '''
         shlog.vverbose(sql)

@@ -45,7 +45,12 @@ class Acquire(measurements.Dataset):
         shlog.normal("beginning to make {} data".format(self.name)) 
         # Make a flattened table for the tag data.
         # one tag, value pair in each record.
-        sql = "CREATE TABLE secrets (short_arn text, region text, name text, description text, lastchangeddate text, arn text, record json)"
+        sql = """CREATE TABLE secrets
+              (
+                 short_arn TEXT, region TEXT, name TEXT, description TEXT,
+                 lastchangeddate TEXT, arn TEXT, record JSON
+               )
+              """
         shlog.verbose(sql)
         self.q.q(sql)
 
