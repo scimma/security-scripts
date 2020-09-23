@@ -9,15 +9,16 @@ accounting and AWS-level incident response are present.
 
 """
 
+
 import boto3
 import pandas as pd
 import sqlite3
-import aws_utils
-import measurements
-import shlog
+from security_scripts.information.lib import aws_utils
+from security_scripts.information.lib import measurements
+from security_scripts.information.lib import shlog
 import botocore
 import json
-import vanilla_utils
+from security_scripts.information.lib import vanilla_utils
 
 class Acquire(measurements.Dataset):
     """

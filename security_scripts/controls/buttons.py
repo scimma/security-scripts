@@ -139,6 +139,7 @@ def parser_builder(parent_parser, parser, config, remote=False):
     else:
         # augments will be added to local parser
         parser.add_argument('--role', '-r', default=target_role, help='AWS role to modify  (default: %(default)s)')
+        parser.add_argument('--accountid', help='AWS account id (default: %(default)s)', default=accountid)
     return parser
 
 

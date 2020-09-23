@@ -5,12 +5,12 @@ The Database class loads information into a sqlite relational DB.
 The Measurement class uses the relational db.
 The two classes do not otherwise communicate.
 """
-import shlog
+from security_scripts.information.lib import shlog
 import pandas as pd
 import fnmatch
 import sys
 import boto3
-import aws_utils
+from security_scripts.information.lib import aws_utils
 
 class Dataset:
     """

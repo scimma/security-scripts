@@ -25,7 +25,7 @@ class Q:
         Determine if database file is too old to use.
         return True if db file purged (or is memory only instance)e
         """
-        import shlog
+        from security_scripts.information.lib import shlog
         import time
         import os
         import stat

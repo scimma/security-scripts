@@ -8,16 +8,16 @@ Resource Management
 Optons available via <command> --help
 """
 
-import shlog
+from security_scripts.information.lib import shlog
 
        
 def main(args):
-   import vanilla_utils
-   import tags
-   import s3
-   import secrets
-   import certificates
-   import repos
+   from security_scripts.information.lib import vanilla_utils
+   from security_scripts.information.lib import tags
+   from security_scripts.information.lib import s3
+   from security_scripts.information.lib import secrets
+   from security_scripts.information.lib import certificates
+   from security_scripts.information.lib import repos
    
    shlog.verbose(args)
    shlog.verbose("only tests matching %s will be considered",(args.only))
@@ -38,7 +38,7 @@ def main(args):
 
    # reporting actions are driven by instanitating the classes.
    tag_reports = tags.Report(args, "Tagging Rule Check", q)
-   s3_reports=s3.Report(args, "s3", q)   
+   s3_reports=s3.Report(args, "s3", q)
    secret_reports = secrets.Report(args,"secrets",q)
    cert_reports = certificates.Report(args, "Certificates", q)
    repo_reports = repos.Report(args, "repos", q)
