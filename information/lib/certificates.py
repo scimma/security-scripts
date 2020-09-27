@@ -62,10 +62,9 @@ class Acquire(measurements.Dataset):
                 inuseby = record["InUseBy"]
                 inuseby = [aws_utils.shortened_arn(arn) for arn in inuseby]
                 inuseby = ",".join(inuseby)
-                enc = vanilla_utils.DateTimeEncoder
                 asset = "Cert:{} for use by {}".format(domain, inuseby)
                 hash = vanilla_utils.tiny_hash(arn)
-                record = json.dumps(record, cls=enc)
+                record = self._json_clean_dumps(record)
                 sql = "INSERT INTO certificates VALUES (?, ?, ?, ?, ?, ?, ?)"
                 params = (asset, domain, arn, short_arn, inuseby, hash, record)
                 self.q.executemany(sql, [params])

@@ -59,6 +59,7 @@ class Acquire(measurements.Dataset):
             exit(1)
         result = json.loads(result.stdout)
         for repo in result:
+            # import pdb; pdb.set_trace()
             name                          = repo['full_name']
             description                   = "{}(Private={})".format(repo['description'],repo['private'])
             where                         = repo['url'] #url
@@ -104,7 +105,7 @@ class Report(measurements.Measurement):
                      "R:Defines who can drop/write/read the repo "||description       description,
                      "D:PRovides access control to repo for staff and community "  business_value,
                      "D:disruption by repo write or rpo admin creds"                     impact_c,
-                     "D:Lost? user uses githuf to replace credential"                    impact_a,
+                     "D:Lost? user uses github to replace credential"                    impact_a,
                      "C"                                                                     type,
                      "R: Personal (not SCiMMA controlled github identity "                "where",
                      "R: Staff authorized to administer/read/write repo"                      who
@@ -113,7 +114,10 @@ class Report(measurements.Measurement):
         shlog.vverbose(sql)
         r = self.q.q(sql)
 
-         
+        def inf_json(self):
+            "show the returned json"
+            sql = "select record from repos"
+            self.df = self.q.q_to_df(sql)
 
 
 

@@ -170,5 +170,32 @@ class Report(measurements.Measurement):
         '''
         self.df = self.q.q_to_df(sql)
 
-        
+
+    def make_asset_data_by_service(self):
+        """
+        Make asset data by service
+        """
+        sql = """
+          CREATE TABLE
+            asset_data_by_service
+          AS
+            SELECT
+                t1.value criticality,
+                t2.value service,
+                t3.value description,
+                t1.short_arn asset
+            FROM tags t1
+            LEFT JOIN tags t2
+                ON t1.arn = t2.arn
+            LEFT JOIN tags t3
+                ON t1.arn = t3.arn
+            WHERE
+                t1.tag   = 'Criticality'
+            AND
+                t2.tag = 'Service'
+            AND
+                t3.tag = 'Name'
+            ORDER by t2.value
+        """
+        self.q.q(sql)
 

@@ -18,6 +18,7 @@ def main(args):
    import secrets
    import certificates
    import repos
+   import load_balancer
    
    shlog.verbose(args)
    shlog.verbose("only tests matching %s will be considered",(args.only))
@@ -27,6 +28,7 @@ def main(args):
    s3_acquire          = s3.Acquire(args, "s3", q)
    secret_acquire      = secrets.Acquire(args,"secrets",q)
    certificate_acquire = certificates.Acquire(args,"TAGS",q)
+   load_balancer_acquire = load_balancer.Acquire(args,"laod_balancer",q)
    # at this point data is in the relattion DB
    if args.dump:
       tag_acquire.print_data()
@@ -34,6 +36,7 @@ def main(args):
       secret_acquire.print_data()
       certificate_acquire.print_data()
       repos_acquire.print_data()
+      load_balancer_acquire.print_data()
       exit()
 
    # reporting actions are driven by instanitating the classes.
@@ -42,7 +45,7 @@ def main(args):
    secret_reports = secrets.Report(args,"secrets",q)
    cert_reports = certificates.Report(args, "Certificates", q)
    repo_reports = repos.Report(args, "repos", q)
-   
+   x       = load_balancer.Report(args, "load_balancers", q)
 if __name__ == "__main__":
 
    import argparse 

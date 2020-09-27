@@ -11,6 +11,8 @@ import fnmatch
 import sys
 import boto3
 import aws_utils
+import vanilla_utils
+import json
 
 class Dataset:
     """
@@ -35,6 +37,19 @@ class Dataset:
         except sqlite3.OperationalError:
             return False
         
+    def _json_clean_dumps(self, json_native):
+        """ convert native json into text
+
+             Deal with Amazon stuff that is awkward in
+             thw tools  set(python, etc)
+        """
+
+        # Amazon binarites have datetime types need an encode to turn to text
+        # I've not looked  into tiemzones.
+        enc = vanilla_utils.DateTimeEncoder  #converter fo datatime types -- not supported
+        json_text = json.dumps(json_native, cls=enc)
+        return json_text
+    
     def _pages_all_regions(self, aws_client_name, aws_function_name):
         """
         An interator that gets the pages for all regions.
@@ -106,7 +121,7 @@ class Measurement:
             self._call_analysis_methods("inf_",self._print_information_report)
             self._call_analysis_methods("make_",self._null)
 
-    def _null(self) : pass
+    def _null(self, doc) : pass
     def _call_analysis_methods(self,prefix, report_func):
         """
         Call all methods beginninng with indicated prefix.
@@ -124,7 +139,7 @@ class Measurement:
         for name, func in self._list_tests(prefix):
             shlog.normal("starting analysis: %s" % (name))
             func()
-            report_func()
+            report_func(func.__doc__)
 
 
     def _list_tests(self, prefix):
@@ -155,9 +170,9 @@ class Measurement:
             return False
         return True
     
-    def _print_test_report(self):
+    def _print_test_report(self, doc):
         """Generate a text report for a single test """
-        print()
+        print("*****{}".format(doc))
         print("******* Begin %s ************" % (self.current_test))
         if self._is_violation_detected():
             print("****** Violation Information *****")
@@ -166,9 +181,9 @@ class Measurement:
             print("passed test")
         print("******* End %s ************" % (self.current_test))
 
-    def _print_information_report(self):
+    def _print_information_report(self, doc):
         """Generate a information report for a single information analysis """
-        print()
+        print("*****{}".format(doc))
         print("******* Begin %s ************" % (self.current_test))
         print(wrapped_ascii_table(self.args,self.df))
         print("******* End %s ************" % (self.current_test))

@@ -56,7 +56,6 @@ class Acquire(measurements.Dataset):
 
         # Get the tags for each region.
         # accomidate the boto3 API can retul data in pages.
-        enc = vanilla_utils.DateTimeEncoder  #converter fo datatime types -- not supported 
         for page in self._pages_all_regions('secretsmanager', 'list_secrets'):
 
             for secret in page['SecretList']:
@@ -69,7 +68,7 @@ class Acquire(measurements.Dataset):
                 lastchangeddate    = datetime.datetime.isoformat(secret['LastChangedDate'])
                 record             = secret
                 record["FlatTags"] = vanilla_utils.flatten_tags(secret["Tags"])
-                record             = json.dumps(secret, cls=enc)
+                record             = self._json_clean_dumps(record)
                 sql = """
                        INSERT INTO secrets VALUES (?, ?, ?, ?, ?, ?, ?)
                          """
@@ -96,9 +95,7 @@ class Report(measurements.Measurement):
         sql = '''
               SELECT * FROM secrets
        '''
-        print("A")
         self.df = self.q.q_to_df(sql)
-        print("B")
 
     def make_asset_secrets_format(self):
         """
@@ -117,9 +114,7 @@ class Report(measurements.Measurement):
                     short_arn                                                  "where"
                  FROM secrets
                '''
-        print("C")
         r = self.q.q(sql)
-        print("D")
 
 
         
