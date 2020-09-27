@@ -20,7 +20,7 @@ def env_control():
     var = 'SCIMMA_SECURITY_CFG'
     val = os.environ.get(var)
     if val:
-        print('Reading custom config file locaiton from $' + var + ' as ' + val)
+        print('Reading custom config file location from $' + var + ' as ' + val)
         return val
     else:
         if platform.system() in ['Linux', 'Darwin']:
@@ -74,13 +74,9 @@ def catcher():
     from security_scripts.information import vault
     subparsers = vault.parser_builder(parent_parser, subparsers, config, True)
 
-    # request parser augmentation from tag report
-    from security_scripts.information import tag_report
-    subparsers = tag_report.parser_builder(parent_parser, subparsers, config, True)
-
-    # request parser augmentation from s3 report
-    from security_scripts.information import s3_report
-    subparsers = s3_report.parser_builder(parent_parser, subparsers, config, True)
+    # request parser augmentation from report
+    from security_scripts.information import report
+    subparsers = report.parser_builder(parent_parser, subparsers, config, True)
 
     # request parser augmentation from find report
     from security_scripts.information import find_by_content

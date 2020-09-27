@@ -6,6 +6,8 @@ Documentation: https://docs.google.com/document/d/1-uugzBGf24aNEdYzWA7ao5yvHPHl8
 ## Prerequisites
 * Python 3.x
 * AWS CLI (with credentials file)
+* api.github.com auth token in ~/.netrc in format
+<code>machine api.github.com login %user% password %access token%</code>
 * jq
 * Windows or *nix machine
 
@@ -25,11 +27,8 @@ A vault file is bushy directory tree that is stored under $HOME/.vault. the leav
 Other tools (notably find_by_content.py) based
 on trailscraper use the downloaded data for analysis.
 
-#### sc inf_tag
-Check consistenty of AWS implementation with SCiMMA rules.
-
-#### sc inf_s3
-Print S3 storage resource on stdout.
+#### sc inf_report
+Run tag, s3, secret, certificate, repo inventory reports
 
 #### sc inf_find
 Dump cloudtail json event records from the vault having some value matching the globstring.

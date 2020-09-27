@@ -11,7 +11,8 @@ Optons available via <command> --help
 from security_scripts.information.lib import shlog
 
        
-def main(args):
+def rep_main(args):
+   "Run tag, s3, secret, certificate, repo inventory reports"
    from security_scripts.information.lib import vanilla_utils
    from security_scripts.information.lib import tags
    from security_scripts.information.lib import s3
@@ -42,6 +43,33 @@ def main(args):
    secret_reports = secrets.Report(args,"secrets",q)
    cert_reports = certificates.Report(args, "Certificates", q)
    repo_reports = repos.Report(args, "repos", q)
+
+
+def parser_builder(parent_parser, parser, config, remote=False):
+    """Get a parser and return it with additional options
+    :param parent_parser: top-level parser that will receive a subcommand; can be None if remote=False
+    :param parser: (sub)parser in need of additional arguments
+    :param config: ingested config file in config object format
+    :param remote: whenever we
+    :return: parser with amended options
+    """
+    dbfile = config.get("TAG_REPORT", "dbfile", fallback=":memory:")
+
+    if remote:
+        # augment remote parser with a new subcommand
+        inf_report_parser = parser.add_parser('inf_report', parents=[parent_parser], description=rep_main.__doc__)
+        inf_report_parser.set_defaults(func=rep_main)
+        # arguments will be attached to subcommand
+        target_parser = inf_report_parser
+    else:
+        # augments will be added to local parser
+        target_parser = parser
+    target_parser.add_argument('--dbfile', help='database file to use (default: %(default)s)', default=dbfile)
+    target_parser.add_argument('--dump', help="dump data and quit, do not apply test (default: %(default)s)", default=False, action='store_true')
+    target_parser.add_argument('--listonly', help="list tests and quit (default: %(default)s)", default=False, action='store_true')
+    target_parser.add_argument('--only', help="only run reports matching glob (default: %(default)s)", default="*")
+    target_parser.add_argument('--bare', help="print bare report, no wrap, no format (default: %(default)s)", default=False, action='store_true')
+    return parser
    
 if __name__ == "__main__":
 
@@ -53,23 +81,19 @@ if __name__ == "__main__":
    config.read_file(open('defaults.cfg'))
    profile  = config.get("TAG_REPORT", "profile")
    loglevel = config.get("TAG_REPORT", "loglevel",fallback="NORMAL")
-   dbfile =   config.get("TAG_REPORT", "dbfile"  ,fallback=":memory:")
+
    
    """Create command line arguments"""
    parser = argparse.ArgumentParser(description=__doc__, formatter_class=argparse.RawDescriptionHelpFormatter)
+   parser.add_argument('--loglevel', '-l', help=shlog.helptext, default="NORMAL")
    parser.add_argument('--profile','-p',default=profile,
              help='aws profile to use')
-   parser.add_argument('--debug'   ,'-d',help='print debug info', default=False, action='store_true')
-   parser.add_argument('--loglevel','-l',help=shlog.helptext, default="NORMAL")
-   parser.add_argument('--dbfile'       ,help='database file to use def:%s' % dbfile, default=dbfile)
-   parser.add_argument('--dump'         ,help="dump data and quit, do not apply test", default=False, action='store_true' )
-   parser.add_argument('--listonly'     ,help="list tests and quit", default=False, action='store_true' )
-   parser.add_argument('--only'         ,help="only run reports matching glob", default="*")
-   parser.add_argument('--bare'         ,help="print bare report, no wrap, no format", default=False, action='store_true')
+
+   parser = parser_builder(None, parser, config, False)
 
    args = parser.parse_args()
    print (args)
    shlog.basicConfig(level=args.loglevel)
 
-   main(args)
+   rep_main(args)
 

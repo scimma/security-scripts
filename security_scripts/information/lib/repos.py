@@ -32,6 +32,23 @@ class Acquire(measurements.Dataset):
                     return True
         return False
 
+    def get_members(self, members, level):
+        """Generate a string of users with matching privilege level or error message
+
+        :param members: json object containing all repo users
+        :param level: single out users with this access level
+        :return: string
+        """
+        if isinstance(members, dict) and 'message' in members.keys():
+            return members['message']
+        else:
+            chosen = ''
+            for member in members:
+                if member['permissions'][level]:
+                    chosen += member['login'] + ', '
+            return chosen[:-2]
+
+
     def make_data(self):
         """
         Make a table called TAGS based on tagging data.
@@ -53,7 +70,7 @@ class Acquire(measurements.Dataset):
         shlog.normal("beginning to make {} data".format(self.name)) 
         # Make a flattened table for the tag data.
         # one tag, value pair in each record.
-        sql = "CREATE TABLE repos (asset text, description text, url text, who text, admins text)"
+        sql = "CREATE TABLE repos (asset text, description text, url text, who text, can_pull text, can_push text, admins text)"
         shlog.verbose(sql)
         self.q.q(sql)
 
@@ -63,9 +80,9 @@ class Acquire(measurements.Dataset):
         import subprocess
         #n.b check will  throw an execption if curl exits with non 0
         #rik is that we get valid output, lokin of like a "404" page.
-        result = subprocess.run(cmd, text=True, capture_output=True, shell=True, check=True)
-        result = json.loads(result.stdout)
-        for repo in result:
+        repos = subprocess.run(cmd, text=True, capture_output=True, shell=True, check=True)
+        repos = json.loads(repos.stdout)
+        for repo in repos:
             if repo['private']:
                 priv = 'Pri:'
             else:
@@ -75,23 +92,26 @@ class Acquire(measurements.Dataset):
             where                         = repo['url'] #url
             who                           = repo['owner']['login']  # is really the account.
             collaborators_url = repo['collaborators_url'].split('{')[0]
-            record                        = result
 
-            # get admin list
-            cmd = 'curl -n ' + collaborators_url + ' | ' \
-                  'jq "[ .[] | select(.permissions.admin == true) | .login ]"'
+            # get user list
+            cmd = 'curl -n ' + collaborators_url
+            result = subprocess.run(cmd, text=True, capture_output=True, shell=True, check=True)
+            result = json.loads(result.stdout)
             try:
-                result = subprocess.run(cmd, text=True, capture_output=True, shell=True, check=True)
-                result = json.loads(result.stdout)
-                admins                        = ', '.join([str(item) for item in result])
+                # attempt to sort the users
+                members                   = {'can_pull':self.get_members(result,'pull'),
+                                             'can_push': self.get_members(result, 'push'),
+                                             'admins'  :self.get_members(result,'admin')
+                                            }
             except subprocess.CalledProcessError:
-                # oh no, we can't read the repo! let's find out why
+                # repo is unreadable
                 cmd = 'curl -n ' + collaborators_url + ' | jq ".message"'
                 result = subprocess.run(cmd, text=True, capture_output=True, shell=True, check=True)
                 result = json.loads(result.stdout)
                 admins                        = result
-            sql = "INSERT INTO repos VALUES (?, ?, ?, ?, ?)"
-            self.q.executemany(sql, [(asset, description, where, who, admins)])
+            sql = "INSERT INTO repos VALUES (?, ?, ?, ?, ?, ?, ?)"
+            self.q.executemany(sql, [(asset, description, where, who, members['can_pull'],
+                                     members['can_push'], members['admins'])])
         
 class Report(measurements.Measurement):
     def __init__(self, args, name, q):
@@ -104,9 +124,10 @@ class Report(measurements.Measurement):
         Report in format for asset catalog. 
         """
         shlog.normal("Reporting in asset foramant")
-        
+
         sql = '''
-              SELECT 'R:'||asset, 'R:'||description, "C" type, 'R:'||url "where", 'R:'||who, 'R:'||admins  from repos
+              SELECT 'R:'||asset, 'R:'||description, "C" type, 'R:'||url "where", 'R:'||who,
+              'R:'||can_pull, 'R:'||can_push, 'R:'||admins  from repos
                '''
         self.df = self.q.q_to_df(sql)
 

@@ -62,9 +62,15 @@ def progress_bar(iteration, total):
     :param total:
     :return:
     """
-    perc = round((iteration/total)*100, 2)
-    bar = ('░'*19).replace('░','█',int(round(perc/5,0))) + '░'
-    return str("{:.2f}".format(perc)).zfill(6) + '% [' + bar + ']'
+    try:
+        perc = round((iteration/total)*100, 2)
+        bar = ('░'*19).replace('░','█',int(round(perc/5,0))) + '░'
+        return str("{:.2f}".format(perc)).zfill(6) + '% [' + bar + ']'
+    except ZeroDivisionError:
+        # this happens in never versions of python. return nothing
+        return ''
+
+
 
 
 
@@ -143,7 +149,14 @@ def s3download(keys):
         s_print(progress_bar(keys['count'], total_keys) + ' ' + dest_pathname[1] + ' already downloaded, skipping...', flush=True)
     else:
         s_print(progress_bar(keys['count'], total_keys) + ' Downloading ' + str(keys['filepath']), flush=True)
-        client.download_file(keys['bucket'], keys['key'], keys['filepath'])
+        try:
+            client.download_file(keys['bucket'], keys['key'], keys['filepath'])
+        except AttributeError:
+            # global client could not be reached
+            # this happens in newer experimental python builds 3.8+
+            logging.error('Your Python installation does not support global variables')
+            logging.error('Please use Python below 3.8.0')
+            logging.error('Could not download ' + dest_pathname[1])
 
 
 def parser_builder(parent_parser, parser, config, remote=False):
