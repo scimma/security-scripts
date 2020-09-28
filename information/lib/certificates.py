@@ -108,4 +108,6 @@ class Report(measurements.Measurement):
         shlog.vverbose(sql)
         self.q.q(sql)
 
-        
+    def json_report(self):
+        "make json file"
+        return "select record from certificates"

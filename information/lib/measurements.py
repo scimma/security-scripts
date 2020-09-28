@@ -111,17 +111,20 @@ class Measurement:
         self.df = None
         self.current_test=None
         self.listonly = args.listonly
+        self.args.report_path="./report_files"
 
         if self.listonly:
             self._print_tests("tst_")
             self._print_tests("inf_")
             self._print_tests("make_")
+            self._print_tests("json_")
         else:
             self._call_analysis_methods("tst_",self._print_test_report)
-            self._call_analysis_methods("inf_",self._print_information_report)
+            self._call_analysis_methods("inf_",self._print_relational_report)
             self._call_analysis_methods("make_",self._null)
+            self._call_analysis_methods("json_",self._write_json_from_sql)
 
-    def _null(self, doc) : pass
+    def _null(self, result, doc) : pass
     def _call_analysis_methods(self,prefix, report_func):
         """
         Call all methods beginninng with indicated prefix.
@@ -138,8 +141,8 @@ class Measurement:
 
         for name, func in self._list_tests(prefix):
             shlog.normal("starting analysis: %s" % (name))
-            func()
-            report_func(func.__doc__)
+            result = func()
+            report_func(result, func.__doc__)
 
 
     def _list_tests(self, prefix):
@@ -156,7 +159,7 @@ class Measurement:
                 list.append([key, self.__getattribute__(key)])
         return list
 
-    def _print_tests(self, prefix):
+    def _print_tests(self, result, prefix):
         """
         print a list of available tests with the indicated prefix
         """
@@ -169,8 +172,44 @@ class Measurement:
         if self.df.size == 0 :
             return False
         return True
+
+    def _filepath_from_query(self, sql):
+        """
+        Compute a pathname from a query
+
+        Derive table name from the table name in the query.
+        NOT sure this is robust
+        """
+        import shlex
+        import os
+        sql = sql.lower()
+        tokens = shlex.split(sql.lower())
+        for token, next_token in zip(tokens, tokens[1:]+[""]):
+            if token == "from" : table = next_token
+        filename = table + ".json"
+        filepath = os.path.join(self.args.report_path, filename)
+        return filepath
+
+
+    def _write_json_from_sql (self,sql, doc):
+        """
+        write a json file from a query containing
+        one columm
+        """
+        import pdb ; pdb.set_trace()
+        jsons = self.q.q(sql).fetchall()
+        jsons = [j[0] for j in jsons]
+        jsons = ",\n".join(jsons)
+        jsons = "[" + jsons + "]"
+        jsons = jsons.encode(encoding='UTF-8')
+        # now  write it out.
+        filepath = self._filepath_from_query(sql)
+        f = open(filepath,'wb')
+        f.write(jsons)
+        f.close()
+        return
     
-    def _print_test_report(self, doc):
+    def _print_test_report(self, result, doc):
         """Generate a text report for a single test """
         print("*****{}".format(doc))
         print("******* Begin %s ************" % (self.current_test))
@@ -181,7 +220,7 @@ class Measurement:
             print("passed test")
         print("******* End %s ************" % (self.current_test))
 
-    def _print_information_report(self, doc):
+    def _print_relational_report(self, result, doc):
         """Generate a information report for a single information analysis """
         print("*****{}".format(doc))
         print("******* Begin %s ************" % (self.current_test))
@@ -201,9 +240,10 @@ def wrapped_ascii_table(args, df):
     if args.bare:
         table =tabulate.tabulate(df, list(df.columns))
         return table
+    width = int(132/len(df.columns))
     for c in list(df.columns):
        #put newlines in the data frame
-        scratch[c] = df[c].str.wrap(20)
+        scratch[c] = df[c].str.wrap(width)
 
        #Make a tabulate table, with wrapped data, column headnign and
        #ASCII art to draw cell boindaris.

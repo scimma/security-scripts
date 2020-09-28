@@ -45,7 +45,7 @@ class Acquire(measurements.Dataset):
         shlog.normal("beginning to make {} data".format(self.name)) 
         # Make a flattened table for the tag data.
         # one tag, value pair in each record.
-        sql = "create table s3 (asset text, bucket text, arn text, region text, npolicies text, ngrants text, grant json, policy_status text, bucket_policy json)"
+        sql = "create table s3 (asset text, bucket text, arn text, region text, npolicies text, ngrants text, grants json, policy_status text, bucket_policy JSON, record JSON)"
         shlog.verbose(sql)
         self.q.q(sql)
 
@@ -72,17 +72,23 @@ class Acquire(measurements.Dataset):
                 bucket_policy = client.get_bucket_policy(Bucket=name)["Policy"]
                 npolicies = len(bucket_policy)
             except botocore.exceptions.ClientError:
-                policy_status = [{"Result" : "None"}]
-                bucket_policy=  [{"Result" : "None"}]
+                policy_status = {"IsPublic" : False}
+                bucket_policy=  []
                 npolicies = 0
             except:
                 raise
+            record = bucket
+            record['BucketPolicy'] = policy_status
+            record['PolicyStatus'] = bucket_policy
+            record['Region']       = region
+            record = self._json_clean_dumps(record)
     
-            sql = '''INSERT INTO s3 VALUES (?,?,?,?,?,?,?,?,?)'''
+            sql = '''INSERT INTO s3 VALUES (?,?,?,?,?,?,?,?,?,?)'''
             npolicies = "{}".format(npolicies)
             ngrants   = "{}".format(ngrants)
             
-            list = (asset, name, arn, region,  npolicies,  ngrants, json.dumps(grants), json.dumps(policy_status), json.dumps(bucket_policy))
+            list = (asset, name, arn, region,  npolicies,  ngrants,
+                    json.dumps(grants), json.dumps(policy_status), json.dumps(bucket_policy), record)
             self.q.executemany(sql,[list])
     
 class Report(measurements.Measurement):
@@ -138,3 +144,9 @@ class Report(measurements.Measurement):
                '''
 
         self.df = self.q.q_to_df(sql)
+
+    def json_report(self):
+        "make json file"
+        return """
+                SELECT record FROM s3
+               """

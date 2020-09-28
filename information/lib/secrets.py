@@ -97,6 +97,10 @@ class Report(measurements.Measurement):
        '''
         self.df = self.q.q_to_df(sql)
 
+    def json_report (self):
+        "dump json structure"
+        return "select record from secrets"
+
     def make_asset_secrets_format(self):
         """
         Report in format for asset catalog. 
