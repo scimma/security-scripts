@@ -95,7 +95,7 @@ class Report(measurements.Measurement):
         sql = '''
               SELECT * FROM secrets
        '''
-        self.df = self.q.q_to_df(sql)
+        return sql
 
     def json_report (self):
         "dump json structure"

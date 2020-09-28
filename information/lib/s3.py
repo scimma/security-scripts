@@ -109,10 +109,10 @@ class Report(measurements.Measurement):
               FROM
                  s3
                '''
-        self.df = self.q.q_to_df(sql)
+        return sql
 
         
-    def inf_s3_bucket_asset_format(self):
+    def xinf_s3_bucket_asset_format(self):
         """
         Report in format for asset catalog. 
         """
@@ -127,7 +127,7 @@ class Report(measurements.Measurement):
                '''
         self.df = self.q.q_to_df(sql)
 
-    def inf_s3_configuraton_asset_format(self):
+    def xinf_s3_configuraton_asset_format(self):
         """
         Report in format for asset catalog. 
         """

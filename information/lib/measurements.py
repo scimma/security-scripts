@@ -13,6 +13,7 @@ import boto3
 import aws_utils
 import vanilla_utils
 import json
+import os
 
 class Dataset:
     """
@@ -48,6 +49,10 @@ class Dataset:
         # I've not looked  into tiemzones.
         enc = vanilla_utils.DateTimeEncoder  #converter fo datatime types -- not supported
         json_text = json.dumps(json_native, cls=enc)
+        #
+        # There is no gocd to deal with flattendin the "arrays fo dicionawr with basincally the
+        # same keys which are also awkwarb. (tags as arrays of key, falue dictionarie are
+        # an example.)
         return json_text
     
     def _pages_all_regions(self, aws_client_name, aws_function_name):
@@ -104,6 +109,8 @@ class Measurement:
     The Result of each informational method is
     a tabular presentation on the screen.
     """
+    excel_writer=None
+    
     def __init__(self, args, name, q):
         self.args=args
         self.q=q
@@ -119,15 +126,14 @@ class Measurement:
             self._print_tests("make_")
             self._print_tests("json_")
         else:
-            self._call_analysis_methods("tst_",self._print_test_report)
-            self._call_analysis_methods("inf_",self._print_relational_report)
+            self._call_analysis_methods("tst_",self._write_relational_files)
+            self._call_analysis_methods("inf_",self._write_relational_files)
             self._call_analysis_methods("make_",self._null)
-            self._call_analysis_methods("json_",self._write_json_from_sql)
+            self._call_analysis_methods("json_",self._write_json_file)
 
-    def _null(self, result, doc) : pass
     def _call_analysis_methods(self,prefix, report_func):
         """
-        Call all methods beginninng with indicated prefix.
+        Call all methods begining with indicated prefix.
         
         This code uses the python metaclass system
         to find all methods beginning with the indiccated
@@ -141,8 +147,8 @@ class Measurement:
 
         for name, func in self._list_tests(prefix):
             shlog.normal("starting analysis: %s" % (name))
-            result = func()
-            report_func(result, func.__doc__)
+            #result = func()
+            report_func(func)
 
 
     def _list_tests(self, prefix):
@@ -159,9 +165,17 @@ class Measurement:
                 list.append([key, self.__getattribute__(key)])
         return list
 
+    #
+    #  Here are routines that render the output
+    #
+    def _null(self, func) : pass
+
+
     def _print_tests(self, result, prefix):
         """
-        print a list of available tests with the indicated prefix
+        Print a list of available tests with the indicated prefix
+
+        Print to stdout.
         """
         for test, _ in self._list_tests(prefix):
             print(test)
@@ -173,62 +187,67 @@ class Measurement:
             return False
         return True
 
-    def _filepath_from_query(self, sql):
-        """
-        Compute a pathname from a query
-
-        Derive table name from the table name in the query.
-        NOT sure this is robust
-        """
-        import shlex
-        import os
-        sql = sql.lower()
-        tokens = shlex.split(sql.lower())
-        for token, next_token in zip(tokens, tokens[1:]+[""]):
-            if token == "from" : table = next_token
-        filename = table + ".json"
-        filepath = os.path.join(self.args.report_path, filename)
-        return filepath
-
-
-    def _write_json_from_sql (self,sql, doc):
+    
+    def _write_json_file (self, func):
         """
         write a json file from a query containing
-        one columm
+        one columm. OUtput file is useabel
+        by utileies such as jq.
         """
-        import pdb ; pdb.set_trace()
+        name = func.__name__
+        filename =  name + ".json"
+        filepath = os.path.join(self.args.report_path, filename)
+        shlog.normal ("preparing {}".format(filepath))
+        sql = func()
+        shlog.verbose("sql is: {}".format(sql))
+
         jsons = self.q.q(sql).fetchall()
         jsons = [j[0] for j in jsons]
         jsons = ",\n".join(jsons)
         jsons = "[" + jsons + "]"
         jsons = jsons.encode(encoding='UTF-8')
         # now  write it out.
-        filepath = self._filepath_from_query(sql)
         f = open(filepath,'wb')
         f.write(jsons)
         f.close()
         return
+
+    def _write_relational_files(self, func):
+        """
+        Write a relational report out in tablular and csv formnt
+        """
+        name = func.__name__
+        txt_filename =  name + ".txt"
+        filepath = os.path.join(self.args.report_path, txt_filename)
+        shlog.normal ("preparing {}".format(filepath))
+        sql = func()
+        shlog.verbose("sql is: {}".format(sql))
+        df = self.q.q_to_df(sql)
+        # wrapped table )qicj look for human
+        table = wrapped_ascii_table(self.args, df).encode(encoding='UTF-8')
+        f = open(filepath, "wb")
+        f.write(table)
+        f.close()
+        # csv
+        csv_filename =  name + ".csv"
+        filepath = os.path.join(self.args.report_path, csv_filename)
+        shlog.normal ("preparing {}".format(filepath))
+        df.to_csv(filepath, index=False)
+        # add to excel workbook
+        # Thsi code is not working, it's be nice to have all this in workbook.
+        # needs to be cloasds
+        xlxs_filename =  "all.xlsx"
+        filepath = os.path.join(self.args.report_path, xlxs_filename)
+        if not Measurement.excel_writer:
+            shlog.normal ("creating excel file  {}".format(filepath))        
+            Measurement.excel_writer=pd.ExcelWriter(filepath)
+        import pdb; pdb.set_trace()
+        shlog.normal("adding sheet {} to {}".format(name, filepath))
+        df.to_excel(Measurement.excel_writer, sheet_name=name)         
+
     
-    def _print_test_report(self, result, doc):
-        """Generate a text report for a single test """
-        print("*****{}".format(doc))
-        print("******* Begin %s ************" % (self.current_test))
-        if self._is_violation_detected():
-            print("****** Violation Information *****")
-            print(wrapped_ascii_table(self.args, self.df))
-        else:
-            print("passed test")
-        print("******* End %s ************" % (self.current_test))
-
-    def _print_relational_report(self, result, doc):
-        """Generate a information report for a single information analysis """
-        print("*****{}".format(doc))
-        print("******* Begin %s ************" % (self.current_test))
-        print(wrapped_ascii_table(self.args,self.df))
-        print("******* End %s ************" % (self.current_test))
-
-
-
+             
+        
 def wrapped_ascii_table(args, df):
     """
     Return a table with long lines wrapped within a table cell, given a df.

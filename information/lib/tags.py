@@ -99,7 +99,7 @@ class Report(measurements.Measurement):
                   select ARN from tags where tag = "Service"
                  )
                '''
-        self.df = self.q.q_to_df(sql)
+        return sql
 
 
     def tst_has_standard_criticality(self):
@@ -118,7 +118,7 @@ class Report(measurements.Measurement):
                      value not in ("Development", "Demonstration", "Production", "Investigation")
 
                '''
-        self.df = self.q.q_to_df(sql)
+        return sql
 
 
     def inf_service_names(self):
@@ -135,7 +135,7 @@ class Report(measurements.Measurement):
               WHERE  tag = "Service"
 
                '''
-        self.df = self.q.q_to_df(sql)
+        return sql
 
     def inf_service_resources(self):
         """
@@ -151,7 +151,7 @@ class Report(measurements.Measurement):
               ORDER by value, arn
 
                '''
-        self.df = self.q.q_to_df(sql)
+        return sql
 
     def inf_tags_bound_to_secrets(self):
         """
@@ -168,7 +168,7 @@ class Report(measurements.Measurement):
             WHERE arn like "%secret%"  
             ORDER BY arn
         '''
-        self.df = self.q.q_to_df(sql)
+        return sql
 
 
     def make_asset_data_by_service(self):

@@ -117,7 +117,8 @@ class Report(measurements.Measurement):
         def inf_json(self):
             "show the returned json"
             sql = "select record from repos"
-            self.df = self.q.q_to_df(sql)
+            return sql
+        
 
 
 

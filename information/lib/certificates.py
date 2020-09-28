@@ -88,7 +88,8 @@ class Report(measurements.Measurement):
               FROM
                  certificates
                '''
-        self.df = self.q.q_to_df(sql)
+        return sql
+    
     def make_asset_format(self):
         """
         Create asset format from fundamental descriptive data
