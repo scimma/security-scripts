@@ -7,7 +7,7 @@ with open("README.md", "r") as fh:
 setuptools.setup(
     name="scimma-security-scripts", # Replace with your own username
     version="1.2b0",
-    author="Vladislav Ekimtcov, Donald Petravic",
+    author="Vladislav Ekimtcov, Donald Petravick",
     author_email="ekimtco2@illinois.edu",
     description="SCiMMA security scripts",
     long_description=long_description,
@@ -17,7 +17,7 @@ setuptools.setup(
     package_data={
         "": ["*.cfg"] # carry what is yours
     },
-    install_requires=['boto3','tabulate','regex','pandas'],
+    install_requires=['boto3','tabulate','regex','pandas','openpyxl'],
     entry_points={
         'console_scripts': ['sc=security_scripts.kli:catcher'],
     },

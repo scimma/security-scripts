@@ -15,7 +15,7 @@ import os
 
 class Acquire(measurements.Dataset):
     """
-    Load information ffrom giup about repos.
+    Load information from github about repos.
 
     """
     def __init__(self, args, name, q):
@@ -23,7 +23,7 @@ class Acquire(measurements.Dataset):
         self.table_name = "repos"
         self.make_data()
         self.clean_data()
-        
+
     def netrc_has_credentials(self):
         """Check .netrc for api.github.com credentials"""
         with open(os.path.expanduser("~/.netrc"), 'r') as read_obj:
@@ -55,7 +55,7 @@ class Acquire(measurements.Dataset):
         This collection of data is based on the resourcetaggingapi
 
         If the tags table exists, then we take it data collection
-        would result in duplicate rows. 
+        would result in duplicate rows.
         """
         if self.does_table_exist():
             shlog.normal("repos  already collected")
@@ -67,10 +67,11 @@ class Acquire(measurements.Dataset):
             shlog.normal('api.github.com credentials not found in ~/.netrc')
             exit(0)
 
-        shlog.normal("beginning to make {} data".format(self.name)) 
+        shlog.normal("beginning to make {} data".format(self.name))
         # Make a flattened table for the tag data.
         # one tag, value pair in each record.
-        sql = "CREATE TABLE repos (asset text, description text, url text, who text, can_pull text, can_push text, admins text)"
+        sql = "CREATE TABLE repos (name TEXT, description TEXT, url TEXT, who TEXT, " \
+              "can_pull text, can_push text, admins text, hash TEXT, record JSON)"
         shlog.verbose(sql)
         self.q.q(sql)
 
@@ -80,57 +81,97 @@ class Acquire(measurements.Dataset):
         import subprocess
         #n.b check will  throw an execption if curl exits with non 0
         #rik is that we get valid output, lokin of like a "404" page.
-        repos = subprocess.run(cmd, text=True, capture_output=True, shell=True, check=True)
-        repos = json.loads(repos.stdout)
-        for repo in repos:
-            if repo['private']:
-                priv = 'Pri:'
-            else:
-                priv = 'Pub:'
-            asset                         = priv + repo['full_name']
-            description                   = repo['description']
+        result = subprocess.run(cmd, text=True, capture_output=True, shell=True, check=True)
+        stdout = result.stdout
+        stderr = result.stderr
+        if len(result.stdout) < 200:
+            shlog.verbose("github curl error: stdout:{} stderr:{}".format(stdout, stderr))
+            exit(1)
+        result = json.loads(result.stdout)
+        for repo in result:
+            # import pdb; pdb.set_trace()
+            name                          = repo['full_name']
+            description                   = "{}(Private={})".format(repo['description'],repo['private'])
             where                         = repo['url'] #url
             who                           = repo['owner']['login']  # is really the account.
-            collaborators_url = repo['collaborators_url'].split('{')[0]
+            hash                          = vanilla_utils.tiny_hash(name)
+            record                        = json.dumps(result)
 
             # get user list
+            collaborators_url = repo['collaborators_url'].split('{')[0]
             cmd = 'curl -n ' + collaborators_url
             result = subprocess.run(cmd, text=True, capture_output=True, shell=True, check=True)
             result = json.loads(result.stdout)
             try:
                 # attempt to sort the users
-                members                   = {'can_pull':self.get_members(result,'pull'),
-                                             'can_push': self.get_members(result, 'push'),
-                                             'admins'  :self.get_members(result,'admin')
-                                            }
+                members = {'can_pull': self.get_members(result, 'pull'),
+                           'can_push': self.get_members(result, 'push'),
+                           'admins': self.get_members(result, 'admin')
+                           }
             except subprocess.CalledProcessError:
                 # repo is unreadable
                 cmd = 'curl -n ' + collaborators_url + ' | jq ".message"'
-                result = subprocess.run(cmd, text=True, capture_output=True, shell=True, check=True)
-                result = json.loads(result.stdout)
-                admins                        = result
-            sql = "INSERT INTO repos VALUES (?, ?, ?, ?, ?, ?, ?)"
-            self.q.executemany(sql, [(asset, description, where, who, members['can_pull'],
-                                     members['can_push'], members['admins'])])
-        
+                CPE = subprocess.run(cmd, text=True, capture_output=True, shell=True, check=True)
+                CPE = json.loads(result.stdout)
+                admins                     = result
+            sql = "INSERT INTO repos VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)"
+            self.q.executemany(sql, [(name, description, where, who, members['can_pull'],
+                                     members['can_push'], members['admins'], hash, record)])
+
+
 class Report(measurements.Measurement):
     def __init__(self, args, name, q):
-         measurements.Measurement.__init__(self, args, name, q)
+        measurements.Measurement.__init__(self, args, name, q)
 
-         
-
-    def inf_gitrepo_asset_format(self):
+    def make_asset_data(self):
         """
-        Report in format for asset catalog. 
+        Make asset data for repos
         """
-        shlog.normal("Reporting in asset foramant")
 
         sql = '''
-              SELECT 'R:'||asset, 'R:'||description, "C" type, 'R:'||url "where", 'R:'||who,
-              'R:'||can_pull, 'R:'||can_push, 'R:'||admins  from repos
+         CREATE TABLE asset_data_repos  AS
+              SELECT
+                     "git_repo_"||hash                                   tag,
+                     "R:Contents of: "||name                           asset,
+                     "R:Source Materials for "||description      description,
+                     "D:Maintains source files for topic"     business_value,
+                     "D:None, open to public"                       impact_c,
+                     "D:contents corrupted"                         impact_i,
+                     "D:users of data disrupted"                    impact_a,
+                     "D"                                                type,
+                     "R:"||url                                       "where",
+                     "R:"||who                                           who  
+               FROM  repos
+        '''
+        shlog.vverbose(sql)
+        r = self.q.q(sql)
+        sql = '''
+            CREATE TABLE asset_data_repo_credentials  AS
+              SELECT
+                     "git_repo_"||hash                                                        tag,
+                     "R:Credentials to administer/read/write Git repo: "||name              asset,
+                     "R:Defines who can drop/write/read the repo "||description       description,
+                     "D:PRovides access control to repo for staff and community "  business_value,
+                     "D:disruption by repo write or rpo admin creds"                     impact_c,
+                     "D:Lost? user uses github to replace credential"                    impact_a,
+                     "C"                                                                     type,
+                     "R: Personal (not SCiMMA controlled github identity "                "where",
+                     "R: Staff authorized to administer/read/write repo"                      who
+              FROM repos
                '''
-        self.df = self.q.q_to_df(sql)
+        shlog.vverbose(sql)
+        r = self.q.q(sql)
+
+    def inf_json(self):
+        "show the returned repos json"
+        sql = "select record from repos"
+        return sql
+
+    def inf_repos(self):
+        " repos report"
+        sql = "select name, description, url, who, can_pull, can_push, admins, hash from repos"
+        return sql
 
 
-        
+
 

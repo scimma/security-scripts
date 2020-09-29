@@ -10,7 +10,7 @@ import pandas as pd
 import fnmatch
 import sys
 import boto3
-import vanilla_utils
+from security_scripts.information.lib import vanilla_utils
 import json
 import os
 from security_scripts.information.lib import aws_utils
@@ -109,7 +109,6 @@ class Measurement:
     The Result of each informational method is
     a tabular presentation on the screen.
     """
-    excel_writer=None
     
     def __init__(self, args, name, q):
         self.args=args
@@ -212,6 +211,53 @@ class Measurement:
         f.close()
         return
 
+    def append_df_to_excel(self, filepath, df, sheet_name):
+        """Append a DataFrame [df] to existing Excel file [filepath] into [sheet_name] Sheet.
+        If [filepath] doesn't exist, then this function will create it.
+
+        filepath: File path or existing ExcelWriter (Example: '/path/to/file.xlsx')
+        df: dataframe to save to workbook
+        sheet_name: Name of sheet which will contain DataFrame.
+        startrow: upper left cell row to dump data frame.
+                   Per default (startrow=None) calculate the last row
+                   in the existing DF and write to the next row...
+        truncate_sheet: truncate (remove and recreate) [sheet_name]
+                         before writing DataFrame to Excel file
+        to_excel_kwargs: arguments which will be passed to `DataFrame.to_excel()`
+
+        original https://stackoverflow.com/a/47740262/10086137
+        """
+        from openpyxl import load_workbook
+        writer = pd.ExcelWriter(filepath, engine='openpyxl')
+
+        # Python 2.x: define [FileNotFoundError] exception if it doesn't exist
+        try:
+            FileNotFoundError
+        except NameError:
+            FileNotFoundError = IOError
+
+        try:
+            # try to open an existing workbook
+            writer.book = load_workbook(filepath)
+            # nuke sheet
+            if sheet_name in writer.book.sheetnames:
+                # index of [sheet_name] sheet
+                idx = writer.book.sheetnames.index(sheet_name)
+                # remove [sheet_name]
+                writer.book.remove(writer.book.worksheets[idx])
+                # create an empty sheet [sheet_name] using old index
+                writer.book.create_sheet(sheet_name, idx)
+
+            # copy existing sheets
+            writer.sheets = {ws.title: ws for ws in writer.book.worksheets}
+        except FileNotFoundError:
+            # file does not exist yet, we will create it
+            shlog.normal("creating excel file  {}".format(filepath))
+
+        # write out the new sheet and save
+        df.to_excel(writer, sheet_name, index=False)
+        writer.save()
+
     def _write_relational_files(self, func):
         """
         Write a relational report out in tablular and csv formnt
@@ -238,12 +284,9 @@ class Measurement:
         # needs to be cloasds
         xlxs_filename =  "all.xlsx"
         filepath = os.path.join(self.args.report_path, xlxs_filename)
-        if not Measurement.excel_writer:
-            shlog.normal ("creating excel file  {}".format(filepath))        
-            Measurement.excel_writer=pd.ExcelWriter(filepath)
-        import pdb; pdb.set_trace()
+        # import pdb; pdb.set_trace()
         shlog.normal("adding sheet {} to {}".format(name, filepath))
-        df.to_excel(Measurement.excel_writer, sheet_name=name)         
+        self.append_df_to_excel(filepath, df, name)
 
     
              

@@ -11,14 +11,14 @@ Optons available via <command> --help
 from security_scripts.information.lib import shlog
 
        
-def rep_main(args):
-   "Run tag, s3, secret, certificate, repo inventory reports"
+def main(args):
    from security_scripts.information.lib import vanilla_utils
    from security_scripts.information.lib import tags
    from security_scripts.information.lib import s3
    from security_scripts.information.lib import secrets
    from security_scripts.information.lib import certificates
    from security_scripts.information.lib import repos
+   from security_scripts.information.lib import load_balancer
    
    shlog.verbose(args)
    shlog.verbose("only tests matching %s will be considered",(args.only))
@@ -28,6 +28,7 @@ def rep_main(args):
    s3_acquire          = s3.Acquire(args, "s3", q)
    secret_acquire      = secrets.Acquire(args,"secrets",q)
    certificate_acquire = certificates.Acquire(args,"TAGS",q)
+   load_balancer_acquire = load_balancer.Acquire(args,"load_balancer",q)
    # at this point data is in the relattion DB
    if args.dump:
       tag_acquire.print_data()
@@ -35,6 +36,7 @@ def rep_main(args):
       secret_acquire.print_data()
       certificate_acquire.print_data()
       repos_acquire.print_data()
+      load_balancer_acquire.print_data()
       exit()
 
    # reporting actions are driven by instanitating the classes.
@@ -43,6 +45,7 @@ def rep_main(args):
    secret_reports = secrets.Report(args,"secrets",q)
    cert_reports = certificates.Report(args, "Certificates", q)
    repo_reports = repos.Report(args, "repos", q)
+   x = load_balancer.Report(args, "load_balancers", q)
 
 
 def parser_builder(parent_parser, parser, config, remote=False):
@@ -58,7 +61,7 @@ def parser_builder(parent_parser, parser, config, remote=False):
     if remote:
         # augment remote parser with a new subcommand
         inf_report_parser = parser.add_parser('inf_report', parents=[parent_parser], description=rep_main.__doc__)
-        inf_report_parser.set_defaults(func=rep_main)
+        inf_report_parser.set_defaults(func=main)
         # arguments will be attached to subcommand
         target_parser = inf_report_parser
     else:
@@ -81,7 +84,6 @@ if __name__ == "__main__":
    config.read_file(open('defaults.cfg'))
    profile  = config.get("TAG_REPORT", "profile")
    loglevel = config.get("TAG_REPORT", "loglevel",fallback="NORMAL")
-
    
    """Create command line arguments"""
    parser = argparse.ArgumentParser(description=__doc__, formatter_class=argparse.RawDescriptionHelpFormatter)
@@ -95,5 +97,5 @@ if __name__ == "__main__":
    print (args)
    shlog.basicConfig(level=args.loglevel)
 
-   rep_main(args)
+   main(args)
 
