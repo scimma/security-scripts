@@ -12,6 +12,7 @@ from security_scripts.information.lib import shlog
 
        
 def main(args):
+   """Run tag, s3, secret, certificate, repo inventory reports"""
    from security_scripts.information.lib import vanilla_utils
    from security_scripts.information.lib import tags
    from security_scripts.information.lib import s3
