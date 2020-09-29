@@ -60,7 +60,7 @@ def parser_builder(parent_parser, parser, config, remote=False):
 
     if remote:
         # augment remote parser with a new subcommand
-        inf_report_parser = parser.add_parser('inf_report', parents=[parent_parser], description=rep_main.__doc__)
+        inf_report_parser = parser.add_parser('inf_report', parents=[parent_parser], description=main.__doc__)
         inf_report_parser.set_defaults(func=main)
         # arguments will be attached to subcommand
         target_parser = inf_report_parser
