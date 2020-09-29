@@ -36,8 +36,8 @@ def main(args):
       s3_acquire.print_data()
       secret_acquire.print_data()
       certificate_acquire.print_data()
-      repos_acquire.print_data()
       load_balancer_acquire.print_data()
+      repos_acquire.print_data()
       exit()
 
    # reporting actions are driven by instanitating the classes.
@@ -45,8 +45,9 @@ def main(args):
    s3_reports=s3.Report(args, "s3", q)
    secret_reports = secrets.Report(args,"secrets",q)
    cert_reports = certificates.Report(args, "Certificates", q)
-   repo_reports = repos.Report(args, "repos", q)
    x = load_balancer.Report(args, "load_balancers", q)
+   repo_reports = repos.Report(args, "repos", q)
+
 
 
 def parser_builder(parent_parser, parser, config, remote=False):
