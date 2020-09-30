@@ -7,7 +7,7 @@ Documentation: https://docs.google.com/document/d/1-uugzBGf24aNEdYzWA7ao5yvHPHl8
 * Python 3.x
 * AWS CLI (with credentials file)
 * api.github.com auth token in ~/.netrc in format
-<code>machine api.github.com login %user% password %access token%</code>
+<code>machine api.github.com login %user% password %access token%</code>. Get yours [here](https://github.com/settings/tokens).
 * jq
 * Windows or *nix machine
 
