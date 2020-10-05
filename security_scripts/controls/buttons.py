@@ -5,6 +5,7 @@ or reprivilege a role.
 
 Options available via <command> --help
 """
+from security_scripts.information.lib import shlog
 import logging
 import boto3
 
@@ -22,9 +23,9 @@ def detacher(args, role):
     """
     # get attached policies and detach them in a loop
     for policy in role.attached_policies.all():
-        logging.info('Detaching policy ' + policy.arn + ' from role ' + args.role)
+        shlog.normal('Detaching policy ' + policy.arn + ' from role ' + args.role)
         response = role.detach_policy(PolicyArn=policy.arn)
-        logging.debug(response)
+        shlog.debug(response)
 
 
 def depriv(args):
@@ -37,9 +38,9 @@ def depriv(args):
     role = iam.Role(args.role)
     detacher(args, role)
     # attach read-only
-    logging.info('Attaching ReadOnlyAccess to ' + args.role)
+    shlog.normal('Attaching ReadOnlyAccess to ' + args.role)
     response = role.attach_policy(PolicyArn='arn:aws:iam::aws:policy/ReadOnlyAccess')
-    logging.debug(response)
+    shlog.debug(response)
 
 
 def priv(args):
@@ -52,11 +53,11 @@ def priv(args):
     role = iam.Role(args.role)
     detacher(args, role)
     # attach read-only
-    logging.info('Attaching ProposedPoweruser and RoleManagementWithCondition to ' + args.role)
+    shlog.normal('Attaching ProposedPoweruser and RoleManagementWithCondition to ' + args.role)
     response = role.attach_policy(PolicyArn='arn:aws:iam::' + args.accountid + ':policy/ProposedPoweruser')
-    logging.debug(response)
+    shlog.debug(response)
     response = role.attach_policy(PolicyArn='arn:aws:iam::' + args.accountid + ':policy/RoleManagementWithCondition')
-    logging.debug(response)
+    shlog.debug(response)
 
 
 def ec2stop(args, dryrun=False):
@@ -70,7 +71,7 @@ def ec2stop(args, dryrun=False):
     regions = au.decribe_regions_df(args) # use for deployment
     # regions = {'RegionName':['us-east-2']} # test mode
     for region in regions['RegionName']:
-        logging.info('Stopping region ' + region)
+        shlog.normal('Stopping region ' + region)
         # init connection to region and get instances there
         client = boto3.client('ec2', region_name=region)
         response = client.describe_instances()['Reservations']
@@ -78,14 +79,14 @@ def ec2stop(args, dryrun=False):
         for inst in response:
             # ...and allow termination...
             instance = inst['Instances'][0]['InstanceId']
-            logging.info('Allowing API termination for instance ' + instance + ' in region ' + region)
+            shlog.verbose('Allowing API termination for instance ' + instance + ' in region ' + region)
             response = client.modify_instance_attribute(
                 InstanceId=instance,
                 DisableApiTermination={'Value': False}
             )
-            logging.debug(response)
+            shlog.debug(response)
             # ...and perform halt
-            logging.info('Stopping instance ' + instance + ' in region ' + region)
+            shlog.normal('Stopping instance ' + instance + ' in region ' + region)
             try:
                 response = client.stop_instances(
                     InstanceIds=[instance],
@@ -95,11 +96,11 @@ def ec2stop(args, dryrun=False):
             except ClientError as ce:
                 if dryrun:
                     # client error is expected when simulating
-                    logging.info('Stop simulation succeeded with code:')
-                    logging.info(ce)
+                    shlog.normal('Stop simulation succeeded for instance ' + instance)
+                    shlog.verbose('Success code: ' + str(ce))
                 else:
                     # we might actually want to catch real exceptions
-                    raise ClientError
+                    raise ce
     pass
 
 
@@ -150,12 +151,14 @@ if __name__ == "__main__":
     config = configparser.ConfigParser()
     config.read_file(open('defaults.cfg'))
     profile = config.get("DEFAULT", "profile", fallback="scimma-uiuc-aws-admin")
-    loglevel = config.get("BUTTONS", "loglevel", fallback="INFO")
+    loglevel = config.get("BUTTONS", "loglevel", fallback="NORMAL")
 
     """Create command line arguments"""
     parser = argparse.ArgumentParser(description=__doc__, formatter_class=argparse.RawDescriptionHelpFormatter)
     parser.add_argument('--profile', '-p', default=profile, help='aws profile to use (default: %(default)s)')
-    parser.add_argument('--loglevel', '-l', help="Level for reporting e.g. DEBUG, INFO, WARN (default: %(default)s)", default=loglevel)
+    parser.add_argument('--loglevel', '-l', help="Level for reporting e.g. NORMAL, VERBOSE, DEBUG (default: %(default)s)",
+                        default=loglevel,
+                        choices=["NONE", "NORMAL", "DOTS", "WARN", "ERROR", "VERBOSE", "VVERBOSE", "DEBUG"])
 
     # subcommands section
     parser.set_defaults(func=None)  # if none then there are  subfunctions
@@ -176,7 +179,7 @@ if __name__ == "__main__":
 
     parser = parser_builder(None, parser, config, False)
     args = parser.parse_args()
-    logging.basicConfig(level=args.loglevel)
+    shlog.basicConfig(level=args.loglevel)
 
 
     # args.session = boto3.Session(profile_name=args.profile)

@@ -10,6 +10,7 @@ import boto3
 import logging
 from pathlib import Path
 from threading import Lock
+from security_scripts.information.lib import shlog
 
 logging.getLogger('boto3').setLevel(logging.CRITICAL)
 logging.getLogger('botocore').setLevel(logging.CRITICAL)
@@ -98,10 +99,10 @@ def vault_main(args):
        re_bucket = re.findall('(?<=s3:\/\/)(.*?)(?=\/)', args.bucket)[0]
        re_prefix = re.findall('([^\/]+$)', args.bucket)[0] + '/AWSLogs/' + str(args.accountid) + '/CloudTrail/'
    except IndexError:
-       logging.info('error parsing bucket ' + args.bucket + ', s3://bucket/prefix format is expected')
+       shlog.error('error parsing bucket ' + args.bucket + ', s3://bucket/prefix format is expected')
        exit(0)
 
-   logging.info('Building key dictionary...')
+   shlog.normal('Building key dictionary...')
 
    # init s3 and get bucket contents
    bucket_content = []
@@ -154,9 +155,9 @@ def s3download(keys):
         except AttributeError:
             # global client could not be reached
             # this happens in newer experimental python builds 3.8+
-            logging.error('Your Python installation does not support global variables')
-            logging.error('Please use Python below 3.8.0')
-            logging.error('Could not download ' + dest_pathname[1])
+            shlog.error('Your Python installation does not support global variables')
+            shlog.error('Please use Python below 3.8.0')
+            shlog.error('Could not download ' + dest_pathname[1])
 
 
 def parser_builder(parent_parser, parser, config, remote=False):
@@ -195,18 +196,20 @@ if __name__ == "__main__":
    config = configparser.ConfigParser()
    config.read_file(open('defaults.cfg'))
    profile  = config.get("DEFAULT", "profile", fallback="scimma-uiuc-aws-admin")
-   loglevel = config.get("DOWNLOAD", "loglevel",fallback="INFO")
+   loglevel = config.get("DOWNLOAD", "loglevel",fallback="NORMAL")
    
    
    """Create command line arguments"""
    parser = argparse.ArgumentParser(description=__doc__, formatter_class=argparse.RawDescriptionHelpFormatter)
    parser.add_argument('--profile','-p',default=profile,help='aws profile to use (default: %(default)s)')
-   parser.add_argument('--loglevel','-l',help="Level for reporting e.g. DEBUG, INFO, WARN (default: %(default)s)", default=loglevel)
+   parser.add_argument('--loglevel', '-l', help="Level for reporting e.g. NORMAL, VERBOSE, DEBUG (default: %(default)s)",
+                       default=loglevel,
+                       choices=["NONE", "NORMAL", "DOTS", "WARN", "ERROR", "VERBOSE", "VVERBOSE", "DEBUG"])
 
    parser = parser_builder(None, parser, config, False)
 
    args = parser.parse_args()
-   logging.basicConfig(level=args.loglevel)
+   shlog.basicConfig(level=args.loglevel)
 
 
 

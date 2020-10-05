@@ -7,6 +7,7 @@ Options available via <command> --help
 """
 import logging
 import boto3
+from security_scripts.information.lib import shlog
 
 logging.getLogger('boto3').setLevel(logging.ERROR)
 logging.getLogger('botocore').setLevel(logging.ERROR)
@@ -18,7 +19,7 @@ def dependencies(args):
     perform a check for installed third-party applications
     :return: None
     """
-    logging.info('Running dependencies check')
+    shlog.normal('Running dependencies check')
     import platform
     import os
     if platform.system() in ['Linux', 'Darwin']:
@@ -51,12 +52,12 @@ def policies(args):
     list policies attached to a specified role
     :return: None
     """
-    logging.info('Listing policies attached to ' + args.role)
+    shlog.normal('Listing policies attached to ' + args.role)
     boto3.setup_default_session(profile_name=args.profile)
     client = boto3.client('iam')
     response = client.list_attached_role_policies(RoleName=args.role)
     for policy in response['AttachedPolicies']:
-        logging.info(policy['PolicyName'] + '//' + policy['PolicyArn'])
+        shlog.normal(policy['PolicyName'] + '//' + policy['PolicyArn'])
 
 
 def privileges(args):
@@ -65,7 +66,7 @@ def privileges(args):
     :return: None
     """
     me = whoami(args)
-    logging.info('Simulating needed administrative actions for ' + me)
+    shlog.normal('Simulating needed administrative actions for ' + me)
     boto3.setup_default_session(profile_name=args.profile)
     client = boto3.client('iam')
     response = client.simulate_principal_policy(
@@ -74,14 +75,14 @@ def privileges(args):
                      "ec2:ModifyInstanceAttribute", "sts:GetCallerIdentity"]
     )
     for result in response['EvaluationResults']:
-        logging.info('Action: ' + result['EvalActionName'] + '// Simulation result: ' + result['EvalDecision'])
+        shlog.normal('Action: ' + result['EvalActionName'] + '// Simulation result: ' + result['EvalDecision'])
 
 def repo(args):
     """
     repository checks script
     :return: None
     """
-    logging.info('Checking repository status')
+    shlog.normal('Checking repository status')
     import os
     os.system('git remote show origin')
 
@@ -91,11 +92,11 @@ def roles(args):
     List existing AWS Roles
     :return: None
     """
-    logging.info('Listing roles present in target AWS account')
+    shlog.normal('Listing roles present in target AWS account')
     client = boto3.client('iam')
     response = client.list_roles()
     for role in response['Roles']:
-        logging.info('Role: ' + role['RoleName'])
+        shlog.normal('Role: ' + role['RoleName'])
 
 
 def whoami(args):
@@ -103,11 +104,11 @@ def whoami(args):
     retrieve current user's ARN
     :return: String
     """
-    logging.info('Retrieving caller identity')
+    shlog.normal('Retrieving caller identity')
     boto3.setup_default_session(profile_name=args.profile)
     client = boto3.client('sts')
     response = client.get_caller_identity()
-    logging.info('AWS returned caller identity ' + response['Arn'])
+    shlog.normal('AWS returned caller identity ' + response['Arn'])
     return response['Arn']
 
 
@@ -115,7 +116,7 @@ def all(args):
     """run all audits simultaneously"""
     audits = ['dependencies(args)', 'policies(args)', 'privileges(args)', 'repo(args)', 'roles(args)', 'whoami(args)']
     for audit in audits:
-        logging.info('_________________')
+        shlog.normal('_________________')
         exec(audit)
 
 
@@ -148,12 +149,14 @@ if __name__ == "__main__":
     config = configparser.ConfigParser()
     config.read_file(open('defaults.cfg'))
     profile = config.get("DEFAULT", "profile", fallback="scimma-uiuc-aws-admin")
-    loglevel = config.get("BUTTONS", "loglevel", fallback="INFO")
+    loglevel = config.get("BUTTONS", "loglevel", fallback="NORMAL")
 
     """Create command line arguments"""
     parser = argparse.ArgumentParser(description=__doc__, formatter_class=argparse.RawDescriptionHelpFormatter)
     parser.add_argument('--profile', '-p', default=profile, help='aws profile to use (default: %(default)s)')
-    parser.add_argument('--loglevel', '-l', help="Level for reporting e.g. DEBUG, INFO, WARN (default: %(default)s)", default=loglevel)
+    parser.add_argument('--loglevel', '-l', help="Level for reporting e.g. NORMAL, VERBOSE, DEBUG (default: %(default)s)",
+                        default=loglevel,
+                        choices=["NONE", "NORMAL", "DOTS", "WARN", "ERROR", "VERBOSE", "VVERBOSE", "DEBUG"])
 
     # subcommands section
     parser.set_defaults(func=None)  # if none then there are  subfunctions
@@ -190,7 +193,7 @@ if __name__ == "__main__":
     all_parser.set_defaults(func=all)
 
     args = parser.parse_args()
-    logging.basicConfig(level=args.loglevel)
+    shlog.basicConfig(level=args.loglevel)
 
     # no need to augment parser further
     if not args.func:  # there are no subfunctions

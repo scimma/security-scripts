@@ -89,7 +89,9 @@ if __name__ == "__main__":
    
    """Create command line arguments"""
    parser = argparse.ArgumentParser(description=__doc__, formatter_class=argparse.RawDescriptionHelpFormatter)
-   parser.add_argument('--loglevel', '-l', help=shlog.helptext, default="NORMAL")
+   parser.add_argument('--loglevel', '-l', help="Level for reporting e.g. NORMAL, VERBOSE, DEBUG (default: %(default)s)",
+                       default=loglevel,
+                       choices=["NONE", "NORMAL", "DOTS", "WARN", "ERROR", "VERBOSE", "VVERBOSE", "DEBUG"])
    parser.add_argument('--profile','-p',default=profile,
              help='aws profile to use')
 

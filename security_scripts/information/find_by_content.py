@@ -13,6 +13,7 @@ import logging
 import json
 from datetime import date,timedelta
 import os
+from security_scripts.information.lib import shlog
 
 class Cmp:
    """
@@ -65,7 +66,7 @@ def find_string(obj, valuematch, c):
                 else:
                     # no match, let go
                     pass
-                    #logging.debug("skipping: %s", v)
+                    shlog.vverbose("skipping: %s", v)
         elif isinstance(obj, list):
             for item in obj:
                 if isinstance(item, (dict, list)):
@@ -77,7 +78,7 @@ def find_string(obj, valuematch, c):
                 else:
                     # no match, let it go
                     pass
-                    #logging.debug("skipping: %s", item)
+                    shlog.vverbose("skipping: %s", item)
         return arr
 
     results = match(obj, arr, valuematch, c)
@@ -109,8 +110,9 @@ def time_ordered_event_archives(args, template_path):
          list.append ("{} {}".format(data["Records"][0]["eventTime"], path))
    list.sort() #sort on date
    list = [l.split(" ") for l in list]
-   logging.debug("first date, file available is {}".format(list[0] ))
-   logging.debug("last  date, file available is {}".format(list[-1]))                                                          
+   if list != []:
+        shlog.vverbose("first date, file available is {}".format(list[0] ))
+        shlog.vverbose("last  date, file available is {}".format(list[-1]))
    return [ l[1] for l in list ]
 
 ###################################################################
@@ -158,13 +160,13 @@ def filter_template_paths_by_date_range(args, all_paths):
    dates = [anchor_date + timedelta(days=i) for i in range(*range_parameters) ]
    dates = ["{}".format(d) for d in dates]
    dates = [d.replace("-", "/") for d in dates]
-   logging.info("requested dates {}".format(dates))
+   shlog.normal("requested dates {}".format(dates))
    filtered = []
    for p in all_paths          :
       for d in dates:
          if d in p:
             filtered.append(p)
-            logging.debug('path used satified {}'.format(p))
+            shlog.debug('path used satified {}'.format(p))
             break
 
    return filtered
@@ -183,7 +185,7 @@ def find_main(args):
 
    c = Cmp(args)
    if not any(ext in args.searchglob for ext in ["*", "?"]):
-       logging.warning(args.searchglob + " does not have an * or ?")
+       shlog.normal(args.searchglob + " does not have an * or ?")
 
    all_template_paths = get_all_template_paths(args)
    filtered_template_paths = filter_template_paths_by_date_range(args, all_template_paths)
@@ -199,7 +201,7 @@ def find_main(args):
               if result :
                  print(json.dumps(item, indent=4, sort_keys=True))
                  nfound += 1
-   logging.info("{} of {} items returned".format(nfound, nitems))
+   shlog.normal("{} of {} items returned".format(nfound, nitems))
 
 
 def parser_builder(parent_parser, parser, config, remote=False):
@@ -242,19 +244,21 @@ if __name__ == "__main__":
    config = configparser.ConfigParser()
    config.read_file(open('defaults.cfg'))
    profile   = config.get("DEFAULT", "profile", fallback="scimma-uiuc-aws-admin")
-   loglevel  = config.get("FIND_BY_CONTENT", "loglevel",fallback="INFO")
+   loglevel  = config.get("FIND_BY_CONTENT", "loglevel",fallback="NORMAL")
 
 
    
    """Create command line arguments"""
    parser = argparse.ArgumentParser(description=__doc__, formatter_class=argparse.RawDescriptionHelpFormatter)
    parser.add_argument('--profile','-p',default=profile,help='aws profile to use (default: %(default)s)')
-   parser.add_argument('--loglevel','-l',help="Level for reporting e.r DEBUG, INFO, WARN (default: %(default)s)", default=loglevel)
+   parser.add_argument('--loglevel', '-l', help="Level for reporting e.g. NORMAL, VERBOSE, DEBUG (default: %(default)s)",
+                       default=loglevel,
+                       choices=["NONE", "NORMAL", "DOTS", "WARN", "ERROR", "VERBOSE", "VVERBOSE", "DEBUG"])
 
 
    parser = parser_builder(None, parser, config, False)
    args = parser.parse_args()
-   logging.basicConfig(level=args.loglevel)
-   logging.debug(args)
+   shlog.basicConfig(level=args.loglevel)
+   shlog.debug(args)
    find_main(args)
 

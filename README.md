@@ -72,7 +72,7 @@ This variable is auto-created if it's not detected, and can be modified by editi
 profile=scimma-uiuc-aws-admin
 role=scimma_power_user
 vaultdir=~/.vault
-loglevel=INFO
+loglevel=NORMAL
 
 # info tools
 [TAG_REPORT]

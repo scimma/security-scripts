@@ -7,6 +7,7 @@ Options available via <command> --help
 """
 import logging
 from security_scripts.controls.audit import whoami as w
+from security_scripts.information.lib import shlog
 import boto3
 
 def depriv(args):
@@ -14,9 +15,10 @@ def depriv(args):
     RED button simulation that checks if the CLI user has correct permissions
     :return: None
     """
-    logging.info('Simulating depriv...')
-    logging.info('Attaching ReadOnlyAccess to ' + args.role)
+    shlog.normal('Simulating depriv...')
+    shlog.normal('Attaching ReadOnlyAccess to ' + args.role)
     check(args)
+    # exit(0)
 
 
 def priv(args):
@@ -24,8 +26,8 @@ def priv(args):
     GREEN button simulation that checks if the CLI user has correct permissions
     :return: None
     """
-    logging.info('Simulating priv...')
-    logging.info('Attaching ProposedPoweruser and RoleManagementWithCondition to ' + args.role)
+    shlog.normal('Simulating priv...')
+    shlog.normal('Attaching ProposedPoweruser and RoleManagementWithCondition to ' + args.role)
     check(args)
 
 
@@ -43,9 +45,9 @@ def check(args):
     )
     for result in response['EvaluationResults']:
         if result['EvalDecision'] == 'allowed':
-            logging.info(result['EvalActionName'] + ' permission check ok!')
+            shlog.normal(result['EvalActionName'] + ' permission check ok!')
         else:
-            logging.info('AWS reported ' + me + ' is not allowed to perform ' + result['EvalActionName'])
+            shlog.normal('AWS reported ' + me + ' is not allowed to perform ' + result['EvalActionName'])
 
 
 def ec2stop(args):
@@ -53,7 +55,7 @@ def ec2stop(args):
     EC2 mass shutdown simulation
     :return: None
     """
-    logging.info('Simulating ec2stop')
+    shlog.normal('Simulating ec2stop')
     me = w(args)
     boto3.setup_default_session(profile_name=args.profile)
     client = boto3.client('iam')
@@ -63,9 +65,9 @@ def ec2stop(args):
     )
     for result in response['EvaluationResults']:
         if result['EvalDecision'] == 'allowed':
-            logging.info('ec2:StopInstances permission check ok!')
+            shlog.normal('ec2:StopInstances permission check ok!')
         else:
-            logging.info('AWS reported ' + me + ' is not allowed to perform ec2:StopInstances!')
+            shlog.normal('AWS reported ' + me + ' is not allowed to perform ec2:StopInstances!')
 
     from security_scripts.controls.buttons import ec2stop as e
     e(args, True)
@@ -117,12 +119,14 @@ if __name__ == "__main__":
     config = configparser.ConfigParser()
     config.read_file(open('defaults.cfg'))
     profile = config.get("DEFAULT", "profile", fallback="scimma-uiuc-aws-admin")
-    loglevel = config.get("BUTTONS", "loglevel", fallback="INFO")
+    loglevel = config.get("BUTTONS", "loglevel", fallback="NORMAL")
 
     """Create command line arguments"""
     parser = argparse.ArgumentParser(description=__doc__, formatter_class=argparse.RawDescriptionHelpFormatter)
     parser.add_argument('--profile', '-p', default=profile, help='aws profile to use (default: %(default)s)')
-    parser.add_argument('--loglevel', '-l', help="Level for reporting e.g. DEBUG, INFO, WARN (default: %(default)s)", default=loglevel)
+    parser.add_argument('--loglevel', '-l', help="Level for reporting e.g. NORMAL, VERBOSE, DEBUG (default: %(default)s)",
+                        default=loglevel,
+                        choices=["NONE", "NORMAL", "DOTS", "WARN", "ERROR", "VERBOSE", "VVERBOSE", "DEBUG"])
 
     # subcommands section
     parser.set_defaults(func=None)  # if none then there are  subfunctions
@@ -144,7 +148,7 @@ if __name__ == "__main__":
 
     parser = parser_builder(None, parser, config, False)
     args = parser.parse_args()
-    logging.basicConfig(level=args.loglevel)
+    shlog.basicConfig(level=args.loglevel)
 
 
     args.session = boto3.Session(profile_name=args.profile)

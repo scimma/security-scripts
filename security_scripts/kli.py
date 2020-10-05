@@ -1,5 +1,5 @@
 import argparse
-import logging
+from security_scripts.information.lib import shlog
 
 def parser_help(parser):
     parser.print_help()
@@ -32,12 +32,12 @@ def env_control():
             with open(os.path.expanduser("~/.zshenv"), "a") as outfile:
                 # pass
                 outfile.write("export {0}={1}".format(var, val))
-            print('$' + var + ' written to ~/.bash_profile and ~/.zshenv as ' + val)
+            shlog.normal('$' + var + ' written to ~/.bash_profile and ~/.zshenv as ' + val)
         else:
             # windows
             val = '$HOME\\scimma-security.cfg'
             os.system('SETX {0} "{1}" /M'.format(var, val))
-            logging.info('$' + var + ' written as system variable with value ' + val)
+            shlog.normal('$' + var + ' written as system variable with value ' + val)
         return val
 
 
@@ -58,13 +58,15 @@ def catcher():
                   ]
     config.read(cfg_sources)
 
-    loglevel = config.get("DEFAULT", "loglevel", fallback="INFO")
+    loglevel = config.get("DEFAULT", "loglevel", fallback="NORMAL")
     profile = config.get("DEFAULT", "profile", fallback="scimma-uiuc-aws-admin")
 
 
     """Create command line arguments"""
     parent_parser = argparse.ArgumentParser(add_help=False, description=__doc__, formatter_class=argparse.RawDescriptionHelpFormatter)
-    parent_parser.add_argument('--loglevel', '-l', help="Level for reporting e.g. DEBUG, INFO, WARN (default: %(default)s)", default=loglevel)
+    parent_parser.add_argument('--loglevel', '-l', help="Level for reporting e.g. NORMAL, VERBOSE, DEBUG (default: %(default)s)",
+                               default=loglevel,
+                               choices=["NONE", "NORMAL", "DOTS", "WARN", "ERROR", "VERBOSE", "VVERBOSE", "DEBUG"])
     parent_parser.add_argument('--profile', '-p', default=profile, help='~/.aws/config profile to use (default: %(default)s)')
 
     parser = argparse.ArgumentParser(add_help=False)
@@ -104,7 +106,7 @@ def catcher():
     if not args.func or not args:  # there are no subfunctions
         parser_help(parser)
         exit(1)
-    logging.basicConfig(level=args.loglevel)
+    shlog.basicConfig(level=args.loglevel)
 
 
     args.func(args)
