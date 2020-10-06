@@ -81,6 +81,7 @@ class Acquire(measurements.Dataset):
         import subprocess
         #n.b check will  throw an execption if curl exits with non 0
         #rik is that we get valid output, lokin of like a "404" page.
+        shlog.verbose(cmd)
         result = subprocess.run(cmd, text=True, capture_output=True, shell=True, check=True)
         stdout = result.stdout
         stderr = result.stderr
@@ -125,7 +126,7 @@ class Report(measurements.Measurement):
 
     def make_asset_data(self):
         """
-        Make asset data for repos
+        Make  table(s) for interetion into the master asset table.
         """
 
         sql = '''

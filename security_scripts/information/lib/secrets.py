@@ -103,7 +103,7 @@ class Report(measurements.Measurement):
 
     def make_asset_secrets_format(self):
         """
-        Report in format for asset catalog. 
+        Make  table(s) for interetion into the master asset table.
         """
         shlog.normal("building table secret assets ")
         

@@ -45,7 +45,7 @@ def main(args):
    s3_reports=s3.Report(args, "s3", q)
    secret_reports = secrets.Report(args,"secrets",q)
    cert_reports = certificates.Report(args, "Certificates", q)
-   x = load_balancer.Report(args, "load_balancers", q)
+   load_balancer_reports = load_balancer.Report(args, "load_balancers", q)
    repo_reports = repos.Report(args, "repos", q)
 
 

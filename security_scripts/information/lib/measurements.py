@@ -8,7 +8,6 @@ The two classes do not otherwise communicate.
 from security_scripts.information.lib import shlog
 import pandas as pd
 import fnmatch
-import sys
 import boto3
 from security_scripts.information.lib import vanilla_utils
 import json
@@ -33,7 +32,7 @@ class Dataset:
         import sqlite3 #for exception value
         try:
             sql = "SELECT * FROM {}".format(self.table_name)
-            ans = self.q.q(sql)
+            self.q.q(sql)
             return True
         except sqlite3.OperationalError:
             return False
@@ -130,7 +129,7 @@ class Measurement:
         else:
             self._call_analysis_methods("tst_",self._write_relational_files)
             self._call_analysis_methods("inf_",self._write_relational_files)
-            self._call_analysis_methods("make_",self._null)
+            self._call_analysis_methods("make_",self._call_asset_analyis)
             self._call_analysis_methods("json_",self._write_json_file)
 
     def _call_analysis_methods(self,prefix, report_func):
@@ -170,8 +169,13 @@ class Measurement:
     #
     #  Here are routines that render the output
     #
-    def _null(self, func) : pass
-
+    
+    def _call_asset_analyis(self, func) :
+        """
+        Make the input table for asseet analysis.
+        
+        """
+        func()
 
     def _print_tests(self, result, prefix):
         """
@@ -192,9 +196,10 @@ class Measurement:
     
     def _write_json_file (self, func):
         """
-        write a json file from a query containing
-        one columm. OUtput file is useabel
-        by utileies such as jq.
+        Write a json file from a query containing one columm returned by func.
+
+        The  file is useable by utilities such as jq.
+        The file name is deried from  the name of the function.
         """
         name = func.__name__
         filename =  name + ".json"
