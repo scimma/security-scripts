@@ -4,7 +4,7 @@ AWS Specifc utilities for general use.
 import string
 
 
-def shortened_arn(arn):
+def Original_shortened_arn(arn):
     """ make a short arn retaining summary info
 
     Short enough not oveflow tty lines.
@@ -19,7 +19,7 @@ def shortened_arn(arn):
     if len(components) < 5  :
         return arn     #below will fail.
     aws_object = components[2] #resources manager
-    aws_region = components[3] #region
+    # aws_region = components[3] #region
     aws_thing = components[5].split('/')[0]  #specific resource
     aws_last_few_hex = arn[-3:]
     short_arn = ':'.join([aws_object, components[3], aws_thing, aws_last_few_hex])
@@ -34,7 +34,6 @@ def next_are_hex(strlist):
 
 def clean_hex(str):
 
-    nchar = len(str)
     str = str+"000"  #pad
     clist = [c for c in str]
     outlist =[]

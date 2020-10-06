@@ -20,6 +20,7 @@ def main(args):
    from security_scripts.information.lib import certificates
    from security_scripts.information.lib import repos
    from security_scripts.information.lib import load_balancer
+   from security_scripts.information.lib import assets
    
    shlog.verbose(args)
    shlog.verbose("only tests matching %s will be considered",(args.only))
@@ -48,7 +49,8 @@ def main(args):
    load_balancer_reports = load_balancer.Report(args, "load_balancers", q)
    repo_reports = repos.Report(args, "repos", q)
 
-
+   assets.Acquire(args,"assets", q)
+   assets.Report(args,"assets",q)
 
 def parser_builder(parent_parser, parser, config, remote=False):
     """Get a parser and return it with additional options
