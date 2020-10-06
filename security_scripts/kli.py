@@ -20,7 +20,7 @@ def env_control():
     var = 'SCIMMA_SECURITY_CFG'
     val = os.environ.get(var)
     if val:
-        print('Reading custom config file location from $' + var + ' as ' + val)
+        shlog.verbose('Reading custom config file location from $' + var + ' as ' + val)
         return val
     else:
         if platform.system() in ['Linux', 'Darwin']:
@@ -32,12 +32,12 @@ def env_control():
             with open(os.path.expanduser("~/.zshenv"), "a") as outfile:
                 # pass
                 outfile.write("export {0}={1}".format(var, val))
-            shlog.normal('$' + var + ' written to ~/.bash_profile and ~/.zshenv as ' + val)
+            shlog.verbose('$' + var + ' written to ~/.bash_profile and ~/.zshenv as ' + val)
         else:
             # windows
             val = '$HOME\\scimma-security.cfg'
             os.system('SETX {0} "{1}" /M'.format(var, val))
-            shlog.normal('$' + var + ' written as system variable with value ' + val)
+            shlog.verbose('$' + var + ' written as system variable with value ' + val)
         return val
 
 
