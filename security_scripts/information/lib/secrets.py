@@ -97,7 +97,7 @@ class Report(measurements.Measurement):
        '''
         return sql
 
-    def json_report (self):
+    def json_secrets_report (self):
         "dump json structure"
         return "select record from secrets"
 

@@ -106,7 +106,7 @@ class Report(measurements.Measurement):
        '''
         return sql
 
-    def json_report(self):
+    def json_load_balancer_report(self):
         """
         """
         sql = '''
