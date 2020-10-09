@@ -8,6 +8,7 @@ Options available via <command> --help
 import logging
 import boto3
 from security_scripts.information.lib import shlog
+import os
 
 logging.getLogger('boto3').setLevel(logging.ERROR)
 logging.getLogger('botocore').setLevel(logging.ERROR)
@@ -21,7 +22,6 @@ def dependencies(args):
     """
     shlog.normal('Running dependencies check')
     import platform
-    import os
     if platform.system() in ['Linux', 'Darwin']:
         # *nixes
         os.system("""# jq presence test function
@@ -83,7 +83,6 @@ def repo(args):
     :return: None
     """
     shlog.normal('Checking repository status')
-    import os
     os.system('git remote show origin')
 
 
@@ -112,9 +111,22 @@ def whoami(args):
     return response['Arn']
 
 
+def github_credentials(args):
+    has_credential = False
+    with open(os.path.expanduser("~/.netrc"), 'r') as read_obj:
+        for line in read_obj:
+            if 'api.github.com' in line:
+                has_credential = True
+    if has_credential:
+        shlog.normal('api.github.com token found in ~/.netrc')
+    else:
+        shlog.normal('api.github.com token not found in ~/.netrc! Get yours at https://github.com/settings/tokens')
+
+
 def all(args):
     """run all audits simultaneously"""
-    audits = ['dependencies(args)', 'policies(args)', 'privileges(args)', 'repo(args)', 'roles(args)', 'whoami(args)']
+    audits = ['dependencies(args)', 'policies(args)', 'privileges(args)', 'repo(args)', 'roles(args)', 'whoami(args)',
+              'github_credentials(args)']
     for audit in audits:
         shlog.normal('_________________')
         exec(audit)
