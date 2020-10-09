@@ -72,29 +72,24 @@ def catcher():
     parser = argparse.ArgumentParser(add_help=False)
     subparsers = parser.add_subparsers()
 
-    # request parser augmentation from vault
-    from security_scripts.information import vault
-    subparsers = vault.parser_builder(parent_parser, subparsers, config, True)
-
-    # request parser augmentation from report
-    from security_scripts.information import report
-    subparsers = report.parser_builder(parent_parser, subparsers, config, True)
-
-    # request parser augmentation from find report
-    from security_scripts.information import find_by_content
-    subparsers = find_by_content.parser_builder(parent_parser, subparsers, config, True)
-
-    # request parser augmentation from audit
-    from security_scripts.controls import audit
-    subparsers = audit.parser_builder(parent_parser, subparsers, config, True)
-
-    # request parser augmentation from button actuators
-    from security_scripts.controls import buttons
-    subparsers = buttons.parser_builder(parent_parser, subparsers, config, True)
-
-    # request parser augmentation from button actuators
-    from security_scripts.controls import tests
-    subparsers = tests.parser_builder(parent_parser, subparsers, config, True)
+    import importlib
+    import pkgutil
+    import security_scripts
+    # switch to it as working dir
+    original_wd = os.getcwd()
+    os.chdir(security_scripts.__path__[0])
+    commands_paths = ["information", "controls"]
+    for commands_path in commands_paths:
+        for importer, command_name, _ in pkgutil.iter_modules([commands_path]):
+            full_package_name = "security_scripts.%s.%s" % (commands_path, command_name)
+            module = importlib.import_module(full_package_name)
+            try:
+                subparsers = module.parser_builder(parent_parser, subparsers, config, True)
+            except AttributeError:
+                # no parser builder found in file
+                pass
+    # switch back to original working directory
+    os.chdir(original_wd)
 
 
     # parse args or handle help

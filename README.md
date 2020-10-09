@@ -18,18 +18,6 @@ To run them raw, download from the official repository.
 ## Available subcommands
 When installed with pip, the scripts can be run with an `sc {subcommand}` command, and available arguments can be retrieved with `sc {subcommand} -h`. 
 
-#### sc inf_vault
-Download Cloudtrail logs to the vault directory. Downloads are incremental -- previous downloads are not
-re-fetched or deleted.
-
-A vault file is bushy directory tree that is stored under $HOME/.vault. the leaves are (many json) files, each covering a small slice of time. The files contain AWS event records.
-
-Other tools (notably find_by_content.py) based
-on trailscraper use the downloaded data for analysis.
-
-#### sc inf_report
-Run tag, s3, secret, certificate, repo inventory reports
-
 #### sc inf_find
 Dump cloudtail json event records from the vault having some value matching the globstring.
 
@@ -47,6 +35,18 @@ Examples:
 |find all json records in the vault in the first 6 days in august|<code>sc inf_find "2020-08-0[1-6]*"</code>|
 |extract event names and display the most numerous events.|<code>sc inf_find "2020-06*" &#124; jq ".eventName" &#124; sort &#124; uniq -c  &#124; sort -n</code>|
 |use GREP to explore file|<code>sc inf_find "2020-06*" &#124; grep -i IPaddress</code>|
+
+#### sc inf_report
+Run tag, s3, secret, certificate, repo inventory reports
+
+#### sc inf_vault
+Download Cloudtrail logs to the vault directory. Downloads are incremental -- previous downloads are not
+re-fetched or deleted.
+
+A vault file is bushy directory tree that is stored under $HOME/.vault. the leaves are (many json) files, each covering a small slice of time. The files contain AWS event records.
+
+Other tools (notably find_by_content.py) based
+on trailscraper use the downloaded data for analysis.
 
 #### sc control_audit
 Run audits checking system dependencies, policies attached to the target role, caller's privileges if sufficient, repository state, roles existing in account, and caller's identity.
