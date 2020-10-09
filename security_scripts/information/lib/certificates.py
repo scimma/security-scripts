@@ -40,11 +40,12 @@ class Acquire(measurements.Dataset):
             shlog.normal("{} data already collected".format(self.table_name))
             return
 
-        shlog.normal("beginning to make {} data".format(self.table_name)) 
+        shlog.normal("beginning to make {} data".format(self.table_name))
+        #import pdb; pdb.set_trace()
         # Make a flattened table for the tag data.
         # one tag, value pair in each record.
         sql = """CREATE TABLE certificates (asset text, domain text,
-                            arn text, short_arn text, inuseby text, hash arn, record json)"""
+                            arn text, short_arn text, inuseby text, hash text, record json)"""
         shlog.verbose(sql)
         self.q.q(sql)
 

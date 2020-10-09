@@ -20,6 +20,7 @@ def main(args):
    from security_scripts.information.lib import certificates
    from security_scripts.information.lib import repos
    from security_scripts.information.lib import load_balancer
+   from security_scripts.information.lib import instances
    from security_scripts.information.lib import assets
    
    shlog.verbose(args)
@@ -31,6 +32,7 @@ def main(args):
    secret_acquire      = secrets.Acquire(args,"secrets",q)
    certificate_acquire = certificates.Acquire(args,"TAGS",q)
    load_balancer_acquire = load_balancer.Acquire(args,"load_balancer",q)
+   instances_acquire         = instances.Acquire(args,"instances",q)
    # at this point data is in the relattion DB
    if args.dump:
       tag_acquire.print_data()
@@ -39,6 +41,7 @@ def main(args):
       certificate_acquire.print_data()
       load_balancer_acquire.print_data()
       repos_acquire.print_data()
+      instances_acquire.print_data()
       exit()
 
    # reporting actions are driven by instanitating the classes.
@@ -48,6 +51,8 @@ def main(args):
    cert_reports = certificates.Report(args, "Certificates", q)
    load_balancer_reports = load_balancer.Report(args, "load_balancers", q)
    repo_reports = repos.Report(args, "repos", q)
+   instances_reports = instances.Report(args, "Tagging Rule Check", q)
+
 
    assets.Acquire(args,"assets", q)
    assets.Report(args,"assets",q)
