@@ -145,7 +145,7 @@ class Report(measurements.Measurement):
 
         self.df = self.q.q_to_df(sql)
 
-    def json_report(self):
+    def json_s3_xreport(self):
         "make json file"
         return """
                 SELECT record FROM s3

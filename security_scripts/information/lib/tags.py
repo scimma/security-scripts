@@ -173,8 +173,9 @@ class Report(measurements.Measurement):
 
     def make_asset_data_by_service(self):
         """
-        Make asset data by service
+        Make  table(s) for insertion into the master asset table.
         """
+
         sql = """
           CREATE TABLE
             asset_data_by_service
