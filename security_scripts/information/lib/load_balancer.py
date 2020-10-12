@@ -54,7 +54,7 @@ class Acquire(measurements.Dataset):
         self.q.q(sql)
 
         # classic load balancers
-        for page in self._pages_all_regions('elb', 'describe_load_balancers'):
+        for page, _ in self._pages_all_regions('elb', 'describe_load_balancers'):
             for elb in page['LoadBalancerDescriptions']:
                 # import pdb ; pdb.set_trace()
                 name = elb['LoadBalancerName']
@@ -73,7 +73,7 @@ class Acquire(measurements.Dataset):
                 self.q.executemany(sql, [list])
 
         # application balancers
-        for page in self._pages_all_regions('elbv2', 'describe_load_balancers'):
+        for page, _ in self._pages_all_regions('elbv2', 'describe_load_balancers'):
             for elb in page['LoadBalancers']:
                 #import pdb ; pdb.set_trace()
                 name               = elb['LoadBalancerName']

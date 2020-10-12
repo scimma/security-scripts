@@ -56,7 +56,7 @@ class Acquire(measurements.Dataset):
 
         # Get the tags for each region.
         # accomidate the boto3 API can retul data in pages.
-        for page in self._pages_all_regions('secretsmanager', 'list_secrets'):
+        for page, _ in self._pages_all_regions('secretsmanager', 'list_secrets'):
 
             for secret in page['SecretList']:
                 #import pdb; pdb.set_trace()                
@@ -81,6 +81,8 @@ class Acquire(measurements.Dataset):
                             record)
                 shlog.verbose(sql)
                 self.q.executemany(sql, [list])
+                # populate the all_json table 
+                self._insert_all_json("secrets", short_arn, record) 
 
 class Report(measurements.Measurement):
     def __init__(self, args, name, q):

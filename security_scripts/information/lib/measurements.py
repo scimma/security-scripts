@@ -14,10 +14,16 @@ import json
 import os
 from security_scripts.information.lib import aws_utils
 
+
+
+
+
 class Dataset:
     """
     Base Class for  acquiring and  preparing a data set of interest for an analysis.
     """
+    
+    are_shared_tables_made = False
     
     def __init__(self, args, name, q):
         self.args=args
@@ -25,6 +31,21 @@ class Dataset:
         self.name=name
         self.table_name = None
 
+    def _insert_all_json(self, resource_name, id, record):
+        """
+        Load record into standard JSON table.
+
+        The  all_json table allows scanning for untagged items.
+        """
+        if not Dataset.are_shared_tables_made:        
+            sql = "CREATE TABLE all_json (resource_name TEXT, id TEXT, record JSON)"
+            self.q.q(sql)
+            Dataset.are_shared_tables_made = True
+        sql="INSERT INTO all_json VALUES (?,?,?)"
+        ilist = (resource_name, id, record)
+        self.q.executemany(sql,[ilist])
+
+ 
     def does_table_exist(self):
         """
         Determine if table exist, indicating it has been populated w/ cached data
@@ -44,19 +65,21 @@ class Dataset:
              thw tools  set(python, etc)
         """
 
-        # Amazon binarites have datetime types need an encode to turn to text
-        # I've not looked  into tiemzones.
-        enc = vanilla_utils.DateTimeEncoder  #converter fo datatime types -- not supported
+        # Amazon binarites have datetime types
+        # need a user supplined encoder method
+        # to turn to text I've not looked  into tiemzones.
+        enc = vanilla_utils.DateTimeEncoder  
         json_text = json.dumps(json_native, cls=enc)
         #
-        # There is no gocd to deal with flattendin the "arrays fo dicionawr with basincally the
-        # same keys which are also awkwarb. (tags as arrays of key, falue dictionarie are
-        # an example.)
+        # I found no good way to deal with the "arrays of
+        # dicionaary with basically the same keys  (like
+        # how AWS present tags)
+        # WOudl love some code here
         return json_text
     
     def _pages_all_regions(self, aws_client_name, aws_function_name):
         """
-        An interator that gets the pages for all regions.
+        An interator that gets the pages and boto client for all regions.
 
         aws_client_name = "resorurcemappingapi"
         functon_name = "get_resources"
@@ -71,7 +94,7 @@ class Dataset:
             shlog.verbose('about to iterate: {} {}'.format(aws_client_name, aws_function_name))
             page_iterator = paginator.paginate()
             for page in page_iterator:
-                yield page
+                yield page, client
 
     def make_data(self):
         """ Build base of data needed for the indicated measurement """

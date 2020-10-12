@@ -36,7 +36,7 @@ class Acquire(measurements.Dataset):
         shlog.normal("beginning to make {} data".format(self.name)) 
         # Make a flattened table for the tag data.
         # one tag, value pair in each record.
-        sql = """create table ec2 (
+        sql = """CREATE TABLE ec2 (
                  instance TEXT, vpc TEXT, subnet TEXT, publicdnsname TEXT,
                  privatednsame TEXT, privateipaddress TEXT, keyname TEXT,
                 record JSON)"""
@@ -44,7 +44,7 @@ class Acquire(measurements.Dataset):
         self.q.q(sql)
         # Get the tags for each region.
         # accomidate the boto3 API can retul data in pages
-        for page in self._pages_all_regions('ec2', 'describe_instances'):
+        for page, _ in self._pages_all_regions('ec2', 'describe_instances'):
             reservations = page["Reservations"]
             for r in reservations:
                 for  i  in r["Instances"]:
@@ -59,6 +59,11 @@ class Acquire(measurements.Dataset):
                     sql = '''INSERT INTO ec2 VALUES (?, ?, ?, ?, ?, ?, ?,?)'''
                     list = (instance, vpc, subnet, publicdnsname,  privatednsame, privateipaddress,  keyname, record)
                     self.q.executemany(sql,[list])
+                    # populate the all_json table 
+                    self._insert_all_json("ec2", instance, record) 
+
+
+                    
     
 class Report(measurements.Measurement):
     def __init__(self, args, name, q):

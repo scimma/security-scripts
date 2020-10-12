@@ -90,7 +90,9 @@ class Acquire(measurements.Dataset):
             list = (asset, name, arn, region,  npolicies,  ngrants,
                     json.dumps(grants), json.dumps(policy_status), json.dumps(bucket_policy), record)
             self.q.executemany(sql,[list])
-    
+            # populate the all_json table 
+            self._insert_all_json("s3", name, record)
+            
 class Report(measurements.Measurement):
     def __init__(self, args, name, q):
          measurements.Measurement.__init__(self, args, name, q)

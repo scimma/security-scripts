@@ -51,11 +51,8 @@ class Acquire(measurements.Dataset):
 
         # Get the tags for each region.
         # accomidate the boto3 API can retul data in pages
-        session = boto3.Session(profile_name=self.args.profile)
-        client = session.client('acm')
-        paginator = client.get_paginator('list_certificates')
-        for response in paginator.paginate():
-            for certificate in response['CertificateSummaryList']:
+        for page, client in self._pages_all_regions('acm', 'list_certificates'):
+            for certificate in page['CertificateSummaryList']:
                 arn = certificate["CertificateArn"]
                 domain = certificate["DomainName"]
                 short_arn = aws_utils.shortened_arn(arn)
@@ -70,7 +67,8 @@ class Acquire(measurements.Dataset):
                 sql = "INSERT INTO certificates VALUES (?, ?, ?, ?, ?, ?, ?)"
                 params = (asset, domain, arn, short_arn, inuseby, hash, record)
                 self.q.executemany(sql, [params])
-
+                # populate the all_json table 
+                self._insert_all_json("certificate", short_arn, record) 
 
         
 class Report(measurements.Measurement):

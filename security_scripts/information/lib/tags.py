@@ -47,7 +47,7 @@ class Acquire(measurements.Dataset):
         shlog.verbose(sql)
         self.q.q(sql)
 
-        for page in self._pages_all_regions('resourcegroupstaggingapi',  'get_resources'):
+        for page, _ in self._pages_all_regions('resourcegroupstaggingapi',  'get_resources'):
 
             ResourceMappingList = page['ResourceTagMappingList']
             for d in ResourceMappingList:
