@@ -49,12 +49,12 @@ class Acquire(measurements.Dataset):
             for r in reservations:
                 for  i  in r["Instances"]:
                     record = self._json_clean_dumps(i)
-                    instance = i["InstanceId"];
-                    vpc = i["VpcId"];
-                    subnet = i["SubnetId"];
-                    publicdnsname =i["PublicDnsName"];
-                    privatednsame =i['PrivateDnsName'];
-                    privateipaddress = i["PrivateIpAddress"];
+                    instance = i.get("InstanceId","");
+                    vpc = i.get("VpcId","");
+                    subnet = i.get("SubnetId","");
+                    publicdnsname =i.get("PublicDnsName","");
+                    privatednsame =i.get('PrivateDnsName',"");
+                    privateipaddress = i.get("PrivateIpAddress","");
                     keyname= i.get("KeyName","")
                     sql = '''INSERT INTO ec2 VALUES (?, ?, ?, ?, ?, ?, ?,?)'''
                     list = (instance, vpc, subnet, publicdnsname,  privatednsame, privateipaddress,  keyname, record)
