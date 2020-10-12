@@ -1,8 +1,6 @@
 # scimma-security-scripts
 Set of scripts to rapidly administer AWS activities. These can be run from the pip package (link) or in raw .py form
 
-Documentation: https://docs.google.com/document/d/1-uugzBGf24aNEdYzWA7ao5yvHPHl82xCjnCxvGtNBsE/edit?usp=sharing
-
 ## Prerequisites
 * Python 3.x
 * AWS CLI (with credentials file)
