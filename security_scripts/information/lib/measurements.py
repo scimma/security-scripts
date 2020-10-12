@@ -65,7 +65,7 @@ class Dataset:
              thw tools  set(python, etc)
         """
 
-        # Amazon binarites have datetime types
+        # Amazon binarties have datetime types
         # need a user supplined encoder method
         # to turn to text I've not looked  into tiemzones.
         enc = vanilla_utils.DateTimeEncoder  
