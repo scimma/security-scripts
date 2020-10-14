@@ -4,11 +4,13 @@ or to AWS.
 
 """
 import pandas as pd
+from security_scripts.information.lib import shlog
 import sqlite3
+import regex as re
 
 class Q:
     "conveience class for common query functionality"
-    def __init__(self, dbfile):
+    def __init__(self, dbfile, flush):
         """
         Open a database and maintain a connection to it
 
@@ -16,6 +18,7 @@ class Q:
         to be deleted if stale. Stale == an hour.
         """
         self.dbfile = dbfile
+        self.flush = flush
         self._did_purge_cache() # delete stale file.
         self.conn = sqlite3.connect(dbfile)
         self.cur = self.conn.cursor()
@@ -36,7 +39,7 @@ class Q:
         if pathname == ":memory:" : return True
         if not os.path.isfile(pathname): return True
         dbfile_age =  time.time() - os.stat(pathname)[stat.ST_MTIME]
-        if dbfile_age > timeout:
+        if dbfile_age > timeout or self.flush:
             shlog.normal("removing stale database cache {}".format(pathname))
             os.remove(pathname)
             return True
@@ -51,9 +54,19 @@ class Q:
     
     def q(self, sql):
         """Query and return sqlite result"""
-        result = self.cur.execute(sql)
-        self.conn.commit()
-        return result
+        try:
+            result = self.cur.execute(sql)
+            self.conn.commit()
+            return result
+        except sqlite3.OperationalError as oe:
+            # error handling
+            # already exists table failure
+            if re.match('table.*already exists', str(oe)) is not None:
+                shlog.normal('sqlite error: ' + str(oe))
+                return None
+            # all other errors need to be raised
+            raise oe
+
 
     def q_to_df(self, sql):
         """Query and return dataframe"""

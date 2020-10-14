@@ -9,6 +9,7 @@ Optons available via <command> --help
 """
 
 from security_scripts.information.lib import shlog
+import os
 
        
 def main(args):
@@ -22,10 +23,14 @@ def main(args):
    from security_scripts.information.lib import load_balancer
    from security_scripts.information.lib import instances
    from security_scripts.information.lib import assets
-   
+
+   # decode full path to dbfile so imports from other directories don't get confused
+   if args.dbfile != ':memory:':
+       args.dbfile = os.path.abspath(args.dbfile)
+
    shlog.verbose(args)
    shlog.verbose("only tests matching %s will be considered",(args.only))
-   q=vanilla_utils.Q(args.dbfile)
+   q=vanilla_utils.Q(args.dbfile, args.flush)
    tag_acquire         = tags.Acquire(args,"TAGS",q)
    repos_acquire       = repos.Acquire(args,"repos",q)
    s3_acquire          = s3.Acquire(args, "s3", q)
@@ -77,6 +82,7 @@ def parser_builder(parent_parser, parser, config, remote=False):
         # augments will be added to local parser
         target_parser = parser
     target_parser.add_argument('--dbfile', help='database file to use (default: %(default)s)', default=dbfile)
+    target_parser.add_argument('--flush', '-f', help='flush database during processing (default: %(default)s)', default=False, action='store_true')
     target_parser.add_argument('--dump', help="dump data and quit, do not apply test (default: %(default)s)", default=False, action='store_true')
     target_parser.add_argument('--listonly', help="list tests and quit (default: %(default)s)", default=False, action='store_true')
     target_parser.add_argument('--only', help="only run reports matching glob (default: %(default)s)", default="*")
@@ -88,9 +94,17 @@ if __name__ == "__main__":
    import argparse 
    import configparser
 
+
    """ get defaults from configuration system"""
+   from security_scripts.kli import env_control
    config = configparser.ConfigParser()
-   config.read_file(open('defaults.cfg'))
+   import os
+   rel_path = "defaults.cfg"
+   cfg_sources = [rel_path,  # built-in config for fallback
+                  os.path.expanduser(env_control())  # env value
+                  ]
+   config.read(cfg_sources)
+
    profile  = config.get("TAG_REPORT", "profile")
    loglevel = config.get("TAG_REPORT", "loglevel",fallback="NORMAL")
    
