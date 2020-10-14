@@ -94,9 +94,17 @@ if __name__ == "__main__":
    import argparse 
    import configparser
 
+
    """ get defaults from configuration system"""
+   from security_scripts.kli import env_control
    config = configparser.ConfigParser()
-   config.read_file(open('defaults.cfg'))
+   import os
+   rel_path = "defaults.cfg"
+   cfg_sources = [rel_path,  # built-in config for fallback
+                  os.path.expanduser(env_control())  # env value
+                  ]
+   config.read(cfg_sources)
+
    profile  = config.get("TAG_REPORT", "profile")
    loglevel = config.get("TAG_REPORT", "loglevel",fallback="NORMAL")
    
