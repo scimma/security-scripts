@@ -32,18 +32,23 @@ class Acquire(measurements.Dataset):
         """
         """
         aws_paged_resources = commands.commands
-        for resource, aspect, keys  in aws_paged_resources:
+        for resource, aspect, _  in aws_paged_resources:
+            records = []
             print ("TRYING {} , {}".format(resource, aspect))
             for page, _ in self._pages_all_regions(resource, aspect):
-                for k in page.keys():
-                    if k is 'ResponseMetadata': continue
-                    resource_name = resource
-                    kind = "{}_{}".format(aspect, k)
-                    record = self._json_clean_dumps(page[k])
-                    print ("HAVE_STUFF:{} {} {}".format(resource, aspect, k))
-                    self._insert_all_json(resource_name, kind, record)
+                resource_name = resource
+                record = self._json_clean_dumps(page)
+                records.append(record)
+                print ("HAVE_STUFF:{} {}".format(resource, aspect))
+                self._insert_all_json(resource_name, aspect, record)
                     #print ("SUCCESS {} , {}".format(resource, aspect))
-
+            #Write the collection of records for thsi API call out
+            records = ",".join(records)
+            records = "[" + records + "]"
+            filename = "{}_{}.json".format(resource, aspect)
+            f = open(filename,"w")
+            f.write(records)
+            f.close()
 
         
 
