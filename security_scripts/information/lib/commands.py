@@ -1,4 +1,4 @@
-commands = [
+xcommands = [
 ["iam","get_account_authorization_details",['UserDetailList','GroupDetailList','RoleDetailList','Policies','IsTruncated',
                                             'Marker','ResponseMetadata']],
 ["iam","list_account_aliases",['AccountAliases','IsTruncated','ResponseMetadata']],
@@ -41,4 +41,51 @@ commands = [
 ["logs","describe_resource_policies",['resourcePolicies','ResponseMetadata']],
 ["apigateway","get_rest_apis",['ResponseMetadata','items']],
 ["accessanalyzer","list_analyzers",['ResponseMetadata','analyzers']]
+]
+
+pcommands = [["ec2","describe_instances",['Reservations','ResponseMetadata']],]
+
+commands = [
+# ["iam","get_account_authorization_details",['UserDetailList','GroupDetailList','RoleDetailList','Policies','IsTruncated',
+#                                             'Marker','ResponseMetadata']],
+# ["iam","list_account_aliases",['AccountAliases','IsTruncated','ResponseMetadata']],
+["route53","list_hosted_zones",['ResponseMetadata','HostedZones','IsTruncated','MaxItems']],
+["ec2","describe_vpcs",['Vpcs','ResponseMetadata']],
+["ec2","describe_subnets",['Subnets','ResponseMetadata']],
+["ec2","describe_instances",['Reservations','ResponseMetadata']],
+["ec2","describe_volumes",['Volumes','ResponseMetadata']],
+["rds","describe_db_instances",['DBInstances','ResponseMetadata']],
+["rds","describe_db_snapshots",['DBSnapshots','ResponseMetadata']],
+["elb","describe_load_balancers",['LoadBalancerDescriptions','ResponseMetadata']],
+["elbv2","describe_load_balancers",['LoadBalancers','ResponseMetadata']],
+["redshift","describe_clusters",['Clusters','ResponseMetadata']],
+["redshift","describe_cluster_subnet_groups",['ClusterSubnetGroups','ResponseMetadata']],
+["sqs","list_queues",['ResponseMetadata']],
+["sns","list_topics",['Topics','ResponseMetadata']],
+["ec2","describe_security_groups",['SecurityGroups','ResponseMetadata']],
+["ec2","describe_network_interfaces",['NetworkInterfaces','ResponseMetadata']],
+["ec2","describe_vpc_peering_connections",['VpcPeeringConnections','ResponseMetadata']],
+["autoscaling","describe_policies",['ScalingPolicies','ResponseMetadata']],
+["autoscaling","describe_auto_scaling_groups",['AutoScalingGroups','ResponseMetadata']],
+# ["cloudformation","describe_stacks",['Stacks','ResponseMetadata']],
+["cloudfront","list_distributions",['ResponseMetadata','DistributionList']],
+# ["cloudwatch","describe_alarms",['CompositeAlarms','MetricAlarms','ResponseMetadata']],
+# ["config","describe_config_rules",['ConfigRules','ResponseMetadata']],
+["ec2","describe_network_acls",['NetworkAcls','ResponseMetadata']],
+["ec2","describe_route_tables",['RouteTables','ResponseMetadata']],
+["ec2","describe_flow_logs",['FlowLogs','ResponseMetadata']],
+["ec2","describe_vpc_endpoint_connections",['VpcEndpointConnections','ResponseMetadata']],
+["ec2","describe_vpc_endpoints",['VpcEndpoints','ResponseMetadata']],
+["ecr","describe_repositories",['repositories','ResponseMetadata']],
+["elasticache","describe_cache_clusters",['CacheClusters','ResponseMetadata']],
+["efs","describe_file_systems",['ResponseMetadata','FileSystems']],
+# ["events","list_rules",['Rules','ResponseMetadata']],
+# ["kms","list_keys",['Keys','Truncated','ResponseMetadata']],
+["lambda","list_functions",['ResponseMetadata','Functions']],
+["ecs","list_clusters",['clusterArns','ResponseMetadata']],
+# ["logs","describe_destinations",['destinations','ResponseMetadata']],
+# ["logs","describe_log_groups",['logGroups','ResponseMetadata']],
+# ["logs","describe_resource_policies",['resourcePolicies','ResponseMetadata']],
+# ["apigateway","get_rest_apis",['ResponseMetadata','items']],
+# ["accessanalyzer","list_analyzers",['ResponseMetadata','analyzers']]
 ]

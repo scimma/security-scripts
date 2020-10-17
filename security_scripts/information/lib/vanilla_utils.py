@@ -62,7 +62,7 @@ class Q:
             # error handling
             # already exists table failure
             if re.match('table.*already exists', str(oe)) is not None:
-                shlog.normal('sqlite error: ' + str(oe))
+                shlog.normal('sqlite error: ' + str(oe)) #TODO: remove
                 return None
             # all other errors need to be raised
             raise oe
@@ -84,6 +84,19 @@ class Q:
         rows = result.fetchall()
         table = tabulate.tabulate(rows, headers=headings)
         return table
+
+    def df_to_db(self, table, df) -> None:
+        """Insert dataframe into table
+
+        :param table: target table int he connected database
+        :param column_tuple: tuple containing
+        :return:
+        """
+        question_marks = len(list(df))
+        for line in df.values.tolist():
+            value_list = tuple(line)
+            sql = "INSERT INTO " + table + " VALUES (" + str('?, '*question_marks)[:-2]  + ")"
+            self.executemany(sql, [value_list])
 
 
 import datetime

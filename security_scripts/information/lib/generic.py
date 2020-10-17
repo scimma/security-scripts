@@ -40,7 +40,11 @@ class Acquire(measurements.Dataset):
                 record = self._json_clean_dumps(page)
                 records.append(record)
                 print ("HAVE_STUFF:{} {}".format(resource, aspect))
-                self._insert_all_json(resource_name, aspect, record)
+                # databse magic happens here
+                for content in page:
+                    if isinstance(page[content], list):
+                        for item in page[content]:
+                            self._insert_all_json(resource_name, aspect, self._json_clean_dumps(item))
                     #print ("SUCCESS {} , {}".format(resource, aspect))
             #Write the collection of records for thsi API call out
             records = ",".join(records)
