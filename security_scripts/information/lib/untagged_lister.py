@@ -16,6 +16,7 @@ import json
 import datetime
 from security_scripts.information.lib import vanilla_utils
 from security_scripts.information.lib import commands
+import pyjq
 
 class Acquire(measurements.Dataset):
     """
@@ -27,6 +28,11 @@ class Acquire(measurements.Dataset):
         self.table_name = "untagged_list"
         self.make_data()
         self.clean_data()
+
+    def extract_evidence(self, obj_json: str):
+        parsed = json.loads(obj_json.lower())
+        findings = pyjq.all('to_entries[] | select((.key|startswith("name")) or (.key|endswith("id")))',parsed)
+        return str(findings)
         
     def make_data(self):
         """
@@ -53,6 +59,10 @@ class Acquire(measurements.Dataset):
                       OR (a.record not like '%Tags":%' and a.record not like '%TagSet":%') -- no tag dicts
                       """
         df = self.q.q_to_df(sql)
+
+        # pyqj relevant information
+
+        df['json'] = df['json'].apply(lambda x: self.extract_evidence(x))
 
         self.q.df_to_db(self.table_name, df)
 
