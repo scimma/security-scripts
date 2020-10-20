@@ -63,6 +63,7 @@ def shortened_arn(arn):
     return arn
     
 
+all_regions_cache = None
 
 def decribe_regions_df(args):
     """ return a data frame enumerating all aws regions
@@ -70,11 +71,14 @@ def decribe_regions_df(args):
     
         Data frame has columns  'Endpoint' and 'Region'
     """
-    import pandas as pd
-    client = args.session.client('ec2')
-    list = client.describe_regions()['Regions']
-    df = pd.DataFrame.from_records(list)
-    return df
+    global all_regions_cache
+    if all_regions_cache is None:
+        import pandas as pd
+        client = args.session.client('ec2')
+        list = client.describe_regions()['Regions']
+        df = pd.DataFrame.from_records(list)
+        all_regions_cache = df # call this instead
+    return all_regions_cache
 
 
     

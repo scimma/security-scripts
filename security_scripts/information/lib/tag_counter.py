@@ -39,7 +39,7 @@ class Acquire(measurements.Dataset):
         # Prepare table for tag count analysis output
         sql = """CREATE TABLE tag_counter
                       (
-                         resource_name TEXT, id TEXT, total TEXT, untagged TEXT, tagged TEXT
+                         service TEXT, request TEXT, total TEXT, untagged TEXT, tagged TEXT
                        )
                       """
         shlog.verbose(sql)

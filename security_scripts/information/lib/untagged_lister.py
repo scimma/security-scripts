@@ -45,7 +45,7 @@ class Acquire(measurements.Dataset):
         # Prepare table for untagged onject list
         sql = """CREATE TABLE untagged_list
                       (
-                         resource_name TEXT, id TEXT, json TEXT
+                         service TEXT, request TEXT, json TEXT
                        )
                       """
         shlog.verbose(sql)

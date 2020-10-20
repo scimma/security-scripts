@@ -15,7 +15,7 @@ import os
 from security_scripts.information.lib import aws_utils
 
 
-
+universal_services = ["sts", "iam", "route53", "route53domains", "s3", "s3control", "cloudfront", "organizations"]
 
 
 class Dataset:
@@ -58,7 +58,7 @@ class Dataset:
         except sqlite3.OperationalError:
             return False
         
-    def _json_clean_dumps(self, json_native):
+    def _json_clean_dumps(self, json_native): # L0B?
         """ convert native json into text
 
              Deal with Amazon stuff that is awkward in
@@ -76,7 +76,14 @@ class Dataset:
         # how AWS present tags)
         # WOudl love some code here
         return json_text
-    
+
+    def get_page_iterator(self, aws_client_name, aws_function_name, region_name):
+        client = self.args.session.client(aws_client_name, region_name=region_name)
+        paginator = client.get_paginator(aws_function_name)
+        shlog.verbose('about to iterate: {} {}'.format(aws_client_name, aws_function_name))
+        page_iterator = paginator.paginate()
+        return page_iterator
+
     def _pages_all_regions(self, aws_client_name, aws_function_name):
         """
         An interator that gets the pages and boto client for all regions.
@@ -88,13 +95,16 @@ class Dataset:
         """
         self.args.session = boto3.Session(profile_name=self.args.profile)
         region_name_list = aws_utils.decribe_regions_df(self.args)['RegionName']
-        for region_name in region_name_list:
-            client = self.args.session.client(aws_client_name,region_name=region_name)
-            paginator = client.get_paginator(aws_function_name)
-            shlog.verbose('about to iterate: {} {}'.format(aws_client_name, aws_function_name))
-            page_iterator = paginator.paginate()
+
+        if aws_client_name in universal_services:
+            page_iterator = self.get_page_iterator(aws_client_name, aws_function_name, region_name_list[0])
             for page in page_iterator:
-                yield page, client
+                yield page, None
+        else:
+            for region_name in region_name_list:
+                page_iterator = self.get_page_iterator(aws_client_name, aws_function_name, region_name)
+                for page in page_iterator:
+                    yield page, None
 
     def make_data(self):
         """ Build base of data needed for the indicated measurement """
