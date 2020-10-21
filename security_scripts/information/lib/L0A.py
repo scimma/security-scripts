@@ -16,6 +16,7 @@ import json
 import datetime
 from security_scripts.information.lib import vanilla_utils
 from security_scripts.information.lib import commands
+import os
 
 class Acquire(measurements.Dataset):
     """
@@ -25,8 +26,14 @@ class Acquire(measurements.Dataset):
     def __init__(self, args, name, q):
         measurements.Dataset.__init__(self, args, name, q)
         self.table_name = "secrets"
+        # dir enforcement
+        self.f_path = args.report_path + '/L0A/'
+        if not os.path.exists(self.f_path):
+            os.makedirs(self.f_path)
+
         self.make_data()
         self.clean_data()
+
         
     def make_data(self):
         """
@@ -46,11 +53,13 @@ class Acquire(measurements.Dataset):
                         for item in page[content]:
                             self._insert_all_json(resource_name, aspect, self._json_clean_dumps(item))
                     #print ("SUCCESS {} , {}".format(resource, aspect))
+
             #Write the collection of records for thsi API call out
             records = ",".join(records)
             records = "[" + records + "]"
             filename = "{}_{}.json".format(resource, aspect)
-            f = open(filename,"w")
+
+            f = open(self.f_path + filename,"w")
             f.write(records)
             f.close()
 

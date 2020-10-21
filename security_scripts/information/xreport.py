@@ -15,7 +15,8 @@ import os
 def main(args):
    """Run tag, s3, secret, certificate, repo inventory reports"""
    from security_scripts.information.lib import vanilla_utils
-   from security_scripts.information.lib import generic
+   from security_scripts.information.lib import L0A
+   from security_scripts.information.lib import L0A_L0B
    from security_scripts.information.lib import tag_counter
    from security_scripts.information.lib import untagged_lister
 
@@ -26,7 +27,8 @@ def main(args):
    shlog.verbose(args)
    shlog.verbose("only tests matching %s will be considered",(args.only))
    q=vanilla_utils.Q(args.dbfile, args.flush)
-   generic_acquire     = generic.Acquire(args,"TAGS",q)
+   generic_acquire     = L0A.Acquire(args,"TAGS",q)
+   L0b_cleaner         = L0A_L0B.Acquire(args, "CLEAN_TAGS", q)
    tag_c_acquire       = tag_counter.Acquire(args, "TAG_COUNTER",q)
    untagged = untagged_lister.Acquire(args, "UNTAGGED_LISTER", q)
    exit()

@@ -30,6 +30,10 @@ class Dataset:
         self.q=q
         self.name=name
         self.table_name = None
+        # dir enforcement
+        self.args.report_path = os.getcwd() + "/report_files"
+        if not os.path.exists(self.args.report_path):
+            os.makedirs(self.args.report_path)
 
     def _insert_all_json(self, resource_name, id, record):
         """
@@ -149,10 +153,7 @@ class Measurement:
         self.df = None
         self.current_test=None
         self.listonly = args.listonly
-        # dir enforcement
-        self.args.report_path = os.getcwd() + "/report_files"
-        if not os.path.exists(self.args.report_path):
-            os.makedirs(self.args.report_path)
+
 
         if self.listonly:
             self._print_tests("tst_")
