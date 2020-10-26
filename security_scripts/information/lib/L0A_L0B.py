@@ -36,13 +36,6 @@ class Acquire(measurements.Dataset):
         self.make_data()
         self.clean_data()
 
-    def json_from_file(self, filename):
-        "return binary json contents from a file)"
-        jf = open(filename, "r")
-        jlist = json.load(jf)
-        jf.close()
-        return jlist
-
     def jsons_from_dir(self, dir):
         """
         return binary json contents of file

@@ -68,3 +68,18 @@ class Acquire(measurements.Dataset):
 
         
 
+class Report(measurements.Measurement):
+    def __init__(self, args, name, q):
+         measurements.Measurement.__init__(self, args, name, q)
+
+    def inf_untagged_objects(self):
+        """
+        Test for ARN's missing either Critiality or Service tags.
+        """
+        shlog.normal("printing untagged resources from the db")
+
+        sql = '''
+              SELECT *
+              FROM untagged_list
+               '''
+        return sql

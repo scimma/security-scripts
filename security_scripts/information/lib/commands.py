@@ -43,12 +43,14 @@ xcommands = [
 ["accessanalyzer","list_analyzers",['ResponseMetadata','analyzers']]
 ]
 
-pcommands = [["ec2","describe_instances",['Reservations','ResponseMetadata']],]
+pcommands = [["resourcegroupstaggingapi","get_resources",['ResourceTagMappingList','ResponseMetadata']],]
 
 commands = [
 # ["iam","get_account_authorization_details",['UserDetailList','GroupDetailList','RoleDetailList','Policies','IsTruncated',
 #                                             'Marker','ResponseMetadata']],
 # ["iam","list_account_aliases",['AccountAliases','IsTruncated','ResponseMetadata']],
+["resourcegroupstaggingapi","get_resources",['ResourceTagMappingList','ResponseMetadata']],
+["s3","list_buckets",['Buckets','ResponseMetadata']],
 ["route53","list_hosted_zones",['ResponseMetadata','HostedZones','IsTruncated','MaxItems']],
 ["ec2","describe_vpcs",['Vpcs','ResponseMetadata']],
 ["ec2","describe_subnets",['Subnets','ResponseMetadata']],

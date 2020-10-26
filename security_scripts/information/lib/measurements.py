@@ -88,6 +88,12 @@ class Dataset:
         page_iterator = paginator.paginate()
         return page_iterator
 
+    def get_unpaginatable_data(self, client, aws_function_name):
+        function = getattr(client, aws_function_name)
+        data = function()
+        return data
+
+
     def _pages_all_regions(self, aws_client_name, aws_function_name):
         """
         An interator that gets the pages and boto client for all regions.
@@ -100,15 +106,36 @@ class Dataset:
         self.args.session = boto3.Session(profile_name=self.args.profile)
         region_name_list = aws_utils.decribe_regions_df(self.args)['RegionName']
 
-        if aws_client_name in universal_services:
-            page_iterator = self.get_page_iterator(aws_client_name, aws_function_name, region_name_list[0])
-            for page in page_iterator:
-                yield page, None
-        else:
-            for region_name in region_name_list:
-                page_iterator = self.get_page_iterator(aws_client_name, aws_function_name, region_name)
+        # init a client to check for pagination
+        client = self.args.session.client(aws_client_name, region_name=region_name_list[0])
+
+        if client.can_paginate(aws_function_name):
+            if aws_client_name in universal_services:
+                page_iterator = self.get_page_iterator(aws_client_name, aws_function_name, region_name_list[0])
                 for page in page_iterator:
                     yield page, None
+            else:
+                for region_name in region_name_list:
+                    page_iterator = self.get_page_iterator(aws_client_name, aws_function_name, region_name)
+                    for page in page_iterator:
+                        yield page, None
+        else:
+            if aws_client_name in universal_services:
+                # use client initiated earlier
+                yield self.get_unpaginatable_data(client, aws_function_name), None
+            else:
+                # loop through regions
+                for region_name in region_name_list:
+                    client = self.args.session.client(aws_client_name, region_name=region_name)
+                    yield self.get_unpaginatable_data(client, aws_function_name), None
+
+
+    def json_from_file(self, filename):
+        "return binary json contents from a file)"
+        jf = open(filename, "r")
+        jlist = json.load(jf)
+        jf.close()
+        return jlist
 
     def make_data(self):
         """ Build base of data needed for the indicated measurement """

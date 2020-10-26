@@ -15,6 +15,8 @@ import os
 def main(args):
    """Run tag, s3, secret, certificate, repo inventory reports"""
    from security_scripts.information.lib import vanilla_utils
+   from security_scripts.information.lib import xs3
+   from security_scripts.information.lib import xtags
    from security_scripts.information.lib import L0A
    from security_scripts.information.lib import L0A_L0B
    from security_scripts.information.lib import tag_counter
@@ -27,11 +29,13 @@ def main(args):
    shlog.verbose(args)
    shlog.verbose("only tests matching %s will be considered",(args.only))
    q=vanilla_utils.Q(args.dbfile, args.flush)
-   generic_acquire     = L0A.Acquire(args,"TAGS",q)
+   generic_acquire = L0A.Acquire(args, "TAGS", q)
+   s3_acquire = xs3.Acquire(args, "s3", q)
+   tags_acquire = xtags.Acquire(args, "tags", q)
    L0b_cleaner         = L0A_L0B.Acquire(args, "CLEAN_TAGS", q)
    tag_c_acquire       = tag_counter.Acquire(args, "TAG_COUNTER",q)
    untagged = untagged_lister.Acquire(args, "UNTAGGED_LISTER", q)
-   exit()
+
    # at this point data is in the relattion DB
    if args.dump:
       # tag_acquire.print_data()
@@ -44,7 +48,10 @@ def main(args):
       exit()
 
    # reporting actions are driven by instanitating the classes.
-   # tag_reports = tags.Report(args, "Tagging Rule Check", q)
+   tag_reports = xtags.Report(args, "Tagging Rule Check", q)
+   tag_c_report = tag_counter.Report(args, "Tagging Count Check", q)
+   untagged_report = untagged_lister.Report(args, "Untagged Resources", q)
+   exit()
    # s3_reports=s3.Report(args, "s3", q)
    # secret_reports = secrets.Report(args,"secrets",q)
    # cert_reports = certificates.Report(args, "Certificates", q)

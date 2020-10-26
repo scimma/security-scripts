@@ -80,5 +80,22 @@ class Acquire(measurements.Dataset):
 
         self.q.df_to_db(self.table_name, df)
 
+
+
+class Report(measurements.Measurement):
+    def __init__(self, args, name, q):
+         measurements.Measurement.__init__(self, args, name, q)
+
+    def inf_tag_counter(self):
+        """
+        Test for ARN's missing either Critiality or Service tags.
+        """
+        shlog.normal("printing tagged/untagged resource count form the db")
+
+        sql = '''
+              SELECT *
+              FROM tag_counter
+               '''
+        return sql
         
 
