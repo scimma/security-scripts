@@ -36,15 +36,6 @@ class Acquire(measurements.Dataset):
         self.make_data()
         self.clean_data()
 
-    def jsons_from_dir(self, dir):
-        """
-        return binary json contents of file
-        and base file name.
-        """
-        file_glob = os.path.join(dir, "*.json")
-        for filename in glob.iglob(file_glob):
-            jlist = self.json_from_file(filename)
-            yield jlist, os.path.basename(filename)
 
     def to_L0B(self, records):
         cleaned = []

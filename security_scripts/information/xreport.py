@@ -21,6 +21,8 @@ def main(args):
    from security_scripts.information.lib import L0A_L0B
    from security_scripts.information.lib import tag_counter
    from security_scripts.information.lib import untagged_lister
+   from security_scripts.information.lib import L1_L2
+   from security_scripts.information.lib import L0B_L1
 
    # decode full path to dbfile so imports from other directories don't get confused
    if args.dbfile != ':memory:':
@@ -29,6 +31,9 @@ def main(args):
    shlog.verbose(args)
    shlog.verbose("only tests matching %s will be considered",(args.only))
    q=vanilla_utils.Q(args.dbfile, args.flush)
+   l0bl1_acquire = L0B_L1.Acquire(args, "TAGS", q)
+   # l1l2_acquire = L1_L2.Acquire(args, "L1L2", q)
+   exit(0)
    generic_acquire = L0A.Acquire(args, "TAGS", q)
    s3_acquire = xs3.Acquire(args, "s3", q)
    tags_acquire = xtags.Acquire(args, "tags", q)

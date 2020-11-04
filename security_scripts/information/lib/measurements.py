@@ -13,6 +13,7 @@ from security_scripts.information.lib import vanilla_utils
 import json
 import os
 from security_scripts.information.lib import aws_utils
+import glob
 
 
 universal_services = ["sts", "iam", "route53", "route53domains", "s3", "s3control", "cloudfront", "organizations"]
@@ -136,6 +137,16 @@ class Dataset:
         jlist = json.load(jf)
         jf.close()
         return jlist
+
+    def jsons_from_dir(self, dir):
+        """
+        return binary json contents of file
+        and base file name.
+        """
+        file_glob = os.path.join(dir, "*.json")
+        for filename in glob.iglob(file_glob):
+            jlist = self.json_from_file(filename)
+            yield jlist, os.path.basename(filename)
 
     def make_data(self):
         """ Build base of data needed for the indicated measurement """
