@@ -66,22 +66,21 @@ class Acquire(measurements.Dataset):
         # loop through linked locations
         for link in links:
             # load linked file into memory
-            linked_file = self.l0b_path + '/{}_{}.json'.format(link['my_service'], link['my_function'])
+            linked_file = self.l0b_path + '{}_{}.json'.format(link['my_service'], link['my_function'])
             print('Reading ' + linked_file)
             linked_file = self.json_from_file(linked_file)
 
             # find entries in linked file where path value is equal to node value
-            self_formula = 'select({}=="{}")'.format(link['path'], node)
+            # break down lists to get individual entries to parse
+            dict_path = "".join([e + '[] | ' for e in link['path'].split('[]')[:-1]])
+            self_formula = '{}select({}=="{}")'.format(dict_path,
+                                                       "." + link['path'].split('.')[-1:][0],
+                                                       node)
             print(
                 'Getting mentions of {} in {}_{}.json with jq: {}'.format(node, link['my_service'], link['my_function'],
                                                                           self_formula))
             self_mentions = pyjq.all(self_formula, linked_file)
-            print('Found {} mentioning object'.format(len(self_mentions)))
-            if link['my_service'] == 'ec2' and link['my_function'] == 'describe_instances' and self_mentions != []:
-                # todo: reservations causes false positives
-                # cat ec2_describe_instances.json |
-                # select(.[].Reservations[].Instances[].VpcId=="vpc-87caeefd")
-                print('gotcha')
+            print('Found {} mentioning objects'.format(len(self_mentions)))
 
             # parse objects mentioning the node to get self-identifiers of said objects
             linked_self_formulas = self.get_self_formula(link['my_service'], link['my_function'], definitions_self)
@@ -91,15 +90,27 @@ class Acquire(measurements.Dataset):
                 with open(self.l2_path + 'exceptions.txt', 'a') as exc:
                     exc.write('{},{},{}\n'.format(link['my_service'], link['my_function'], source['peer_service']))
             else:
-                for linked_self_formula in linked_self_formulas:
-                    print('Getting self IDs from {}_{}.json attached to {} with jq: {}'.format(link['my_service'],
-                                                                                               link['my_function'],
-                                                                                               node,
-                                                                                               linked_self_formula))
-                    # '.[].' to '.[][].' needs to happen because self_mentions adds a layer of []
-                    linked_matches = pyjq.all(linked_self_formula.replace('.[].', '.[][].'), self_mentions)
-                    print('Found {} attachments'.format(len(linked_matches)))
-                    yield linked_matches
+                if self_mentions != []:
+                    # idea: break down self-identifier with | ?
+                    for linked_self_formula in linked_self_formulas:
+                        if link['path'] == '.[].Reservations[].Instances[].NetworkInterfaces[].VpcId':
+                            print('gotcha')
+                        # toss out the part of the formula we unpacked
+                        linked_self_formula_short = ".[]" + linked_self_formula.replace(".".join(link['path'].split('.')[:-1]), "")
+                        if linked_self_formula_short.startswith('.[].[].'):
+                            with open(self.l2_path + 'jq_exceptions.txt', 'a') as exc:
+                                exc.write('{}_{},{},{},{}\n'.format(link['my_service'], link['my_function'], link['path'], linked_self_formula, linked_self_formula_short))
+                            break
+                        else:
+                            print('Getting self IDs from {}_{}.json attached to {} with jq: {}\nSelf formula is {}\nlink formula is {}'.format(link['my_service'],
+                                                                                                       link['my_function'],
+                                                                                                       node,
+                                                                                                       linked_self_formula_short,
+                                                                                                       linked_self_formula,
+                                                                                                       link['path']))
+                            linked_matches = pyjq.all(linked_self_formula_short, self_mentions)
+                            print('Found {} attachments'.format(len(linked_matches)))
+                            yield linked_matches
             print('_____________')
 
     def get_self_tags(self, node, node_file, source):
