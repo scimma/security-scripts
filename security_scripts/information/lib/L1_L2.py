@@ -74,7 +74,7 @@ class Acquire(measurements.Dataset):
             # break down lists to get individual entries to parse
             dict_path = "".join([e + '[] | ' for e in link['path'].split('[]')[:-1]])
             self_formula = '{}select({}=="{}")'.format(dict_path,
-                                                       "." + link['path'].split('.')[-1:][0],
+                                                       "." + link['path'].split('[].')[-1:][0],
                                                        node)
             print(
                 'Getting mentions of {} in {}_{}.json with jq: {}'.format(node, link['my_service'], link['my_function'],
@@ -93,11 +93,10 @@ class Acquire(measurements.Dataset):
                 if self_mentions != []:
                     # idea: break down self-identifier with | ?
                     for linked_self_formula in linked_self_formulas:
-                        if link['path'] == '.[].Reservations[].Instances[].NetworkInterfaces[].VpcId':
-                            print('gotcha')
                         # toss out the part of the formula we unpacked
-                        linked_self_formula_short = ".[]" + linked_self_formula.replace(".".join(link['path'].split('.')[:-1]), "")
-                        if linked_self_formula_short.startswith('.[].[].'):
+                        toss = "[].".join(link['path'].split('[].')[:-1])
+                        linked_self_formula_short = '.' + linked_self_formula.replace(toss, "")
+                        if linked_self_formula_short.startswith('..'):
                             with open(self.l2_path + 'jq_exceptions.txt', 'a') as exc:
                                 exc.write('{}_{},{},{},{}\n'.format(link['my_service'], link['my_function'], link['path'], linked_self_formula, linked_self_formula_short))
                             break
