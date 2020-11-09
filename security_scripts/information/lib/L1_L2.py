@@ -113,7 +113,21 @@ class Acquire(measurements.Dataset):
             print('_____________')
 
     def get_self_tags(self, node, node_file, source):
-        pass
+        dict_path = "".join([e + '[] | ' for e in source['path'].split('[]')[:-1]])
+        self_formula = '{}select({}=="{}")'.format(dict_path,
+                                                   "." + source['path'].split('[].')[-1:][0],
+                                                   node)
+        print(
+            'Getting mentions of {} in {}_{}.json with jq: {}'.format(node, source['my_service'], source['my_function'],
+                                                                      self_formula))
+        self_mentions = pyjq.all(self_formula, node_file)
+        try:
+            return self_mentions[0]['Tags']
+        except KeyError:
+            try:
+                return self_mentions[0]['TagSet']
+            except KeyError:
+                return None
 
     def make_data(self):
         """loop through many, many things to find connections
@@ -133,8 +147,9 @@ class Acquire(measurements.Dataset):
             # build nodes from self-identifiers
             for node in nodes:
                 print('Added node ' + node)
+
                 self.G.add_node(node, label=source['peer_service'] + '\n' + node, data="i'm data",
-                           tags=str(randrange(11)))
+                           tags=self.get_self_tags(node, node_file, source))
                 # todo: add tag scraper
                 # get self-id from objects mentioning the node
                 for page in self.linked_everything(definitions_others, source, definitions_self, node):
