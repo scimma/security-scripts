@@ -140,8 +140,8 @@ class Acquire(measurements.Dataset):
                 for page in self.linked_everything(definitions_others, source, definitions_self, node):
                     for attachment in page:
                         print('Adding edge {} to {}'.format(node, attachment))
-                        self.G.add_edge(node, attachment.replace(':', '_'))
+                        self.G.add_edge(node, attachment)
 
         # dump to json
-        with open(self.l2_path + 'networkdata1.json', 'w') as outfile1:
-            outfile1.write(json.dumps(json_graph.node_link_data(self.G)))
+        A = nx.nx_agraph.to_agraph(self.G)
+        A.draw(self.l2_path + 'universe.dot', prog='twopi')
