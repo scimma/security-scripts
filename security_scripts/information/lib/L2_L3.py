@@ -168,9 +168,12 @@ class Acquire(measurements.Dataset):
 
         # load priority dict from file
         rules = {}
-        for row in csv.reader(open('attachment_priority.csv')):
+        # help our little script find the attachment priority file
+        import security_scripts.information
+        for row in csv.reader(open(security_scripts.information.__path__[0] + '/attachment_priority.csv')):
             key = row[0]
             rules[key] = row[1:]
+
 
         # loop through rules, trying to find the partner
         top_match = ''

@@ -13,7 +13,7 @@ import os
 
        
 def main(args):
-   """Run tag, s3, secret, certificate, repo inventory reports"""
+   """Run reports pulling in existing infrastructure and mapping them to services"""
    from security_scripts.information.lib import vanilla_utils
    from security_scripts.information.lib import xs3
    from security_scripts.information.lib import xtags
@@ -82,7 +82,7 @@ def parser_builder(parent_parser, parser, config, remote=False):
 
     if remote:
         # augment remote parser with a new subcommand
-        inf_report_parser = parser.add_parser('inf_report', parents=[parent_parser], description=main.__doc__)
+        inf_report_parser = parser.add_parser('x_report', parents=[parent_parser], description=main.__doc__)
         inf_report_parser.set_defaults(func=main)
         # arguments will be attached to subcommand
         target_parser = inf_report_parser
