@@ -10,7 +10,6 @@ accounting and AWS-level incident response are present.
 """
 
 import boto3
-import pandas as pd
 import sqlite3
 from security_scripts.information.lib import aws_utils
 from security_scripts.information.lib import measurements

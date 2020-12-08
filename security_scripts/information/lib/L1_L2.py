@@ -109,7 +109,10 @@ class Acquire(measurements.Dataset):
                                                                                                        link['path']))
                             linked_matches = pyjq.all(linked_self_formula_short, self_mentions)
                             print('Found {} attachments'.format(len(linked_matches)))
-                            yield linked_matches
+                            # form debug info
+                            origin = 'file {}_{}.json, path {}'.format(source['my_service'], source['my_function'], source['path'])
+                            reason = 'file {}_{}.json, path {}'.format(link['my_service'], link['my_function'], link['path'])
+                            yield linked_matches, origin, reason
             print('_____________')
 
     def get_self_tags(self, node, node_file, source):
@@ -148,14 +151,18 @@ class Acquire(measurements.Dataset):
             for node in nodes:
                 print('Added node ' + node)
 
-                self.G.add_node(node, label=source['peer_service'] + '\n' + node, data="i'm data",
+                self.G.add_node(node, label=source['peer_service'] + '\n' + node,
                            tags=self.get_self_tags(node, node_file, source))
                 # todo: add tag scraper
                 # get self-id from objects mentioning the node
                 for page in self.linked_everything(definitions_others, source, definitions_self, node):
-                    for attachment in page:
+                    for attachment in page[0]:
                         print('Adding edge {} to {}'.format(node, attachment))
-                        self.G.add_edge(node, attachment)
+                        self.G.add_edge(node, attachment,
+                                        # add link justification
+                                        origin=page[1],
+                                        reason=page[2]
+                                        )
 
         # dump to json
         A = nx.nx_agraph.to_agraph(self.G)
