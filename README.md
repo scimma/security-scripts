@@ -46,6 +46,9 @@ A vault file is bushy directory tree that is stored under $HOME/.vault. the leav
 Other tools (notably find_by_content.py) based
 on trailscraper use the downloaded data for analysis.
 
+#### sc x_report
+Similar to Duo's Cloudmapper, but it ingests more, graphs more, and uses tags to graph
+
 #### sc control_audit
 Run audits checking system dependencies, policies attached to the target role, caller's privileges if sufficient, repository state, roles existing in account, and caller's identity.
 

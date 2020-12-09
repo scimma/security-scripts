@@ -6,7 +6,7 @@ with open("README.md", "r") as fh:
 
 setuptools.setup(
     name="scimma-security-scripts", # Replace with your own username
-    version="2.0b0",
+    version="2.0b1",
     author="Vladislav Ekimtcov, Donald Petravick",
     author_email="ekimtco2@illinois.edu",
     description="SCiMMA security scripts",
