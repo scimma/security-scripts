@@ -32,11 +32,25 @@ def main(args):
    shlog.verbose(args)
    shlog.verbose("only tests matching %s will be considered",(args.only))
    q=vanilla_utils.Q(args.dbfile, args.flush)
-   generic_acquire = L0A.Acquire(args, "TAGS", q)
-   L0b_cleaner = L0A_L0B.Acquire(args, "CLEAN_TAGS", q)
-   l0bl1_acquire = L0B_L1.Acquire(args, "TAGS", q)
-   l1l2_acquire = L1_L2.Acquire(args, "L1L2", q)
-   l2l3_acquire = L2_L3.Acquire(args, "L2L3", q)
+
+   # dict structure: lvl name: [import name, priority]
+   xreports_dict = {'L0A': ['L0A', 1],
+                    'L0B': ['L0A_L0B', 2],
+                    'L1':  ['L0B_L1', 3],
+                    'L2':  ['L1_L2', 4],
+                    'L3':  ['L2_L3', 5]}
+
+   if args.start not in xreports_dict.keys():
+       shlog.normal('illegal start parameter: {}'.format(args.start))
+       exit(0)
+
+   for x in xreports_dict:
+       # compare x's priority to arg's priority
+       if xreports_dict[x][1] >= xreports_dict[args.start][1]:
+           exec_string = '{}.Acquire(args, "{}", q)'.format(xreports_dict[args.start][0], xreports_dict[args.start][0])
+           exec(exec_string)
+
+   # there's more stuff down there, think about implementing it
    exit(0)
    s3_acquire = xs3.Acquire(args, "s3", q)
    tags_acquire = xtags.Acquire(args, "tags", q)
@@ -79,6 +93,7 @@ def parser_builder(parent_parser, parser, config, remote=False):
     :return: parser with amended options
     """
     dbfile = config.get("TAG_REPORT", "dbfile", fallback=":memory:")
+    start = config.get("TAG_REPORT", "start", fallback="L0A")
 
     if remote:
         # augment remote parser with a new subcommand
@@ -95,6 +110,9 @@ def parser_builder(parent_parser, parser, config, remote=False):
     target_parser.add_argument('--listonly', help="list tests and quit (default: %(default)s)", default=False, action='store_true')
     target_parser.add_argument('--only', help="only run reports matching glob (default: %(default)s)", default="*")
     target_parser.add_argument('--bare', help="print bare report, no wrap, no format (default: %(default)s)", default=False, action='store_true')
+    target_parser.add_argument('--start', '-s', help="information product level to start processing from (inclusive) (default: %(default)s)"
+                                                     " available options: L0A, L0B, L1, L2, L3",
+                               default=start)
     return parser
    
 if __name__ == "__main__":
