@@ -51,7 +51,7 @@ class Acquire(measurements.Dataset):
             if tags[tag] != 'None' and tags[tag] != '"[]"':
                 # fix quotes, escapes, newlines, tails etc
                 parsed = json.loads(tags[tag].replace("'", '"').replace("\\", "").replace("\n", "")[1:-1])
-                ss = pyjq.all('.[] | select(.Key=="Service") | .Value', parsed)
+                ss = pyjq.all('.[] | select(.Key=="{}") | .Value'.format(self.args.tag), parsed)
                 # multiple services are possible for a single object
                 for s in ss:
                     srv.append(s)
@@ -60,8 +60,9 @@ class Acquire(measurements.Dataset):
     def get_node_service(self, tags, node):
         try:
             parsed = json.loads(tags[node].replace("'", '"').replace("\\", "").replace("\n", "")[1:-1])
-            ss = pyjq.all('.[] | select(.Key=="Service") | .Value', parsed)
+            ss = pyjq.all('.[] | select(.Key=="{}") | .Value'.format(self.args.tag), parsed)
             label = ", ".join(s for s in ss)
+            print("{}'s tag is {}".format(node, label))
         except json.decoder.JSONDecodeError:
             return ''
         if label == '':
@@ -117,7 +118,7 @@ class Acquire(measurements.Dataset):
         P = self.nx_port(G, P, labels, tags, edge_labels=nx.get_edge_attributes(G, 'label'))
         # build subgraphs
         for service in subgraphs:
-            sub = pydot.Subgraph('cluster_' + service,
+            sub = pydot.Subgraph('cluster_' + service.replace(" ", "_"),
                                  strict=True,
                                  graph_type='digraph',
                                  label=service + ' cluster',
@@ -129,8 +130,8 @@ class Acquire(measurements.Dataset):
             P.add_subgraph(sub)
 
         print('Rendering galaxies...')
-        P.write(self.l3_path + 'galaxies.dot')
-        P.write_png(self.l3_path + 'galaxies.png')
+        P.write(self.l3_path + 'galaxies_{}.dot'.format(self.args.tag))
+        P.write_png(self.l3_path + 'galaxies_{}.png'.format(self.args.tag))
 
     def just_one(self, G, node):
         """check if the node only has one connection in G
@@ -157,14 +158,26 @@ class Acquire(measurements.Dataset):
         # find all existing connections for this node
         query = {"contains": ["label", node]}
 
+
         # what happens on the next executable line is
         # 1. find where node is source
         # 2. find where node is target and flip tuples there
         # 3. Merge the two
-        matches = list(search_direct_relationships(graph=G, source=query)) + [t[::-1] for t in list(
+        all_matches = list(search_direct_relationships(graph=G, source=query)) + [t[::-1] for t in list(
             search_direct_relationships(graph=G, target=query))]
+
+        if 'i-039d99c68b1599e16' in node:
+            print('found it!')
+
+        # only partners with service tags be used for galaxy deduction
+        matches = []
+        for match in all_matches:
+            if self.get_node_service(self.G_tags, match[1]) != '':
+                matches.append(match)
         # get node type
         node_type = node.split('-')[0]
+
+
 
         # load priority dict from file
         rules = {}
@@ -172,7 +185,9 @@ class Acquire(measurements.Dataset):
         import security_scripts.information
         for row in csv.reader(open(security_scripts.information.__path__[0] + '/attachment_priority.csv')):
             key = row[0]
-            rules[key] = row[1:]
+            # ignore comments
+            if key[0] != "#":
+                rules[key] = row[1:]
 
 
         # loop through rules, trying to find the partner

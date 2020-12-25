@@ -1,3 +1,8 @@
+# added as part of service galaxy rules
 eni,i,subnet,vpc
 acl,vpc,subnet
 rtbassoc,subnet,vpc
+# added as part of owneremail, criticality
+vpc,subnet,i
+#
+i,eni,subnet,vpc
