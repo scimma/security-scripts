@@ -259,7 +259,7 @@ class Acquire(measurements.Dataset):
 
         # find service galaxy connections
         for service in services:
-            query = {"contains": ["tags", service]}
+            query = {"contains": ["tags", service + "'"] } 
             print('nxquery: ' + str(query))
 
             matching_sources = list(search_direct_relationships(graph=self.G, source=query))

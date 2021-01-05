@@ -113,6 +113,8 @@ def parser_builder(parent_parser, parser, config, remote=False):
     target_parser.add_argument('--bare', help="print bare report, no wrap, no format (default: %(default)s)", default=False, action='store_true')
     target_parser.add_argument('--start', '-s', help="information product level to start processing from (inclusive) (default: %(default)s)"
                                                      " available options: L0A, L0B, L1, L2, L3", default=start)
+    target_parser.add_argument('--despace', '-ds', help="remove spaces from tags; fixes ungrouped objects in L2->L3 (default: %(default)s)",
+                               default=False, action='store_true')
     target_parser.add_argument('--tag', '-t', help="tag to use as a galaxy former at L3 (default: %(default)s)", default=tag)
     return parser
    

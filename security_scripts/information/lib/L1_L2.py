@@ -124,13 +124,27 @@ class Acquire(measurements.Dataset):
             'Getting mentions of {} in {}_{}.json with jq: {}'.format(node, source['my_service'], source['my_function'],
                                                                       self_formula))
         self_mentions = pyjq.all(self_formula, node_file)
+
         try:
-            return self_mentions[0]['Tags']
+            return self.tag_cleaner(self_mentions[0]['Tags'])
         except KeyError:
             try:
-                return self_mentions[0]['TagSet']
+                return self.tag_cleaner(self_mentions[0]['TagSet'])
             except KeyError:
                 return None
+
+    def tag_cleaner(self, tags):
+        """clean up the tags for better universe-building"""
+        if self.args.despace:
+            new_tags = []
+            for tag in tags:
+                new_tags.append({'Key': tag['Key'].replace(" ", ""),
+                                 'Value': tag['Value'].replace(" ", "")
+                                })
+            return new_tags
+        else:
+            # do not despace, will result in loose, ungrouped objects
+            return tags
 
     def make_data(self):
         """loop through many, many things to find connections
