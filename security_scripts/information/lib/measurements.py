@@ -14,6 +14,8 @@ import json
 import os
 from security_scripts.information.lib import aws_utils
 import glob
+import pyjq
+import botocore
 
 
 universal_services = ["sts", "iam", "route53", "route53domains", "s3", "s3control", "cloudfront", "organizations"]
@@ -89,13 +91,57 @@ class Dataset:
         page_iterator = paginator.paginate()
         return page_iterator
 
-    def get_unpaginatable_data(self, client, aws_function_name):
+    def get_unpaginatable_data(self, client, aws_function_name, parameter=None):
         function = getattr(client, aws_function_name)
-        data = function()
+        try:
+            data = function(**parameter)
+        except Exception as e:
+            if "ResourceNotFoundException" in str(e):
+                # happens when the resource exists, but in a different region
+                print("resource not found!")
+                return None # TODO: find a way to retunr nothing
+            else:
+                # still want to raise
+                raise e
         return data
 
 
-    def _pages_all_regions(self, aws_client_name, aws_function_name):
+    def kwjq(self, recipes):
+        """generate extra call arguments using jq
+        if there's nothing to generate, cop out with output=json that will result in a single run"""
+        parameters = []
+        for recipe in recipes:
+            if ".json" in recipes[recipe]:
+                # break down string into:
+                # parameter
+                param = recipe
+                # filename
+                sp = recipes[recipe].split("|", 1)
+                filename = sp[0]
+                # jq string
+                jq_str = sp[1]
+                # ingest file from L0A/filename
+                ref_file = self.json_from_file(self.f_path + filename) # l0a
+                # let jq loose on the ingested file
+                findings = pyjq.all(jq_str, ref_file)
+                # append jq output to parameters
+                for finding in findings:
+                    parameters.append({param:finding})
+            else:
+                # TODO: static, non jq handling
+                pass
+        return parameters
+
+    def page_param_setter(self, aws_client_name, aws_function_name, recipes):
+        # run _pages_all_regions as many times as needed
+        if recipes == {}:
+            yield from self._pages_all_regions(aws_client_name, aws_function_name)
+        else:
+            parameters = self.kwjq(recipes)
+            for parameter in parameters:
+                yield from self._pages_all_regions(aws_client_name, aws_function_name, parameter=parameter)
+
+    def _pages_all_regions(self, aws_client_name, aws_function_name, parameter=None):
         """
         An interator that gets the pages and boto client for all regions.
 
@@ -123,12 +169,18 @@ class Dataset:
         else:
             if aws_client_name in universal_services:
                 # use client initiated earlier
-                yield self.get_unpaginatable_data(client, aws_function_name), None
+                yield self.get_unpaginatable_data(client, aws_function_name, parameter), None
             else:
                 # loop through regions
                 for region_name in region_name_list:
                     client = self.args.session.client(aws_client_name, region_name=region_name)
-                    yield self.get_unpaginatable_data(client, aws_function_name), None
+                    yield self.get_unpaginatable_data(client, aws_function_name, parameter), None
+                    # TODO: get_unpaginatable_data gets a single kwargs entry
+                    # loop through every kwarg possible
+                    # 1. kwargs are collected elsewhere
+                    # (this function returns pages with results)
+                    # 2. get_unpaginatable_data gets **kwargs={param:arn}
+                    # => _pages_all_regions needs to be run separately for each kwarg possible
 
 
     def json_from_file(self, filename):

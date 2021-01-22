@@ -44,9 +44,13 @@ def main(args):
        shlog.normal('illegal start parameter: {}'.format(args.start))
        exit(0)
 
+   if args.end not in xreports_dict.keys():
+       shlog.normal('illegal end parameter: {}'.format(args.start))
+       exit(0)
+
    for x in xreports_dict:
        # compare x's priority to arg's priority
-       if xreports_dict[x][1] >= xreports_dict[args.start][1]:
+       if xreports_dict[x][1] >= xreports_dict[args.start][1] and xreports_dict[x][1] <= xreports_dict[args.end][1]:
            exec_string = '{}.Acquire(args, "{}", q)'.format(xreports_dict[x][0], xreports_dict[x][0])
            exec(exec_string)
 
@@ -94,6 +98,7 @@ def parser_builder(parent_parser, parser, config, remote=False):
     """
     dbfile = config.get("TAG_REPORT", "dbfile", fallback=":memory:")
     start = config.get("TAG_REPORT", "start", fallback="L0A")
+    end = config.get("TAG_REPORT", "end", fallback="L3")
     tag = config.get("TAG_REPORT", "tag", fallback="Service")
 
     if remote:
@@ -113,6 +118,8 @@ def parser_builder(parent_parser, parser, config, remote=False):
     target_parser.add_argument('--bare', help="print bare report, no wrap, no format (default: %(default)s)", default=False, action='store_true')
     target_parser.add_argument('--start', '-s', help="information product level to start processing from (inclusive) (default: %(default)s)"
                                                      " available options: L0A, L0B, L1, L2, L3", default=start)
+    target_parser.add_argument('--end', '-e', help="information product level to stop processing (inclusive) (default: %(default)s)"
+                                    " available options: L0A, L0B, L1, L2, L3", default=end)
     target_parser.add_argument('--despace', '-ds', help="remove spaces from tags; fixes ungrouped objects in L2->L3 (default: %(default)s)",
                                default=False, action='store_true')
     target_parser.add_argument('--tag', '-t', help="tag to use as a galaxy former at L3 (default: %(default)s)", default=tag)

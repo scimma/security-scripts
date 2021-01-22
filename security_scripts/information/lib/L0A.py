@@ -39,10 +39,10 @@ class Acquire(measurements.Dataset):
         """
         """
         aws_paged_resources = commands.commands
-        for resource, aspect, _  in aws_paged_resources:
+        for resource, aspect, recipes in aws_paged_resources:
             records = []
             print ("TRYING {} , {}".format(resource, aspect))
-            for page, _ in self._pages_all_regions(resource, aspect):
+            for page, _ in self.page_param_setter(resource, aspect, recipes):
                 resource_name = resource
                 record = self._json_clean_dumps(page)
                 records.append(record)
