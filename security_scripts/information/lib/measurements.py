@@ -84,11 +84,14 @@ class Dataset:
         # WOudl love some code here
         return json_text
 
-    def get_page_iterator(self, aws_client_name, aws_function_name, region_name):
+    def get_page_iterator(self, aws_client_name, aws_function_name, region_name, parameter=None):
         client = self.args.session.client(aws_client_name, region_name=region_name)
         paginator = client.get_paginator(aws_function_name)
         shlog.verbose('about to iterate: {} {}'.format(aws_client_name, aws_function_name))
-        page_iterator = paginator.paginate()
+        if parameter is not None:
+            page_iterator = paginator.paginate(**parameter)
+        else:
+            page_iterator = paginator.paginate()
         return page_iterator
 
     def get_unpaginatable_data(self, client, aws_function_name, parameter=None):
@@ -160,12 +163,12 @@ class Dataset:
 
         if client.can_paginate(aws_function_name):
             if aws_client_name in universal_services:
-                page_iterator = self.get_page_iterator(aws_client_name, aws_function_name, region_name_list[0])
+                page_iterator = self.get_page_iterator(aws_client_name, aws_function_name, region_name_list[0], parameter)
                 for page in page_iterator:
                     yield page, None
             else:
                 for region_name in region_name_list:
-                    page_iterator = self.get_page_iterator(aws_client_name, aws_function_name, region_name)
+                    page_iterator = self.get_page_iterator(aws_client_name, aws_function_name, region_name, parameter)
                     for page in page_iterator:
                         yield page, None
         else:
