@@ -96,10 +96,12 @@ class Dataset:
         try:
             data = function(**parameter)
         except Exception as e:
-            if "ResourceNotFoundException" in str(e):
+            if "ResourceNotFoundException" in str(e) \
+                    or "NoSuchBucketPolicy" in str(e)\
+                    or "ServerSideEncryptionConfigurationNotFoundError" in str(e):
                 # happens when the resource exists, but in a different region
                 print("resource not found!")
-                return None # TODO: find a way to retunr nothing
+                return {'Nothing':[], 'ResponseMetadata':{}}  # this simulates empty output
             else:
                 # still want to raise
                 raise e

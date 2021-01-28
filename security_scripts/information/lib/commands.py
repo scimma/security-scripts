@@ -43,50 +43,60 @@ xcommands = [
 ["accessanalyzer","list_analyzers",['ResponseMetadata','analyzers']]
 ]
 
-pcommands = [["resourcegroupstaggingapi","get_resources",['ResourceTagMappingList','ResponseMetadata']],]
+xcommands = [
+    ["cloudformation", "describe_stacks",{}],
+]
 
 commands = [
-# ["iam","get_account_authorization_details",['UserDetailList','GroupDetailList','RoleDetailList','Policies','IsTruncated',
-#                                             'Marker','ResponseMetadata']],
+# ["iam","get_account_authorization_details",],
 # ["iam","list_account_aliases",['AccountAliases','IsTruncated','ResponseMetadata']],
+
 ["secretsmanager","list_secrets",{}],
-["secretsmanager","get_resource_policy",{"SecretId":"secretsmanager_list_secrets.json|.[]|.SecretList[]|.ARN"}],
+["secretsmanager","get_resource_policy",{"SecretId":"secretsmanager_list_secrets.json|.[]|.SecretList[]|.ARN"}], # not very useful... https://boto3.amazonaws.com/v1/documentation/api/latest/reference/services/secretsmanager.html#SecretsManager.Client.get_resource_policy
+# goes off name...
+
+["s3","list_buckets",{}],
+["s3","get_bucket_acl",{"Bucket":"s3_list_buckets.json|.[] | .Buckets[]?|.Name"}],  # bucket id not in response :(
+["s3", "get_bucket_policy", {"Bucket":"s3_list_buckets.json|.[]|.Buckets[]?|.Name"}],  # no bucket id
+["s3", "get_bucket_logging", {"Bucket":"s3_list_buckets.json|.[]|.Buckets[]?|.Name"}],  # empty
+["s3", "get_bucket_location", {"Bucket": "s3_list_buckets.json|.[]|.Buckets[]?|.Name"}],  # no bucket id
+["s3", "get_bucket_encryption", {"Bucket": "s3_list_buckets.json|.[]|.Buckets[]?|.Name"}],  # empty
+
 ["resourcegroupstaggingapi","get_resources",{}],
-["s3","list_buckets"],
-["route53","list_hosted_zones"],
-["ec2","describe_vpcs"],
-["ec2","describe_subnets"],
-["ec2","describe_instances"],
-["ec2","describe_volumes"],
-["rds","describe_db_instances"],
-["rds","describe_db_snapshots"],
-["elb","describe_load_balancers"],
-["elbv2","describe_load_balancers"],
-["redshift","describe_clusters"],
-["redshift","describe_cluster_subnet_groups"],
-["sqs","list_queues"],
-["sns","list_topics"],
-["ec2","describe_security_groups"],
-["ec2","describe_network_interfaces"],
-["ec2","describe_vpc_peering_connections"],
-["autoscaling","describe_policies"],
-["autoscaling","describe_auto_scaling_groups"],
-# ["cloudformation","describe_stacks",['Stacks','ResponseMetadata']],
-["cloudfront","list_distributions"],
+["route53","list_hosted_zones",{}],
+["ec2","describe_vpcs",{}],
+["ec2","describe_subnets",{}],
+["ec2","describe_instances",{}],
+["ec2","describe_volumes",{}],
+["rds","describe_db_instances",{}],
+["rds","describe_db_snapshots",{}],
+["elb","describe_load_balancers",{}],
+["elbv2","describe_load_balancers",{}],
+["redshift","describe_clusters",{}],
+["redshift","describe_cluster_subnet_groups",{}],
+["sqs","list_queues",{}],
+["sns","list_topics",{}],
+["ec2","describe_security_groups",{}],
+["ec2","describe_network_interfaces",{}],
+["ec2","describe_vpc_peering_connections",{}],
+["autoscaling","describe_policies",{}],
+["autoscaling","describe_auto_scaling_groups",{}],
+["cloudformation","describe_stacks",['Stacks','ResponseMetadata']],
+["cloudfront","list_distributions",{}],
 # ["cloudwatch","describe_alarms",['CompositeAlarms','MetricAlarms','ResponseMetadata']],
 # ["config","describe_config_rules",['ConfigRules','ResponseMetadata']],
-["ec2","describe_network_acls"],
-["ec2","describe_route_tables"],
-["ec2","describe_flow_logs"],
-["ec2","describe_vpc_endpoint_connections"],
-["ec2","describe_vpc_endpoints"],
-["ecr","describe_repositories"],
-["elasticache","describe_cache_clusters"],
-["efs","describe_file_systems"],
+["ec2","describe_network_acls",{}],
+["ec2","describe_route_tables",{}],
+["ec2","describe_flow_logs",{}],
+["ec2","describe_vpc_endpoint_connections",{}],
+["ec2","describe_vpc_endpoints",{}],
+["ecr","describe_repositories",{}],
+["elasticache","describe_cache_clusters",{}],
+["efs","describe_file_systems",{}],
 # ["events","list_rules",['Rules','ResponseMetadata']],
 # ["kms","list_keys",['Keys','Truncated','ResponseMetadata']],
-["lambda","list_functions"],
-["ecs","list_clusters"],
+["lambda","list_functions",{}],
+["ecs","list_clusters",{}],
 # ["logs","describe_destinations",['destinations','ResponseMetadata']],
 # ["logs","describe_log_groups",['logGroups','ResponseMetadata']],
 # ["logs","describe_resource_policies",['resourcePolicies','ResponseMetadata']],

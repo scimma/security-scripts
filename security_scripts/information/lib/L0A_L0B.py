@@ -66,6 +66,7 @@ class Acquire(measurements.Dataset):
         """
         for records, basefilename in self.jsons_from_dir(self.s_path):
             #process information to L0_B level for one L0A file.
+            print("Cleaning {}".format(basefilename))
             records  = self.to_L0B(records)
 
             #Nothing there? then produce no L0B file
