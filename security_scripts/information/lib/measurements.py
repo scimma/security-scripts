@@ -88,7 +88,7 @@ class Dataset:
         client = self.args.session.client(aws_client_name, region_name=region_name)
         paginator = client.get_paginator(aws_function_name)
         shlog.verbose('about to iterate: {} {}'.format(aws_client_name, aws_function_name))
-        if parameter is not None:
+        if parameter is not None:  # more stable than straight up **parameters
             page_iterator = paginator.paginate(**parameter)
         else:
             page_iterator = paginator.paginate()
@@ -97,7 +97,10 @@ class Dataset:
     def get_unpaginatable_data(self, client, aws_function_name, parameter=None):
         function = getattr(client, aws_function_name)
         try:
-            data = function(**parameter)
+            if parameter is not None:  # more stable than straight up **parameters
+                data = function(**parameter)
+            else:
+                data = function()
         except Exception as e:
             if "ResourceNotFoundException" in str(e) \
                     or "NoSuchBucketPolicy" in str(e)\

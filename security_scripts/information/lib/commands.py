@@ -48,8 +48,8 @@ xcommands = [
 ]
 
 commands = [
-# ["iam","get_account_authorization_details",],
-# ["iam","list_account_aliases",['AccountAliases','IsTruncated','ResponseMetadata']],
+# ["iam","get_account_authorization_details",{}],
+# ["iam","list_account_aliases",{}],
 
 ["secretsmanager","list_secrets",{}],
 ["secretsmanager","get_resource_policy",{"SecretId":"secretsmanager_list_secrets.json|.[]|.SecretList[]|.ARN"}], # not very useful... https://boto3.amazonaws.com/v1/documentation/api/latest/reference/services/secretsmanager.html#SecretsManager.Client.get_resource_policy
@@ -81,7 +81,7 @@ commands = [
 ["ec2","describe_vpc_peering_connections",{}],
 ["autoscaling","describe_policies",{}],
 ["autoscaling","describe_auto_scaling_groups",{}],
-["cloudformation","describe_stacks",['Stacks','ResponseMetadata']],
+["cloudformation","describe_stacks",{}],
 ["cloudfront","list_distributions",{}],
 # ["cloudwatch","describe_alarms",['CompositeAlarms','MetricAlarms','ResponseMetadata']],
 # ["config","describe_config_rules",['ConfigRules','ResponseMetadata']],
