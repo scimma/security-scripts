@@ -79,8 +79,18 @@ class Acquire(measurements.Dataset):
         outset = set()
         for path in pyjq.all('paths(..)', records):
             last = path[-1]
-            if type(last) == type("") and (self.has_suffix(last, "Id") or self.has_suffix(last, "Arn")):
+            if type(last) == type("") and (self.has_suffix(last.lower(), "id") or self.has_suffix(last.lower(), "arn")): # would this fix it??
+                # that got AutoScalingGroupARN
                 peer_service = last
+                if peer_service.lower() == 'arn' or peer_service.lower() == 'id':
+                    # this happens if self id is merely an arn
+                    # let's fix that
+                    # happens to secretsmanager so far
+                    peer_service = self.trim_suffix(my_function, 'manager')
+                    peer_service = self.trim_prefix(peer_service, "get")
+                    peer_service = self.trim_prefix(peer_service, "list")
+                    peer_service = peer_service.replace("_", "")
+                    peer_service = self.trim_plural(peer_service)
                 peer_service = self.trim_suffix(peer_service, "Id")
                 peer_service = self.trim_suffix(peer_service, "Arn")
                 peer_service = peer_service.lower()
@@ -134,7 +144,8 @@ class Acquire(measurements.Dataset):
         my_function = self.trim_plural(my_function)
         my_function = my_function.replace("_", "")
 
-        if my_function in service_from_path:
+        if my_function in service_from_path or (d['peer_service'].lower() in d['path'].lower() and
+                                                d['peer_service'].lower() in d['my_service'].lower()):
             d["is_self"] = True
         else:
             d["is_self"] = False
@@ -149,7 +160,6 @@ class Acquire(measurements.Dataset):
         master_list = []
         for record, basefilename in self.jsons_from_dir(self.l0b_dir):
             #process information to L0_B level
-
             # Extract meta data from (ugh) file name
             # string before the first _ is service
             # stings after the first _ are methods

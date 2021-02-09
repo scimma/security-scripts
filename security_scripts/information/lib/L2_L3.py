@@ -8,6 +8,7 @@ into L2 data products (graph with subgraphs/clusters describing service dependen
 from security_scripts.information.lib import measurements
 import networkx as nx
 from networkx_query import search_direct_relationships
+from networkx_query import search_nodes
 import json
 import pyjq
 import random
@@ -50,7 +51,8 @@ class Acquire(measurements.Dataset):
             # skip empty tags
             if tags[tag] != 'None' and tags[tag] != '"[]"':
                 # fix quotes, escapes, newlines, tails etc
-                parsed = json.loads(tags[tag].replace("'", '"').replace("\\", "").replace("\n", "")[1:-1])
+                parsed = json.loads(tags[tag].replace("'", '"').replace("\\", "").replace("\n", "")
+                                    .replace("True",'"True"').replace("False", '"False"')[1:-1])
                 ss = pyjq.all('.[] | select(.Key=="{}") | .Value'.format(self.args.tag), parsed)
                 # multiple services are possible for a single object
                 for s in ss:
@@ -311,6 +313,12 @@ class Acquire(measurements.Dataset):
                                 label='Origin: {}\nReason: {}'.format(self.get_edge_property(self.G, 'origin', r[0], r[1]),
                                                                       self.get_edge_property(self.G, 'reason', r[0], r[1])))
                     print('Added edge {} to {}'.format(r[0], r[1]))
+
+            # loner handling
+            loners = list(search_nodes(self.G, query))
+            for r in loners:
+                G3.add_node(r)
+                subnodes[service].append(r)
 
             subgraphs[service] = G3.subgraph(subnodes[service])
             print('________')

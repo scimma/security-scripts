@@ -6,3 +6,5 @@ rtbassoc,subnet,vpc
 vpc,subnet,i
 #
 i,eni,subnet,vpc
+# service after acls were added
+aclassoc,subnet,vpc
