@@ -51,6 +51,10 @@ commands = [
 # ["iam","get_account_authorization_details",{}],
 # ["iam","list_account_aliases",{}],
 
+# sns additions
+["sns","list_topics",{}],
+["sns","get_topic_attributes",{"TopicArn":"sns_list_topics.json|.[] |.Topics[]?|.TopicArn"}],
+
 ["secretsmanager","list_secrets",{}],
 ["secretsmanager","get_resource_policy",{"SecretId":"secretsmanager_list_secrets.json|.[]|.SecretList[]|.ARN"}], # not very useful... https://boto3.amazonaws.com/v1/documentation/api/latest/reference/services/secretsmanager.html#SecretsManager.Client.get_resource_policy
 # goes off name...
@@ -61,6 +65,8 @@ commands = [
 ["s3", "get_bucket_logging", {"Bucket":"s3_list_buckets.json|.[]|.Buckets[]?|.Name"}],  # empty
 ["s3", "get_bucket_location", {"Bucket": "s3_list_buckets.json|.[]|.Buckets[]?|.Name"}],  # no bucket id
 ["s3", "get_bucket_encryption", {"Bucket": "s3_list_buckets.json|.[]|.Buckets[]?|.Name"}],  # empty
+
+
 
 ["resourcegroupstaggingapi","get_resources",{}],
 ["route53","list_hosted_zones",{}],
@@ -75,7 +81,6 @@ commands = [
 ["redshift","describe_clusters",{}],
 ["redshift","describe_cluster_subnet_groups",{}],
 ["sqs","list_queues",{}],
-["sns","list_topics",{}],
 ["ec2","describe_security_groups",{}],
 ["ec2","describe_network_interfaces",{}],
 ["ec2","describe_vpc_peering_connections",{}],

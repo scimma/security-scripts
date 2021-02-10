@@ -110,6 +110,9 @@ class Dataset:
                 # happens when the resource exists, but in a different region
                 print("resource not found!")
                 return {'Nothing':[], 'ResponseMetadata':{}}  # this simulates empty output
+            elif "InvalidParameter" in str(e):
+                print("InvalidParameterException thrown, ignoring...")
+                return {'Nothing': [], 'ResponseMetadata': {}}  # this simulates empty output
             else:
                 # still want to raise
                 raise e
