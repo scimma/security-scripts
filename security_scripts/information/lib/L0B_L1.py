@@ -133,8 +133,8 @@ class Acquire(measurements.Dataset):
         # we want "instance"
         service_from_path = d["path"].split(".")[-1]
         service_from_path = service_from_path.lower()
-        service_from_path = self.trim_suffix(service_from_path, "Id")
-        service_from_path = self.trim_suffix(service_from_path, "Arn")
+        service_from_path = self.trim_suffix(service_from_path, "id")
+        service_from_path = self.trim_suffix(service_from_path, "arn")
         # function here refers to the function in boto.
         # eg from describe_load_balancers we want...
         #  loadbalancer (no underscore, no plural
@@ -145,7 +145,7 @@ class Acquire(measurements.Dataset):
         my_function = my_function.replace("_", "")
 
         if my_function in service_from_path or (d['peer_service'].lower() in d['path'].lower() and
-                                                d['peer_service'].lower() in d['my_service'].lower()):
+                                                d['peer_service'].lower() in d['my_function'].lower()):
             d["is_self"] = True
         else:
             d["is_self"] = False

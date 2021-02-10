@@ -99,6 +99,8 @@ class Dataset:
         try:
             if parameter is not None:  # more stable than straight up **parameters
                 data = function(**parameter)
+                for p in parameter:
+                    data[p] = parameter[p]
             else:
                 data = function()
         except Exception as e:
