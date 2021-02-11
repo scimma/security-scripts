@@ -113,6 +113,9 @@ class Dataset:
             elif "InvalidParameter" in str(e):
                 print("InvalidParameterException thrown, ignoring...")
                 return {'Nothing': [], 'ResponseMetadata': {}}  # this simulates empty output
+            elif "NotFound" in str(e):
+                print("resource not found!")
+                return {'Nothing': [], 'ResponseMetadata': {}}  # this simulates empty output
             else:
                 # still want to raise
                 raise e
@@ -177,8 +180,13 @@ class Dataset:
             else:
                 for region_name in region_name_list:
                     page_iterator = self.get_page_iterator(aws_client_name, aws_function_name, region_name, parameter)
-                    for page in page_iterator:
-                        yield page, None
+                    try:
+                        for page in page_iterator:
+                            yield page, None
+                    except Exception as e:
+                        if "ListPlatformApplications" in str(e) and "is not supported in this region" in str(e):
+                            print("operation not supported in region, skipping...")
+                            yield {'Nothing': [], 'ResponseMetadata': {}}, None
         else:
             if aws_client_name in universal_services:
                 # use client initiated earlier

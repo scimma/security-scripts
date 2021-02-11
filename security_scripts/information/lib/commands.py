@@ -44,7 +44,8 @@ xcommands = [
 ]
 
 xcommands = [
-    ["cloudformation", "describe_stacks",{}],
+    # ["sns", "get_subscription_attributes",{"SubscriptionArn":"sns_list_subscriptions.json|.[] | .Subscriptions[] | .SubscriptionArn"}], # ok!
+
 ]
 
 commands = [
@@ -54,6 +55,10 @@ commands = [
 # sns additions
 ["sns","list_topics",{}],
 ["sns","get_topic_attributes",{"TopicArn":"sns_list_topics.json|.[] |.Topics[]?|.TopicArn"}],
+["sns", "list_subscriptions",{}],
+["sns", "get_subscription_attributes",{"SubscriptionArn":"sns_list_subscriptions.json|.[] | .Subscriptions[] | .SubscriptionArn"}], # ok!
+# ["sns", "list_platform_applications",{}], # useless, returns nothing
+
 
 ["secretsmanager","list_secrets",{}],
 ["secretsmanager","get_resource_policy",{"SecretId":"secretsmanager_list_secrets.json|.[]|.SecretList[]|.ARN"}], # not very useful... https://boto3.amazonaws.com/v1/documentation/api/latest/reference/services/secretsmanager.html#SecretsManager.Client.get_resource_policy

@@ -95,7 +95,11 @@ class Acquire(measurements.Dataset):
                     for linked_self_formula in linked_self_formulas:
                         # toss out the part of the formula we unpacked
                         toss = "[].".join(link['path'].split('[].')[:-1])
-                        linked_self_formula_short = '.' + linked_self_formula.replace(toss, "")
+                        if toss == '.':
+                            # happens when identifier is very high up
+                            linked_self_formula_short = linked_self_formula
+                        else:
+                            linked_self_formula_short = '.' + linked_self_formula.replace(toss, "")
                         if linked_self_formula_short.startswith('..'):
                             with open(self.l2_path + 'jq_exceptions.txt', 'a') as exc:
                                 exc.write('{}_{},{},{},{}\n'.format(link['my_service'], link['my_function'], link['path'], linked_self_formula, linked_self_formula_short))
@@ -107,6 +111,7 @@ class Acquire(measurements.Dataset):
                                                                                                        linked_self_formula_short,
                                                                                                        linked_self_formula,
                                                                                                        link['path']))
+
                             linked_matches = pyjq.all(linked_self_formula_short, self_mentions)
                             print('Found {} attachments'.format(len(linked_matches)))
                             # form debug info
