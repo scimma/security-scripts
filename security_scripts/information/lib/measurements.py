@@ -16,6 +16,8 @@ from security_scripts.information.lib import aws_utils
 import glob
 import pyjq
 import botocore
+from collections import ChainMap
+from itertools import product
 
 
 universal_services = ["sts", "iam", "route53", "route53domains", "s3", "s3control", "cloudfront", "organizations"]
@@ -113,7 +115,7 @@ class Dataset:
             elif "InvalidParameter" in str(e):
                 print("InvalidParameterException thrown, ignoring...")
                 return {'Nothing': [], 'ResponseMetadata': {}}  # this simulates empty output
-            elif "NotFound" in str(e):
+            elif "NotFound" in str(e) or "NoSuchEntity" in str(e):
                 print("resource not found!")
                 return {'Nothing': [], 'ResponseMetadata': {}}  # this simulates empty output
             else:
@@ -127,6 +129,7 @@ class Dataset:
         if there's nothing to generate, cop out with output=json that will result in a single run"""
         parameters = []
         for recipe in recipes:
+            temp = []
             if ".json" in recipes[recipe]:
                 # break down string into:
                 # parameter
@@ -142,11 +145,12 @@ class Dataset:
                 findings = pyjq.all(jq_str, ref_file)
                 # append jq output to parameters
                 for finding in findings:
-                    parameters.append({param:finding})
+                    temp.append({param:finding})
             else:
                 # TODO: static, non jq handling
-                pass
-        return parameters
+                temp.append({recipe:recipes[recipe]})
+            parameters.append(temp)
+        return [dict(ChainMap(*a)) for a in list(product(*parameters))]
 
     def page_param_setter(self, aws_client_name, aws_function_name, recipes):
         # run _pages_all_regions as many times as needed
@@ -176,12 +180,19 @@ class Dataset:
             if aws_client_name in universal_services:
                 page_iterator = self.get_page_iterator(aws_client_name, aws_function_name, region_name_list[0], parameter)
                 for page in page_iterator:
+                    # augment if parameterized
+                    if parameter is not None:
+                        for p in parameter:
+                            page[p] = parameter[p]
                     yield page, None
             else:
                 for region_name in region_name_list:
                     page_iterator = self.get_page_iterator(aws_client_name, aws_function_name, region_name, parameter)
                     try:
                         for page in page_iterator:
+                            if parameter is not None:
+                                for p in parameter:
+                                    page[p] = parameter[p]
                             yield page, None
                     except Exception as e:
                         if "ListPlatformApplications" in str(e) and "is not supported in this region" in str(e):
