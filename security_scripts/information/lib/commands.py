@@ -44,7 +44,24 @@ xcommands = [
 ]
 
 xcommands = [
-    # ["sns", "get_subscription_attributes",{"SubscriptionArn":"sns_list_subscriptions.json|.[] | .Subscriptions[] | .SubscriptionArn"}], # ok!
+    # nothing: ["iam", "get_account_password_policy",{}],
+    # bucket policy got
+    # nothing: ["ecr", "get_repository_policy",{"repositoryName":"ecr_describe_repositories.json|.[] | .repositories[] | .repositoryName"}],
+    # nothing in glacier
+    # kms empty
+
+
+
+]
+
+#policy_
+xcommands = [
+    # ["iam", "get_policy",{"PolicyArn":"iam_list_attached_user_policies.json|[.[] | .AttachedPolicies[] | .PolicyArn] | unique | .[]"}],
+    # ["iam", "get_policy",{"PolicyArn":"iam_list_attached_role_policies.json|[.[] | .AttachedPolicies[] | .PolicyArn] | unique | .[]"}],
+    # ["iam", "get_policy",{"PolicyArn":"iam_list_attached_group_policies.json|[.[] | .AttachedPolicies[] | .PolicyArn] | unique | .[]"}],
+    # ["iam","list_entities_for_policy",{"PolicyArn":"iam_get_policy.json|.[] | .Policy.Arn"}],
+# ["sns","list_topics",{}],
+# ["sns","list_tags_for_resource",{"ResourceArn":"sns_list_topics.json|.[] |.Topics[]?|.TopicArn"}],
 
 ]
 
@@ -70,8 +87,19 @@ commands = [
 ["s3", "get_bucket_logging", {"Bucket":"s3_list_buckets.json|.[]|.Buckets[]?|.Name"}],  # empty
 ["s3", "get_bucket_location", {"Bucket": "s3_list_buckets.json|.[]|.Buckets[]?|.Name"}],  # no bucket id
 ["s3", "get_bucket_encryption", {"Bucket": "s3_list_buckets.json|.[]|.Buckets[]?|.Name"}],  # empty
+["s3","get_bucket_tagging",{"Bucket":"s3_list_buckets.json|.[] | .Buckets[] | .Name"}],
 
+# new cool stuff!
+["ecr", "describe_repositories",{}],
+["lambda", "get_policy", {"FunctionName":"lambda_list_functions.json|.[] | .Functions[]? | .FunctionName"}],
 
+# cool policy stuff!
+["iam", "list_groups",{}],
+["iam", "list_attached_group_policies",{"GroupName":"iam_list_groups.json|.[] | .Groups[] | .GroupName"}],
+["iam", "list_users",{}],
+["iam", "list_attached_user_policies",{"UserName":"iam_list_users.json|.[] | .Users[] | .UserName"}],
+["iam", "list_roles",{}],
+["iam", "list_attached_role_policies",{"RoleName":"iam_list_roles.json|.[] | .Roles[] | .RoleName"}],
 
 ["resourcegroupstaggingapi","get_resources",{}],
 ["route53","list_hosted_zones",{}],

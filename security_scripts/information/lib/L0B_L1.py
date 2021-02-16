@@ -79,7 +79,10 @@ class Acquire(measurements.Dataset):
         outset = set()
         for path in pyjq.all('paths(..)', records):
             last = path[-1]
-            if type(last) == type("") and (self.has_suffix(last.lower(), "id") or self.has_suffix(last.lower(), "arn")): # would this fix it??
+            if type(last) == type("") and (self.has_suffix(last.lower(), "id")
+                                           or self.has_suffix(last.lower(), "arn")
+                                           or (self.has_suffix(last.lower(), "name") and 's3' in my_service.lower()) # s3 handling
+                                           or (last.lower() == "bucket" and 's3' in my_service.lower())): # s3 handling
                 # that got AutoScalingGroupARN
                 peer_service = last
                 if peer_service.lower() == 'arn' or peer_service.lower() == 'id':
@@ -102,10 +105,20 @@ class Acquire(measurements.Dataset):
                 path = [".{}".format(e) if type(e) == type("") else "[]" for e in path]
                 if path[0] == "[]": path[0] = ".[]"  # exception to resularity
                 path = "".join(path)
+
+                # hall of shame and cheating
+                # shame upon amazon for having no naming convention whatsoever
+                # cheating is me cheating to get it to work
+                if my_service == 's3' and my_function == 'list_buckets':
+                    peer_service = 'bucket'
+
+                # take the tuples (which are hashable, and load into a dictionary.
                 # put into hashable type so the python "set" can remove duplicates
                 item = (my_service, my_function, path, peer_service)
                 outset.add(item)
-        # take the tuples (which are hashable, and load into a dictionary.
+
+
+
         dlist = []
         for item in outset:
             d = {}
@@ -143,6 +156,7 @@ class Acquire(measurements.Dataset):
         my_function = self.trim_prefix(my_function, "list_")
         my_function = self.trim_plural(my_function)
         my_function = my_function.replace("_", "")
+
 
         if my_function in service_from_path or (d['peer_service'].lower() in d['path'].lower() and
                                                 d['peer_service'].lower() in d['my_function'].lower()):

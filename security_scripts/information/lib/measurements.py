@@ -118,6 +118,9 @@ class Dataset:
             elif "NotFound" in str(e) or "NoSuchEntity" in str(e):
                 print("resource not found!")
                 return {'Nothing': [], 'ResponseMetadata': {}}  # this simulates empty output
+            elif "NoSuchTagSet" in str(e):
+                print("no tags for resource!")
+                return {'Nothing': [], 'ResponseMetadata': {}}  # this simulates empty output
             else:
                 # still want to raise
                 raise e
