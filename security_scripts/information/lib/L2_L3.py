@@ -168,8 +168,6 @@ class Acquire(measurements.Dataset):
         all_matches = list(search_direct_relationships(graph=G, source=query)) + [t[::-1] for t in list(
             search_direct_relationships(graph=G, target=query))]
 
-        if 'i-039d99c68b1599e16' in node:
-            print('found it!')
 
         # only partners with service tags be used for galaxy deduction
         matches = []
