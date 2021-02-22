@@ -49,6 +49,9 @@ on trailscraper use the downloaded data for analysis.
 #### sc x_report
 Similar to Duo's Cloudmapper, but it ingests more, graphs more, and uses tags to graph
 
+#### sc p_report
+Simple IAM visualizer mapping users/groups/roles to policies
+
 #### sc control_audit
 Run audits checking system dependencies, policies attached to the target role, caller's privileges if sufficient, repository state, roles existing in account, and caller's identity.
 
