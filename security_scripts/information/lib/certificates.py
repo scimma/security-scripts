@@ -51,24 +51,31 @@ class Acquire(measurements.Dataset):
 
         # Get the tags for each region.
         # accomidate the boto3 API can retul data in pages
-        for page, client in self._pages_all_regions('acm', 'list_certificates'):
+        for page, _ in self._pages_all_regions('acm', 'list_certificates'):
             for certificate in page['CertificateSummaryList']:
                 arn = certificate["CertificateArn"]
                 domain = certificate["DomainName"]
                 short_arn = aws_utils.shortened_arn(arn)
-                record = client.describe_certificate(CertificateArn=arn)
-                record = record["Certificate"]
-                inuseby = record["InUseBy"]
-                inuseby = [aws_utils.shortened_arn(arn) for arn in inuseby]
-                inuseby = ",".join(inuseby)
-                asset = "Cert:{} for use by {}".format(domain, inuseby)
-                hash = vanilla_utils.tiny_hash(arn)
-                record = self._json_clean_dumps(record)
-                sql = "INSERT INTO certificates VALUES (?, ?, ?, ?, ?, ?, ?)"
-                params = (asset, domain, arn, short_arn, inuseby, hash, record)
-                self.q.executemany(sql, [params])
-                # populate the all_json table 
-                self._insert_all_json("certificate", short_arn, record) 
+                try:
+                    for page, _ in self._pages_all_regions('acm','describe_certificate',parameter={'CertificateArn':arn}):
+                        # for response in page:
+                        if 'Nothing' not in page.keys():
+                            record = page
+                            record = record["Certificate"]
+                            inuseby = record["InUseBy"]
+                            inuseby = [aws_utils.shortened_arn(arn) for arn in inuseby]
+                            inuseby = ",".join(inuseby)
+                            asset = "Cert:{} for use by {}".format(domain, inuseby)
+                            hash = vanilla_utils.tiny_hash(arn)
+                            record = self._json_clean_dumps(record)
+                            sql = "INSERT INTO certificates VALUES (?, ?, ?, ?, ?, ?, ?)"
+                            params = (asset, domain, arn, short_arn, inuseby, hash, record)
+                            self.q.executemany(sql, [params])
+                            # populate the all_json table
+                            self._insert_all_json("certificate", short_arn, record)
+                except Exception as e:
+                    if "ResourceNotFoundException" in str(e):
+                        print("certificate not found!")
 
         
 class Report(measurements.Measurement):

@@ -89,7 +89,7 @@ class Dataset:
     def get_page_iterator(self, aws_client_name, aws_function_name, region_name, parameter=None):
         client = self.args.session.client(aws_client_name, region_name=region_name)
         paginator = client.get_paginator(aws_function_name)
-        shlog.verbose('about to iterate: {} {}'.format(aws_client_name, aws_function_name))
+        shlog.verbose('about to iterate: {} {} in region {}'.format(aws_client_name, aws_function_name, region_name))
         if parameter is not None:  # more stable than straight up **parameters
             page_iterator = paginator.paginate(**parameter)
         else:
@@ -187,7 +187,7 @@ class Dataset:
                     if parameter is not None:
                         for p in parameter:
                             page[p] = parameter[p]
-                    yield page, None
+                    yield page, client
             else:
                 for region_name in region_name_list:
                     page_iterator = self.get_page_iterator(aws_client_name, aws_function_name, region_name, parameter)
@@ -196,7 +196,7 @@ class Dataset:
                             if parameter is not None:
                                 for p in parameter:
                                     page[p] = parameter[p]
-                            yield page, None
+                            yield page, client
                     except Exception as e:
                         if "ListPlatformApplications" in str(e) and "is not supported in this region" in str(e):
                             print("operation not supported in region, skipping...")
@@ -204,12 +204,12 @@ class Dataset:
         else:
             if aws_client_name in universal_services:
                 # use client initiated earlier
-                yield self.get_unpaginatable_data(client, aws_function_name, parameter), None
+                yield self.get_unpaginatable_data(client, aws_function_name, parameter), client
             else:
                 # loop through regions
                 for region_name in region_name_list:
                     client = self.args.session.client(aws_client_name, region_name=region_name)
-                    yield self.get_unpaginatable_data(client, aws_function_name, parameter), None
+                    yield self.get_unpaginatable_data(client, aws_function_name, parameter), client
                     # TODO: get_unpaginatable_data gets a single kwargs entry
                     # loop through every kwarg possible
                     # 1. kwargs are collected elsewhere
