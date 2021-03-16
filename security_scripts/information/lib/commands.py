@@ -56,10 +56,7 @@ xcommands = [
 
 #policy_
 xcommands = [
-    # ["iam", "get_policy",{"PolicyArn":"iam_list_attached_user_policies.json|[.[] | .AttachedPolicies[] | .PolicyArn] | unique | .[]"}],
-    # ["iam", "get_policy",{"PolicyArn":"iam_list_attached_role_policies.json|[.[] | .AttachedPolicies[] | .PolicyArn] | unique | .[]"}],
-    # ["iam", "get_policy",{"PolicyArn":"iam_list_attached_group_policies.json|[.[] | .AttachedPolicies[] | .PolicyArn] | unique | .[]"}],
-    # ["iam","list_entities_for_policy",{"PolicyArn":"iam_get_policy.json|.[] | .Policy.Arn"}],
+
 # ["sns","list_topics",{}],
 # ["sns","list_tags_for_resource",{"ResourceArn":"sns_list_topics.json|.[] |.Topics[]?|.TopicArn"}],
 
@@ -68,6 +65,10 @@ xcommands = [
 commands = [
 # ["iam","get_account_authorization_details",{}],
 # ["iam","list_account_aliases",{}],
+
+# cert additions
+["acm", "list_certificates",{}],
+["acm", "list_tags_for_certificate",{"CertificateArn":"acm_list_certificates.json|.[] | .CertificateSummaryList | .[] | .CertificateArn"}],
 
 # sns additions
 ["sns","list_topics",{}],
