@@ -97,7 +97,8 @@ def vault_main(args):
    # regex the bucket and prefix
    try:
        re_bucket = re.findall('(?<=s3:\/\/)(.*?)(?=\/)', args.bucket)[0]
-       re_prefix = re.findall('([^\/]+$)', args.bucket)[0] + '/AWSLogs/' + str(args.accountid) + '/CloudTrail/'
+       re_prefix = re.findall('([^\/]+$)', args.bucket)[0] + '/AWSLogs/' + str(args.accountid) + '/'\
+                   + str(args.servicefolder) + '/'
    except IndexError:
        shlog.error('error parsing bucket ' + args.bucket + ', s3://bucket/prefix format is expected')
        exit(0)
@@ -184,6 +185,8 @@ def parser_builder(parent_parser, parser, config, remote=False):
     target_parser.add_argument('--bucket', '-b', help='bucket with cloudtail logs (default: %(default)s)',default=bucket)
     target_parser.add_argument('--vaultdir', '-v',help='path to directory containing AWS logs (default: %(default)s)',default=vaultdir)
     target_parser.add_argument('--accountid', help='AWS account id (default: %(default)s)', default=accountid)
+    #servicefolder
+    target_parser.add_argument('--servicefolder', '-sf', help='Name of the folder the logging service uses (default: %(default)s)', default='CloudTrail')
     return parser
 
 
