@@ -31,12 +31,12 @@ def main(args):
    shlog.verbose(args)
    shlog.verbose("only tests matching %s will be considered",(args.only))
    q=vanilla_utils.Q(args.dbfile, args.flush)
-   # tag_acquire         = tags.Acquire(args,"TAGS",q)
-   # repos_acquire       = repos.Acquire(args,"repos",q)
-   # s3_acquire          = s3.Acquire(args, "s3", q)
-   # secret_acquire      = secrets.Acquire(args,"secrets",q)
+   tag_acquire         = tags.Acquire(args,"TAGS",q)
+   repos_acquire       = repos.Acquire(args,"repos",q)
+   s3_acquire          = s3.Acquire(args, "s3", q)
+   secret_acquire      = secrets.Acquire(args,"secrets",q)
    certificate_acquire = certificates.Acquire(args,"TAGS",q)
-   # load_balancer_acquire = load_balancer.Acquire(args,"load_balancer",q)
+   load_balancer_acquire = load_balancer.Acquire(args,"load_balancer",q)
    instances_acquire         = instances.Acquire(args,"instances",q)
    # at this point data is in the relattion DB
    if args.dump:
@@ -50,13 +50,13 @@ def main(args):
       exit()
 
    # reporting actions are driven by instanitating the classes.
-   # tag_reports = tags.Report(args, "Tagging Rule Check", q)
-   # s3_reports=s3.Report(args, "s3", q)
-   # secret_reports = secrets.Report(args,"secrets",q)
+   tag_reports = tags.Report(args, "Tagging Rule Check", q)
+   s3_reports=s3.Report(args, "s3", q)
+   secret_reports = secrets.Report(args,"secrets",q)
    cert_reports = certificates.Report(args, "Certificates", q)
-   # load_balancer_reports = load_balancer.Report(args, "load_balancers", q)
-   # repo_reports = repos.Report(args, "repos", q)
-   # instances_reports = instances.Report(args, "Tagging Rule Check", q)
+   load_balancer_reports = load_balancer.Report(args, "load_balancers", q)
+   repo_reports = repos.Report(args, "repos", q)
+   instances_reports = instances.Report(args, "Tagging Rule Check", q)
 
 
    assets.Acquire(args,"assets", q)
