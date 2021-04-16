@@ -121,7 +121,10 @@ def find_flow(args):
     if args.render_services: data = render_services(args, all_data)
 
     # display
-    print(tabulate.tabulate(all_data, headers=headers))
+    try:
+        print(tabulate.tabulate(all_data, headers=headers))
+    except UnboundLocalError:
+        shlog.normal("No headers! Is the vault empty?")
     print('**, common protocols icmp:1, tcp:6, udp:17')
 
     pass
