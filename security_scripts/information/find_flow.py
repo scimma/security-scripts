@@ -104,6 +104,8 @@ def find_flow(args):
            # clean
            # strip off possible blank lines at the end
            while not data[-1]: data.pop(-1)
+           # and NODATA entries
+           data = list(filter(lambda a: not b'NODATA' in a, data))
            # break off into columns and grab header
            data = [d.split(b" ") for d in data]
            headers = data.pop(0)
