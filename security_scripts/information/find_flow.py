@@ -93,6 +93,7 @@ def render_services(args, data):
 
 
 def find_flow(args):
+    """search flow logs by date"""
     all_template_paths = get_all_template_paths(args)
     filtered_template_paths = filter_template_paths_by_date_range(args, all_template_paths)
     all_data = []
@@ -139,7 +140,7 @@ def parser_builder(parent_parser, parser, config, remote=False):
 
     if remote:
         # augment remote parser with a new subcommand
-        inf_flow_parser = parser.add_parser('inf_flow', parents=[parent_parser], description=find_flow.__doc__)
+        inf_flow_parser = parser.add_parser('inf_find_flow', parents=[parent_parser], description=find_flow.__doc__)
         inf_flow_parser.set_defaults(func=find_flow)
         # arguments will be attached to subcommand
         target_parser = inf_flow_parser
