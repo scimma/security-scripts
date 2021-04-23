@@ -60,37 +60,35 @@ def time_ordered_event_archives(args, template_path):
     return [l[1] for l in list]
 
 
-def render_dates(args, data):
+def render_dates(args, df):
     """replace unix number time with formatted time."""
-    for d in data:
-        d[10] = time.ctime(int(d[10]))
-        d[11] = time.ctime(int(d[11]))
-    return data
+    df['start'] = pd.to_datetime(df['start'], unit='s')
+    df['end'] = pd.to_datetime(df['end'], unit='s')
+    return df
 
-def render_protocols(args, data):
+def render_protocols(args, df):
     """ replace prootocol number with protocoal name, for common protocols"""
-    for d in data:
-        if d[7] == '1'  : d[7] = 'icmp'
-        if d[7] == '6'  : d[7] = 'tcp'
-        if d[7] == '17' : d[7] = 'udp'
-    return data
+    df.loc[df.protocol == '1', 'protocol'] = 'icmp'
+    df.loc[df.protocol == '6', 'protocol'] = 'tcp'
+    df.loc[df.protocol == '17', 'protocol'] = 'udp'
+    return df
 
-def render_services(args, data):
+def render_services(args, df):
     """ replace service number with service name, for common services"""
-    for d in data:
-        for col in [5, 6]:
-            if d[col] == '22'   : d[col] = 'ssh'
-            if d[col] == '23'   : d[col] = 'telnet'
-            if d[col] == '53'   : d[col] = 'domain'
-            if d[col] == '80'   : d[col] = 'http'
-            if d[col] == '88'   : d[col] = 'kreberos'
-            if d[col] == '123'  : d[col] = 'ntp'
-            if d[col] == '161'  : d[col] = 'snmp'
-            if d[col] == '443'  : d[col] = 'https'
-            if d[col] == '563'  : d[col] = 'nntps'
-            if d[col] == '636'  : d[col] = 'ldaps'
-            if d[col] == '992'  : d[col] = 'telnets'
-    return data
+    for col in ['srcport', 'dstport']:
+        df[col][df[col] == '22'] = 'ssh'
+        df[col][df[col] == '23'] = 'telnet'
+        df[col][df[col] == '53'] = 'domain'
+        df[col][df[col] == '80'] = 'http'
+        df[col][df[col] == '8080'] = 'http'
+        df[col][df[col] == '88'] = 'kerberos'
+        df[col][df[col] == '123'] = 'ntp'
+        df[col][df[col] == '161'] = 'snmp'
+        df[col][df[col] == '443'] = 'https'
+        df[col][df[col] == '563'] = 'nntps'
+        df[col][df[col] == '636'] = 'ldaps'
+        df[col][df[col] == '992'] = 'telnets'
+    return df
 
 
 def find_flow(args):
@@ -118,7 +116,6 @@ def find_flow(args):
                    data[i][p] = data[i][p].decode("utf-8")
 
            headers = data.pop(0)
-           # TODO: pandas frame, all processing (search, slice, etc), print, destroy, repeat
            # PANDAS MAGIC
            # allow pretty console print
            pd.set_option('display.max_columns', None)
@@ -127,28 +124,17 @@ def find_flow(args):
            df = pd.DataFrame(data, columns=headers)
 
            # do handling here
+           # transform to more readable, if indicated
+           if args.render_dates: df = render_dates(args, df)
+           if args.render_protocols: df = render_protocols(args, df)
+           if args.render_services: df = render_services(args, df)
 
            if not print_header:
                headers = []
            print(tabulate.tabulate(df, showindex=False, headers=headers, tablefmt='plain', colalign='left'))
            print_header = args.one_header
 
-           all_data = all_data + data  # instead of the blob build, spit out right away
-
-    # sort data into time ordered by begin time
-    all_data = sorted(all_data, key=lambda all_data: all_data[10])
-
-    # transform to more readable, if indicated
-    if args.render_dates: data = render_dates(args, all_data)
-    if args.render_protocols: data = render_protocols(args, all_data)
-    if args.render_services: data = render_services(args, all_data)
-
-    # display TODO: move this up
-    try:
-        print(tabulate.tabulate(all_data, headers=headers))
-    except UnboundLocalError:
-        shlog.normal("No headers! Is the vault empty?")
-    print('**, common protocols icmp:1, tcp:6, udp:17')
+    # print('**, common protocols icmp:1, tcp:6, udp:17')
 
     pass
 
