@@ -4,6 +4,7 @@ import regex as re
 import gzip
 import time
 import tabulate
+import pandas as pd
 
 from security_scripts.information.find_by_content import filter_template_paths_by_date_range
 
@@ -97,6 +98,7 @@ def find_flow(args):
     all_template_paths = get_all_template_paths(args)
     filtered_template_paths = filter_template_paths_by_date_range(args, all_template_paths)
     all_data = []
+    print_header = True
     for template_path in filtered_template_paths:
       for file in time_ordered_event_archives(args, template_path):
        with gzip.open(file, 'rb') as f:
@@ -109,8 +111,29 @@ def find_flow(args):
            data = list(filter(lambda a: not b'NODATA' in a, data))
            # break off into columns and grab header
            data = [d.split(b" ") for d in data]
+
+           # fix bytes for presentation purposes
+           for i in range(0, len(data)):
+               for p in range(0, len(data[i])):
+                   data[i][p] = data[i][p].decode("utf-8")
+
            headers = data.pop(0)
-           all_data = all_data + data
+           # TODO: pandas frame, all processing (search, slice, etc), print, destroy, repeat
+           # PANDAS MAGIC
+           # allow pretty console print
+           pd.set_option('display.max_columns', None)
+           pd.set_option('display.expand_frame_repr', False)
+
+           df = pd.DataFrame(data, columns=headers)
+
+           # do handling here
+
+           if not print_header:
+               headers = []
+           print(tabulate.tabulate(df, showindex=False, headers=headers, tablefmt='plain', colalign='left'))
+           print_header = args.one_header
+
+           all_data = all_data + data  # instead of the blob build, spit out right away
 
     # sort data into time ordered by begin time
     all_data = sorted(all_data, key=lambda all_data: all_data[10])
@@ -120,7 +143,7 @@ def find_flow(args):
     if args.render_protocols: data = render_protocols(args, all_data)
     if args.render_services: data = render_services(args, all_data)
 
-    # display
+    # display TODO: move this up
     try:
         print(tabulate.tabulate(all_data, headers=headers))
     except UnboundLocalError:
@@ -156,6 +179,8 @@ def parser_builder(parent_parser, parser, config, remote=False):
                         action='store_true')
     target_parser.add_argument('--render_protocols', '-rp', help='render protocol as text', default=False, action='store_true')
     target_parser.add_argument('--render_services', '-rs', help='render protocol as text', default=False, action='store_true')
+    target_parser.add_argument('--one_header', '-oh', help='repeat header only once', default=True,
+                               action='store_false')
     target_parser.add_argument('--date', '-da', help='anchor date, e.g 2021-4-30 (default: %(default)s)',
                                  type=(lambda x: date.fromisoformat(x)),
                                  default=date.today())
