@@ -17,7 +17,7 @@ setuptools.setup(
     package_data={
         "": ["*.cfg", "attachment_priority.csv"] # carry what is yours
     },
-    install_requires=['boto3','tabulate','regex','pandas','openpyxl','networkx_query','pydot','pygraphviz'],
+    install_requires=['boto3','tabulate','regex','pandas','openpyxl','networkx_query','pydot','pygraphviz','netaddr'],
     entry_points={
         'console_scripts': ['sc=security_scripts.kli:catcher'],
     },

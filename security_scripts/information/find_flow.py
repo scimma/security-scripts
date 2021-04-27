@@ -5,6 +5,8 @@ import gzip
 import time
 import tabulate
 import pandas as pd
+import os
+from netaddr import IPNetwork, IPAddress
 
 from security_scripts.information.find_by_content import filter_template_paths_by_date_range
 
@@ -90,6 +92,44 @@ def render_services(args, df):
         df[col][df[col] == '992'] = 'telnets'
     return df
 
+def remove_unroutable(df):
+    # create temp dataframe
+    tempdf = pd.DataFrame()
+    tempdf["src"] = df.apply(lambda row : is_unroutable(str(row["srcaddr"])), axis=1)
+    tempdf["dst"] = df.apply(lambda row: is_unroutable(str(row["dstaddr"])), axis=1)
+
+    # nuke rows with
+    tempdf = tempdf[(tempdf['src'] == False) | (tempdf['dst'] == False)]
+    df = df.drop(index=df.index.difference(tempdf.index))
+    return df
+
+def is_unroutable(ip):
+    unro = False
+    if IPAddress(ip) in IPNetwork('10.0.0.0/8') or \
+            IPAddress(ip) in IPNetwork('172.16.0.0/12') or \
+            IPAddress(ip) in IPNetwork('192.168.0.0/16'):
+        unro = True
+    return unro
+
+
+def remove_custom(args, df):
+    # create temp dataframe
+    tempdf = pd.DataFrame()
+    tempdf["src"] = df.apply(lambda row: in_custom_cids(args, str(row["srcaddr"])), axis=1)
+    tempdf["dst"] = df.apply(lambda row: in_custom_cids(args, str(row["dstaddr"])), axis=1)
+    # nuke rows where both are true
+    tempdf = tempdf[(tempdf['src'] == False) | (tempdf['dst'] == False)]
+    df = df.drop(index=df.index.difference(tempdf.index))
+    return df
+
+def in_custom_cids(args, ip):
+    incidr = False
+    for cidr in args.remove_custom.split(","):
+        if IPAddress(ip) in IPNetwork(cidr):
+            incidr = True
+            break
+    return incidr
+
 
 def find_flow(args):
     """search flow logs by date"""
@@ -128,10 +168,16 @@ def find_flow(args):
            if args.render_dates: df = render_dates(args, df)
            if args.render_protocols: df = render_protocols(args, df)
            if args.render_services: df = render_services(args, df)
+           if args.remove_unroutable: df = remove_unroutable(df)
+           if args.remove_custom != '': df = remove_custom(args, df)
 
            if not print_header:
                headers = []
-           print(tabulate.tabulate(df, showindex=False, headers=headers, tablefmt='plain', colalign='left'))
+           try:
+               print(tabulate.tabulate(df, showindex=False, headers=headers, tablefmt='plain', colalign='left'))
+           except IndexError:
+               # empty dataframe
+               pass
            print_header = args.one_header
 
     # print('**, common protocols icmp:1, tcp:6, udp:17')
@@ -165,6 +211,9 @@ def parser_builder(parent_parser, parser, config, remote=False):
                         action='store_true')
     target_parser.add_argument('--render_protocols', '-rp', help='render protocol as text', default=False, action='store_true')
     target_parser.add_argument('--render_services', '-rs', help='render protocol as text', default=False, action='store_true')
+    target_parser.add_argument('--remove_unroutable', '-ru', help='remove private ips from output', default=False,
+                               action='store_true')
+    target_parser.add_argument('--remove_custom', '-rc', help='remove custom CIDR ranges (comma-separated)', default='')
     target_parser.add_argument('--one_header', '-oh', help='repeat header only once', default=True,
                                action='store_false')
     target_parser.add_argument('--date', '-da', help='anchor date, e.g 2021-4-30 (default: %(default)s)',
