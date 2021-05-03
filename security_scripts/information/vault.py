@@ -11,6 +11,7 @@ import logging
 from pathlib import Path
 from threading import Lock
 from security_scripts.information.lib import shlog
+from datetime import date,timedelta
 
 logging.getLogger('boto3').setLevel(logging.CRITICAL)
 logging.getLogger('botocore').setLevel(logging.CRITICAL)
@@ -31,14 +32,19 @@ def s_print(*a, **b):
         print(*a, **b)
 
 
-def get_all_s3_objects(s3, **base_kwargs):
+def get_all_s3_objects(args, s3, **base_kwargs):
     continuation_token = None
     while True:
         list_kwargs = dict(MaxKeys=1000, **base_kwargs)
         if continuation_token:
             list_kwargs['ContinuationToken'] = continuation_token
         response = s3.list_objects_v2(**list_kwargs)
-        yield from response.get('Contents', [])
+        # https://stackoverflow.com/questions/50561076/remove-dict-from-list-of-matching-values
+        if args.date is not None:
+            day_str = args.date.strftime("%Y/%m/%d")
+            yield from [d for d in response.get('Contents', []) if day_str in d['Key'] ]
+        else:
+            yield from response.get('Contents', [])
         if not response.get('IsTruncated'):  # At the end of the list?
             break
         continuation_token = response.get('NextContinuationToken')
@@ -110,7 +116,8 @@ def vault_main(args):
    keys = []
    dirs = []
    count = 0
-   for item in get_all_s3_objects(boto3.client('s3'), Bucket=re_bucket, Prefix=re_prefix):
+   # figure out if we need a more specific prefix
+   for item in get_all_s3_objects(args, boto3.client('s3'), Bucket=re_bucket, Prefix=re_prefix):
        key = item.get('Key')
        if key[-1] != '/':
            keys.append({'count':count,
@@ -185,6 +192,9 @@ def parser_builder(parent_parser, parser, config, remote=False):
     target_parser.add_argument('--bucket', '-b', help='bucket with cloudtail logs (default: %(default)s)',default=bucket)
     target_parser.add_argument('--vaultdir', '-v',help='path to directory containing AWS logs (default: %(default)s)',default=vaultdir)
     target_parser.add_argument('--accountid', help='AWS account id (default: %(default)s)', default=accountid)
+    target_parser.add_argument('--date', '-da', help='download specific date, e.g 2021-4-30 (default: %(default)s)',
+                               type=(lambda x: date.fromisoformat(x)),
+                               default=None)
     #servicefolder
     target_parser.add_argument('--servicefolder', '-sf', help='Name of the folder the logging service uses (default: %(default)s)', default='CloudTrail')
     return parser

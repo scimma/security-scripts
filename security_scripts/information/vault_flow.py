@@ -11,6 +11,7 @@ import logging
 from pathlib import Path
 from threading import Lock
 from security_scripts.information.lib import shlog
+from datetime import date
 
 logging.getLogger('boto3').setLevel(logging.CRITICAL)
 logging.getLogger('botocore').setLevel(logging.CRITICAL)
@@ -55,6 +56,9 @@ def parser_builder(parent_parser, parser, config, remote=False):
     target_parser.add_argument('--bucket', '-b', help='bucket with cloudtail logs (default: %(default)s)',default=bucket)
     target_parser.add_argument('--vaultdir', '-v',help='path to directory containing AWS logs (default: %(default)s)',default=vaultdir)
     target_parser.add_argument('--accountid', help='AWS account id (default: %(default)s)', default=accountid)
+    target_parser.add_argument('--date', '-da', help='download specific date, e.g 2021-4-30 (default: %(default)s)',
+                               type=(lambda x: date.fromisoformat(x)),
+                               default=None)
     target_parser.add_argument('--servicefolder', '-sf',
                                help='Name of the folder the logging service uses (default: %(default)s)',
                                default='vpcflowlogs')
