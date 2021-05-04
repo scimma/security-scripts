@@ -1,0 +1,13 @@
+{
+  "Version": "1.0",
+  "Parameters": {
+    "RuleName": "public-subnet-must-have-flows",
+    "Description": "public-subnet-must-have-flows",
+    "SourceRuntime": "python3.6-lib",
+    "CodeKey": "public-subnet-must-have-flows.zip",
+    "InputParameters": "{}",
+    "OptionalParameters": "{}",
+    "SourceEvents": "AWS::EC2::Subnet"
+  },
+  "Tags": "[]"
+}
