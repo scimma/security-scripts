@@ -2,12 +2,13 @@
   "Version": "1.0",
   "Parameters": {
     "RuleName": "scimma-s3-bucket-tagged",
-    "Description": "Verify that all S3 buckets are tagged",
+    "Description": "scimma-s3-bucket-tagged",
     "SourceRuntime": "python3.6-lib",
     "CodeKey": "scimma-s3-bucket-tagged.zip",
     "InputParameters": "{\"ValidCriticalityValues\": [\"Production\", \"Development\", \"Investigation\"]}",
     "OptionalParameters": "{}",
-    "SourceEvents": "AWS::S3::Bucket"
+    "SourceEvents": "AWS::S3::Bucket",
+    "SourcePeriodic": "One_Hour"
   },
-  "Tags": "[{\"Key\": \"Criticality\", \"Value\": \"Investigation\"}]"
+  "Tags": "[]"
 }

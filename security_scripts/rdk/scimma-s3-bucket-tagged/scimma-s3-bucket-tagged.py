@@ -50,14 +50,36 @@ def evaluate_compliance(event, configuration_item, valid_rule_parameters):
     # Add your custom logic here. #
     ###############################
 
-    ci = configuration_item
-    allowed_criticalities  = ["Production", "Development", "Investigation"]
-    allowed_criticalities  = valid_rule_parameters["ValidCriticalityValues"]
-    for dict in ci['tags']:
+    allowed_criticalities = valid_rule_parameters["ValidCriticalityValues"]
+    if configuration_item:
+        # allowed_criticalities  = ["Production", "Development", "Investigation"]
+        ci = configuration_item
+        return evaluate_bucket(ci, 'tags', allowed_criticalities)
+    else:
+        eval_list = []
+        # get region name
+        my_session = boto3.session.Session()
+        my_region = my_session.region_name
+
+        # get s3 buckets
+        client = get_client('s3', my_region)
+        for bucket in client.list_buckets()["Buckets"]:
+            # get bucket tags with s3 client
+            bucket_tags = client.get_bucket_tagging(bucket["Name"])
+            eval_result = evaluate_bucket(bucket_tags, 'TagSet', allowed_criticalities)
+            eval_list.append(build_evaluation(bucket["Name"], eval_result, event, resource_type="AWS::S3::Bucket"))
+
+        return eval_list
+
+    
+
+
+def evaluate_bucket(ci, tag_dict, allowed_criticalities):
+    for dict in ci[tag_dict]:
         if dict["Key"] == "Criticality" and dict["Value"] in allowed_criticalities:
             return 'COMPLIANT'
-    
     return 'NON_COMPLIANT'
+
 
 def evaluate_parameters(rule_parameters):
     """Evaluate the rule parameters dictionary validity. Raise a ValueError for invalid parameters.
