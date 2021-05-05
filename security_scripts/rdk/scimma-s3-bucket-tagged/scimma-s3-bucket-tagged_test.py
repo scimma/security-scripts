@@ -30,7 +30,7 @@ class Boto3Mock():
 
 sys.modules['boto3'] = Boto3Mock()
 
-RULE = __import__('MyRule')
+RULE = __import__('scimma-s3-bucket-tagged')
 
 class ComplianceTest(unittest.TestCase):
 
@@ -96,7 +96,7 @@ class ComplianceTest(unittest.TestCase):
 
 def build_lambda_configurationchange_event(invoking_event, rule_parameters=None):
     event_to_return = {
-        'configRuleName':'myrule',
+        'configRuleName':'scimma-s3-bucket-tagged',
         'executionRoleArn':'roleArn',
         'eventLeftScope': False,
         'invokingEvent': invoking_event,
@@ -111,7 +111,7 @@ def build_lambda_configurationchange_event(invoking_event, rule_parameters=None)
 def build_lambda_scheduled_event(rule_parameters=None):
     invoking_event = '{"messageType":"ScheduledNotification","notificationCreationTime":"2017-12-23T22:11:18.158Z"}'
     event_to_return = {
-        'configRuleName':'myrule',
+        'configRuleName':'scimma-s3-bucket-tagged',
         'executionRoleArn':'roleArn',
         'eventLeftScope': False,
         'invokingEvent': invoking_event,

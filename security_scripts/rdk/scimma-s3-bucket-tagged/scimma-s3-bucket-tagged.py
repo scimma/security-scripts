@@ -54,7 +54,7 @@ def evaluate_compliance(event, configuration_item, valid_rule_parameters):
     if configuration_item:
         # allowed_criticalities  = ["Production", "Development", "Investigation"]
         ci = configuration_item
-        return evaluate_bucket(ci, 'tags', allowed_criticalities)
+        return evaluate_bucket(ci, 'tags', allowed_criticalities, is_config_change=True)
     else:
         eval_list = []
         # get region name
@@ -64,20 +64,34 @@ def evaluate_compliance(event, configuration_item, valid_rule_parameters):
         # get s3 buckets
         client = get_client('s3', my_region)
         for bucket in client.list_buckets()["Buckets"]:
-            # get bucket tags with s3 client
-            bucket_tags = client.get_bucket_tagging(bucket["Name"])
-            eval_result = evaluate_bucket(bucket_tags, 'TagSet', allowed_criticalities)
-            eval_list.append(build_evaluation(bucket["Name"], eval_result, event, resource_type="AWS::S3::Bucket"))
+            # region is "None" is it's current region
+            if client.get_bucket_location(Bucket=bucket['Name'])['LocationConstraint'] is None: # only when it matches the region
+                print("Analyzing {}".format(bucket["Name"]))
+                # get bucket tags with s3 client
+                try:
+                    bucket_tags = client.get_bucket_tagging(Bucket=bucket["Name"])
+                    eval_result = evaluate_bucket(bucket_tags, 'TagSet', allowed_criticalities)
+                except Exception as e:
+                    print("Bucket error {}".format(bucket["Name"]))
+                    print(e)
+                    # No tag set? oh well
+                    eval_result = 'NON_COMPLIANT'
+                eval_list.append(build_evaluation(bucket["Name"], eval_result, event, resource_type="AWS::S3::Bucket"))
 
         return eval_list
 
     
 
 
-def evaluate_bucket(ci, tag_dict, allowed_criticalities):
-    for dict in ci[tag_dict]:
-        if dict["Key"] == "Criticality" and dict["Value"] in allowed_criticalities:
-            return 'COMPLIANT'
+def evaluate_bucket(ci, tag_dict, allowed_criticalities, is_config_change=False):
+    if is_config_change:
+        for key in ci[tag_dict]:
+            if key == "Criticality" and ci[tag_dict][key] in allowed_criticalities:
+                return 'COMPLIANT'
+    else:
+        for dict in ci[tag_dict]:
+            if dict["Key"] == "Criticality" and dict["Value"] in allowed_criticalities:
+                return 'COMPLIANT'
     return 'NON_COMPLIANT'
 
 
