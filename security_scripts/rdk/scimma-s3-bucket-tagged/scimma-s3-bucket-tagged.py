@@ -72,7 +72,7 @@ def evaluate_compliance(event, configuration_item, valid_rule_parameters):
                     bucket_tags = client.get_bucket_tagging(Bucket=bucket["Name"])
                     eval_result = evaluate_bucket(bucket_tags, 'TagSet', allowed_criticalities)
                 except Exception as e:
-                    print("Bucket error {}".format(bucket["Name"]))
+                    print("Bucket error: {}".format(bucket["Name"]))
                     print(e)
                     # No tag set? oh well
                     eval_result = 'NON_COMPLIANT'
