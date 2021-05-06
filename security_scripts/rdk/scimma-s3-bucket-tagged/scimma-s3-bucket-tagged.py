@@ -27,7 +27,7 @@ CONFIG_ROLE_TIMEOUT_SECONDS = 900
 #############
 
 def evaluate_compliance(event, configuration_item, valid_rule_parameters):
-    """Form the evaluation(s) to be return to Config Rules
+    """Form the evaluation(s) to be returns to Config Rules
 
     Return either:
     None -- when no result needs to be displayed
@@ -50,18 +50,40 @@ def evaluate_compliance(event, configuration_item, valid_rule_parameters):
     # Add your custom logic here. #
     ###############################
 
+    #
+    # The rdk Confing framework provides for evaltiona of a configuratio item
+    # as a result of a change, or evaluation of all items (changed or not)
+    # periodically.   Booting SCiMMA up into thsi framework requires teh
+    # Evaluation of all the items, since both the production and thw devleopment
+    # instances  are quite stable. (we'd never get a look at significnat parts
+    # of the system if we waited for changes.
+    #
     allowed_criticalities = valid_rule_parameters["ValidCriticalityValues"]
     if configuration_item:
-        # allowed_criticalities  = ["Production", "Development", "Investigation"]
+        # IF a configuration item is specfied, then we are considering the changes
+        # to one and only one item.  That CI is explicilty passed in by the rdk
+        # framework. It suffices to specify  our evaluation of that item  as
+        # a string (e.g "COMPLIANT" 
+        #
         ci = configuration_item
         return evaluate_bucket(ci, 'tags', allowed_criticalities, is_config_change=True)
     else:
+        # the configuration item is None, meaning thsi call is timeout-driven and we must run
+        # our own code to find the CI's we wish to evaluate, and must return a list
+        # describing the our evaluation of each CI.
+        #
         eval_list = []
         # get region name
         my_session = boto3.session.Session()
         my_region = my_session.region_name
 
-        # get s3 buckets
+        # Get any S3 buckts native to the region we are running in..
+        # then get the bucket's tags.
+        # Evaluate the buckets for compliance to out rules.
+        # call build_evaluation to format a list item,
+        # put the formatted item on the list.
+        # return the list when all buckets have beed considered.
+    
         client = get_client('s3', my_region)
         for bucket in client.list_buckets()["Buckets"]:
             # region is "None" is it's current region
@@ -84,6 +106,7 @@ def evaluate_compliance(event, configuration_item, valid_rule_parameters):
 
 
 def evaluate_bucket(ci, tag_dict, allowed_criticalities, is_config_change=False):
+    #Check to see if the bucket has a properly formatted criticality tag.
     if is_config_change:
         for key in ci[tag_dict]:
             if key == "Criticality" and ci[tag_dict][key] in allowed_criticalities:
