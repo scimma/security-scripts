@@ -1,0 +1,13 @@
+{
+  "Version": "1.0",
+  "Parameters": {
+    "RuleName": "scimma-public-subnet-must-have-flows",
+    "Description": "scimma-public-subnet-must-have-flows",
+    "SourceRuntime": "python3.6-lib",
+    "CodeKey": "scimma-public-subnet-must-have-flows.zip",
+    "InputParameters": "{}",
+    "OptionalParameters": "{}",
+    "SourceEvents": "AWS::EC2::Subnet"
+  },
+    "Tags": "[{\"Key\": \"Criticality\", \"Value\": \"Investigation\"}]"
+}

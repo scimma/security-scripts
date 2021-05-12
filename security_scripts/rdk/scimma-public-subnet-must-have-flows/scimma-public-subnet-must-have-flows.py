@@ -2,7 +2,7 @@ from rdklib import Evaluator, Evaluation, ConfigRule, ComplianceType
 
 APPLICABLE_RESOURCES = ['AWS::EC2::Subnet']
 
-class public-subnet-must-have-flows(ConfigRule):
+class scimma-public-subnet-must-have-flows(ConfigRule):
     def evaluate_change(self, event, client_factory, configuration_item, valid_rule_parameters):
         ###############################
         # Add your custom logic here. #
@@ -22,6 +22,6 @@ class public-subnet-must-have-flows(ConfigRule):
 # DO NOT MODIFY ANYTHING BELOW #
 ################################
 def lambda_handler(event, context):
-    my_rule = public-subnet-must-have-flows()
+    my_rule = scimma-public-subnet-must-have-flows()
     evaluator = Evaluator(my_rule, APPLICABLE_RESOURCES)
     return evaluator.handle(event, context)

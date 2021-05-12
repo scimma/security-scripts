@@ -10,5 +10,5 @@
     "SourceEvents": "AWS::S3::Bucket",
     "SourcePeriodic": "One_Hour"
   },
-  "Tags": "[]"
+    "Tags": "[{\"Key\": \"Criticality\", \"Value\": \"Investigation\"}]"
 }
