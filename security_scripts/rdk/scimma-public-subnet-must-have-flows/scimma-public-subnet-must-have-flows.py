@@ -8,15 +8,14 @@ class scimma-public-subnet-must-have-flows(ConfigRule):
         # Add your custom logic here. #
         ###############################
 
-# the follwing can be used to find subnets with an EC2 instances w/ pubic intertaces
-#rdk sample-ci AWS::EC2::Instance  | jq .configuration.networkInterfaces[].subnetId -> "subnet-1aaccc7f"
-#rdk sample-ci AWS::EC2::Instance  | jq .configuration.networkInterfaces[].association.publicIp -> "34.205.29.138"
-
 
 # teh follwing can be used to find subnets with routes to the open internet
 #aws ec2 describe-route-tables | jq .[][].Associations[].SubnetId
 #aws ec2 describe-route-tables | jq .[][].Routes[].GatewayId
-#aws ec2 describe-route-tables | jq .[][].RouteTableId        
+#aws ec2 describe-route-tables | jq .[][].RouteTableId
+
+# how to find out if flows enabled?
+#aws ec2  describe-flow-logs  | jq .[][].ResourceId
         return [Evaluation(ComplianceType.NOT_APPLICABLE)]
 
     #def evaluate_periodic(self, event, client_factory, valid_rule_parameters):
