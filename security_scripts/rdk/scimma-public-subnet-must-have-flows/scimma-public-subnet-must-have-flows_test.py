@@ -16,8 +16,8 @@ RESOURCE_TYPE = 'AWS::::Account'
 # Main Code #
 #############
 
-MODULE = __import__('scimma-public-subnet-must-have-flows')
-RULE = MODULE.scimma-public-subnet-must-have-flows()
+MODULE = __import__('scimma_public_subnet_must_have_flows')
+RULE = MODULE.scimma_public_subnet_must_have_flows()
 
 CLIENT_FACTORY = MagicMock()
 

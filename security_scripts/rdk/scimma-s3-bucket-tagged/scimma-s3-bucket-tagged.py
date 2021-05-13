@@ -109,7 +109,7 @@ def evaluate_bucket(ci, tag_dict, allowed_criticalities, is_config_change=False)
     #Check to see if the bucket has a properly formatted criticality tag.
     if is_config_change:
         for key in ci[tag_dict]:
-            if key == "Criticality" and ci[tag_dict][key] in allowed_criticalities:
+            if key == "Criticality" and ci[tag_dict]["Value"] in allowed_criticalities:
                 return 'COMPLIANT'
     else:
         for dict in ci[tag_dict]:
