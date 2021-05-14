@@ -41,6 +41,7 @@ class ComplianceTest(unittest.TestCase):
     # ... Note that th funcion we are testing recived this item
     # ... as JSON. 
     # ... don't thank me, thank this framework.
+    import pdb ; pdb.set_trace()
     import json
     params=json.load(open('parameters.json','r'))
     rule_parameters = params["Parameters"]["InputParameters"]

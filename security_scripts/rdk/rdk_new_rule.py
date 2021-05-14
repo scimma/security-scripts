@@ -16,7 +16,7 @@ Options available via <command> --help
 import sys
 import os
 import re
-
+import json
 def execute_or_not(args, cmd):
     if not args.dry_run:
         print("executing:",cmd)
@@ -31,19 +31,23 @@ def main(args):
    # then reformat to be shell appropos.
    default_json_tag_list = '''
    [
-   {"Key" : "Criticality","Value" : "Development"}.
+   {"Key" : "Criticality","Value" : "Development"},
    {"Key" : "Service"    ,"Value" : "OpSec"}
    ]
    '''
-   default_json_tag_list = default_json_tag_list.replace("\n","")
-   default_json_tag_list = default_json_tag_list.strip()
-   default_json_tag_list = re.sub('\s+',' ',default_json_tag_list)
-   default_json_tag_list = "'{}'".format(default_json_tag_list)
+   #rdk demands a double encoded string.
+   #change to binary to remove white space, then double encode.
+   default_json_tag_list =  json.loads(default_json_tag_list)
+   default_json_tag_list =  json.dumps(default_json_tag_list)
+   default_json_tag_list =  json.dumps(default_json_tag_list)
+
+
 
    cmd = '''rdk sample-ci sas 2>&1 | tr , "\\n" | grep -i '{}' '''.format(args.cipattern)
-   execute_or_not(args, cmd)
+   status = os.system(cmd)
+   cis = input("Enter CI(s) :")
    
-   cmd = "rdk create {}  --tags {} ".format(args.rulename, default_json_tag_list)
+   cmd = "rdk create {}  --tags {} -r {}".format(args.rulename, default_json_tag_list, cis)
    execute_or_not(args, cmd)
           
 if __name__ == "__main__":

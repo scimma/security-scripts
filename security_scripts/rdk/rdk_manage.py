@@ -33,7 +33,7 @@ if __name__ == "__main__":
    
 
    """ get defaults from configuration system"""
-   from security_scripts.kli import env_control
+   #from security_scripts.kli import env_control
    config = configparser.ConfigParser()
    import os
    #rel_path = "../information/defaults.cfg"
