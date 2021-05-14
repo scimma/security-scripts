@@ -48,19 +48,18 @@ def main(args):
    #
    cmd = '''rdk sample-ci sas 2>&1 | tr , "\\n" | grep -i '{}' '''.format(args.cipattern)
    status = os.system(cmd)
-   cis = input("Enter blan seperated CI(s)>").split(" ")
+   cis = input("Enter comma separated CI(s)>")
+   
 
-
-   # make a string of flags "-r <ci> .... -r <ci> " one for each CI
-   ci_create_options = " ".join(["-r {}".format(ci) for ci in cis])
+   ci_create_option = "-r {}".format(cis)
    
    # actually create the project.                                )
-   cmd = "rdk create {}  --tags {}  {}".format(args.rulename, default_json_tag_list, ci_create_options)
+   cmd = "rdk create {}  --tags {}  {}".format(args.rulename, default_json_tag_list, ci_create_option)
    execute_or_not(args, cmd)
 
    
    # dump a sample ci in the project directory
-   for ci in cis:
+   for ci in cis.split(","):
        cmd = "cd {}; rdk sample-ci {} > {}.json".format(args.rulename, ci, ci)
        execute_or_not(args, cmd)
    
