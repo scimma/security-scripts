@@ -1,8 +1,8 @@
 #!/usr/bin/env python
 
 """
-use the rdk command to make a new rule, using the
-options we have decied is our coding conventions.
+use the rdk command to create a new rule, using the
+options we have decided is our coding conventions.
 
 examples:
 
@@ -21,13 +21,14 @@ def execute_or_not(args, cmd):
     if not args.dry_run:
         print("executing:",cmd)
         status = os.system(cmd)
+        if status: exit(status)
     else:
         print ("would have executed: \n {}".format(cmd))
 
 def main(args):
    "perform (or dry run) the rdk create"
 
-   # speify the default taglist in plain python.
+   # speicfy the default taglist in plain python.
    # then reformat to be shell appropos.
    default_json_tag_list = '''
    [
@@ -42,13 +43,27 @@ def main(args):
    default_json_tag_list =  json.dumps(default_json_tag_list)
 
 
-
+   #
+   # Collect the CI's needed for the rule
+   #
    cmd = '''rdk sample-ci sas 2>&1 | tr , "\\n" | grep -i '{}' '''.format(args.cipattern)
    status = os.system(cmd)
-   cis = input("Enter CI(s) :")
+   cis = input("Enter blan seperated CI(s)>").split(" ")
+
+
+   # make a string of flags "-r <ci> .... -r <ci> " one for each CI
+   ci_create_options = " ".join(["-r {}".format(ci) for ci in cis])
    
-   cmd = "rdk create {}  --tags {} -r {}".format(args.rulename, default_json_tag_list, cis)
+   # actually create the project.                                )
+   cmd = "rdk create {}  --tags {}  {}".format(args.rulename, default_json_tag_list, ci_create_options)
    execute_or_not(args, cmd)
+
+   
+   # dump a sample ci in the project directory
+   for ci in cis:
+       cmd = "cd {}; rdk sample-ci {} > {}.json".format(args.rulename, ci, ci)
+       execute_or_not(args, cmd)
+   
           
 if __name__ == "__main__":
 
