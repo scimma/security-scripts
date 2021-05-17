@@ -62,7 +62,7 @@ def main(args):
    ci_create_option = "-r {}".format(cis)
    
    # actually create the project.                                )
-   cmd = "rdk create {}  --tags {}  {}".format(args.rulename, default_json_tag_list, ci_create_option)
+   cmd = "rdk create {} -R python3.6 --tags {}  {}".format(args.rulename, default_json_tag_list, ci_create_option)
    execute_or_not(args, cmd)
 
    

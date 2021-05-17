@@ -33,38 +33,41 @@ import logging
 # The underlying scheme is that higher the number the more silent the cose will be.
 #
 
-NONE=55
-NORMAL=logging.INFO-1   # everthing but debug, verbose   
-DOTS=logging.FATAL-1       # logging.FATAL is 50 at time of writing  Logging.CRITICAL IS 50
-WARNING=logging.WARNING     # logging.ERROR is 40  "               "  
-ERROR=logging.ERROR     # logging.ERROR is 40  "               "  
-VERBOSE=logging.WARNING  # logging.WARNING is 30 "              "
-VVERBOSE=logging.INFO    # logging.INFO is 20  "               "
-DEBUG=logging.DEBUG      # logging.DEBUG is 10  "             "
+NONE=     55
+DOTS=     logging.FATAL-1     
+ERROR=    logging.ERROR    #see errors only  
+WARNING=  logging.WARNING  #see errors & warning
+NORMAL=   logging.INFO     #everything but debug, verbose   
+VERBOSE=  NORMAL-1         
+VVERBOSE= NORMAL-2 
+DEBUG=    logging.DEBUG    #see every darn message 
 
 
-LEVELDICT = {"NONE": NONE,
-             "NORMAL": NORMAL,
-             "DOTS" : DOTS,
-             "WARN": WARNING,
-             "ERROR" : ERROR,
-             "VERBOSE": VERBOSE ,
-             "VVERBOSE": VVERBOSE,
-             "DEBUG": DEBUG}
+LEVELDICT = {"NONE"     : NONE,
+             "DOTS"     : DOTS,
+             "ERROR"    : ERROR,
+             "WARN"     : WARNING,
+             "NORMAL"   : NORMAL,
+             "VERBOSE"  : VERBOSE ,
+             "VVERBOSE" : VVERBOSE,
+             "DEBUG"    : DEBUG}
 for (levelname, levelno) in LEVELDICT.items():
     logging.addLevelName(levelno, levelname)
 
 # re-using the standard logging gives all the sugar features of the logging modues
 # so create the "shlog.normal" function to be an alias of logging.normal, etc.
-normal = logging.fatal
-verbose = logging.warning
-vverbose = logging.info
-debug = logging.debug
-exception = logging.exception
-def warn(msg, *args, **kwargs):
-    logging.log(LEVELDICT["WARN"], msg, *args, **kwargs)
+
 def error(msg, *args, **kwargs):
     logging.log(LEVELDICT["ERROR"], msg, *args, **kwargs)
+def warn(msg, *args, **kwargs):
+    logging.log(LEVELDICT["WARN"], msg, *args, **kwargs)
+def normal(msg, *args, **kwargs):
+    logging.log(LEVELDICT["NORMAL"], msg, *args, **kwargs)
+def verbosel(msg, *args, **kwargs):
+    logging.log(LEVELDICT["VERBOSE"], msg, *args, **kwargs)
+def vverbose(msg, *args, **kwargs):
+    logging.log(LEVELDICT["VVERBOSE"], msg, *args, **kwargs)
+debug=logging.debug #direct reuse.
 
 def dot(symbol="."):
     #log progress dots, by default dots are a period (.)
