@@ -5,9 +5,8 @@ Manage the custom config deployments for SCIMMA.
 This is a minimal implementation, to get us started.
 
 The command executes one of rdk deploy modify or undeploy
-for each of the current regions of interest.
-
-
+for each of the current AWS regions configured into this file.
+ 
 Options available via <command> --help
 
 """

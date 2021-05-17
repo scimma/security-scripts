@@ -1,13 +1,16 @@
 #!/usr/bin/env python
 
 """
-use the rdk command to create a new rule, using the
-options we have decided is our coding conventions.
+Create a new rule using  our coding conventions.
 
-examples:
-
-#look for multiple patters for CI's 
-rdk sample-ci sas 2>&1 | tr , "\n" | grep -i 'sub\|s3'
+Conventions:
+- Populate parameters.json with default tags.
+- Select the default code environment.
+- Provide an initial list of CI's
+    - Show a list of sample CI's consistent with cipattern argument
+    - Accept interactive comma-separated list of CI's
+    - Construct a list of CIs within the generated rule.
+    - Make a .json sample CI json file for each CI to support unit tests.
 
 Options available via <command> --help
 
@@ -28,14 +31,14 @@ def execute_or_not(args, cmd):
 def main(args):
    "perform (or dry run) the rdk create"
 
-   # speicfy the default taglist in plain python.
-   # then reformat to be shell appropos.
+   # specify the default taglist in plain python..
    default_json_tag_list = '''
    [
    {"Key" : "Criticality","Value" : "Development"},
    {"Key" : "Service"    ,"Value" : "OpSec"}
    ]
    '''
+   #reformat to RDK's needs
    #rdk demands a double encoded string.
    #change to binary to remove white space, then double encode.
    default_json_tag_list =  json.loads(default_json_tag_list)
