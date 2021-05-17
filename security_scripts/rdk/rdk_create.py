@@ -15,22 +15,27 @@ Conventions:
 Options available via <command> --help
 
 """
-#import shlog
+import shlog
 import sys
 import os
 import re
 import json
+
 def execute_or_not(args, cmd):
     if not args.dry_run:
-        print("executing:",cmd)
+        shlog.normal("executing: {}".format(cmd))
         status = os.system(cmd)
+        shlog.normal("command status:{}".format(status))
         if status: exit(status)
     else:
-        print ("would have executed: \n {}".format(cmd))
+        shlog.normal("would have executed: \n {}".format(cmd))
 
 def main(args):
    "perform (or dry run) the rdk create"
 
+   if os.path.isdir(args.rulename):
+       shlog.error ("Exiting: {} is an existing rule".format(args.rulename))
+       exit(1)
    # specify the default taglist in plain python..
    default_json_tag_list = '''
    [
@@ -44,7 +49,7 @@ def main(args):
    default_json_tag_list =  json.loads(default_json_tag_list)
    default_json_tag_list =  json.dumps(default_json_tag_list)
    default_json_tag_list =  json.dumps(default_json_tag_list)
-
+   shlog.normal("setting default tags:{}".format(default_json_tag_list))
 
    #
    # Collect the CI's needed for the rule
@@ -103,6 +108,7 @@ if __name__ == "__main__":
    #parser = parser_builder(None, parser, config, False)
 
    args = parser.parse_args()
-   print (args)
+   shlog.basicConfig(level=args.loglevel)
+   shlog.debug("{}".format(args))
    main(args)
 
