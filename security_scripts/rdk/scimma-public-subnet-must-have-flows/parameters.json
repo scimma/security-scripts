@@ -3,11 +3,11 @@
   "Parameters": {
     "RuleName": "scimma-public-subnet-must-have-flows",
     "Description": "scimma-public-subnet-must-have-flows",
-    "SourceRuntime": "python3.6-lib",
+    "SourceRuntime": "python3.6",
     "CodeKey": "scimma-public-subnet-must-have-flows.zip",
     "InputParameters": "{}",
     "OptionalParameters": "{}",
-    "SourceEvents": "AWS::EC2::Subnet"
+    "SourceEvents": "AWS::EC2::RouteTable"
   },
-    "Tags": "[{\"Key\": \"Criticality\", \"Value\": \"Investigation\"}]"
+  "Tags": "[{\"Key\": \"Criticality\", \"Value\": \"Development\"}, {\"Key\": \"Service\", \"Value\": \"OpSec\"}]"
 }

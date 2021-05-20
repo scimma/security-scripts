@@ -1,84 +1,21 @@
 """
-Tiny library to traveres json, looking more like
-declarations than proceduarl code
+Tiny library to traveres json, and return the requested data.
 
+The gosls is to have the code look more like declarations than procedural code
 example:
 
-gateways = Qson(test2).at("configuration").at("routes").select("gatewayId").get())
+gateways = Jgat(somejson).at("configuration").at("routes").select("gatewayId").get())
 
+Note the implementatation of of the traversal methods "at" and "select" return
+the object identifier. This is the mechanism that allow the chainingf the
+method calls and he tight syntax.
  
 """
-
-test = {
-          "dogs" : [
-                     {"spaniel"  : {"name" : "dog1"}},
-                     {"spaniel" : {"name" : "dog2"}},
-                     {"bulldog" : {"color" : "dog3"}},
-                    ],
-          "cats" : {
-                     "tiger" : {"habitat" : "Jungle"},
-                     "lion"  : {"habitat" : "Savannah"}
-                   }
-        }
-
-test2 = {
-    "version": "1.2",
-    "accountId": "264683526309",
-    "configurationItemCaptureTime": "2016-09-24T17:47:03.866Z",
-    "configurationItemStatus": "OK",
-    "configurationStateId": "949",
-    "configurationItemMD5Hash": "89475da7d6c00dcd9ee1681a997d88ab",
-    "arn": "arn:aws:ec2:us-east-1:264683526309:route-table/rtb-50b9b034",
-    "resourceType": "AWS::EC2::RouteTable",
-    "resourceId": "rtb-50b9b034",
-    "awsRegion": "us-east-1",
-    "availabilityZone": "Not Applicable",
-    "tags": {},
-    "relatedEvents": [
-        "7656056e-4df8-4db6-a2fc-cf83e5461f7f"
-    ],
-    "relationships": [
-        {
-            "resourceType": "AWS::EC2::VPC",
-            "resourceId": "vpc-0990dc6d",
-            "relationshipName": "Is contained in Vpc"
-        }
-    ],
-    "configuration": {
-        "routeTableId": "rtb-50b9b034",
-        "vpcId": "vpc-0990dc6d",
-        "routes": [
-            {
-                "destinationCidrBlock": "172.31.0.0/16",
-                "gatewayId": "local",
-                "state": "active",
-                "origin": "CreateRouteTable"
-            },
-            {
-                "destinationCidrBlock": "0.0.0.0/0",
-                "gatewayId": "igw-a5f227c1",
-                "state": "active",
-                "origin": "CreateRoute"
-            }
-        ],
-        "associations": [
-            {
-                "routeTableAssociationId": "rtbassoc-82f661e5",
-                "routeTableId": "rtb-50b9b034",
-                "main": True
-            }
-        ],
-        "tags": [],
-        "propagatingVgws": []
-    },
-    "supplementaryConfiguration": {}
-}
 
 
 class Jget:
     """
     Very small and lightweight class for  extracting things from json.
-
     
     """
     def __init__ (self,json):
@@ -114,14 +51,7 @@ class Jget:
         return self
     
 
-import pprint
-pprint.pprint (Jget(test).get())
-pprint.pprint (Jget(test).at("dogs").get()) 
-pprint.pprint (Jget(test).at("dogs").select("spaniel").get())
-pprint.pprint (Jget(test).at("dogs").select("spaniel").select("name").get())
-pprint.pprint (Jget(test2).at("configuration").get())
-pprint.pprint(Jget(test2).at("configuration").at("routes").get())
-pprint.pprint (Jget(test2).at("configuration").at("routes").select("gatewayId").get())
+
         
 
 
