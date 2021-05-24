@@ -18,7 +18,8 @@ import os
 def main(args):
    "perform (or dry run) the indicated rdk command"
    for region in args.regions:
-      cmd = "rdk --region {} {} {} ".format(region, args.rdkcmd, args.rdkrule)
+      bucket="code-bucket-{}".format(region)
+      cmd = "rdk --region {} {} {} --custom-code-bucket {}  ".format(region, args.rdkcmd, args.rdkrule, bucket)
       if not args.dry_run:
          print(cmd)
          status = os.system(cmd)
@@ -55,7 +56,7 @@ if __name__ == "__main__":
    parser.add_argument('--dry-run','-n',default=False, action='store_true',
                        help = "dry run just show what would me done")
    parser.add_argument('-r', '--regions', metavar='region',nargs='+',
-                       default = ["us-west-1", "us-west-2", "us-east-1", "us-east-2"],
+                       default = ["us-east-1","us-west-2"],
                        help='perform command in these AWS regions')
    
    parser.add_argument('rdkcmd',  choices=['deploy', 'undeploy', 'modify'], metavar='rdkfunction',
