@@ -5,26 +5,68 @@ Manage the custom config deployments for SCIMMA.
 This is a minimal implementation, to get us started.
 
 The command executes one of rdk deploy modify or undeploy
-for each of the current AWS regions configured into this file.
+for each of the current AWS regions had-configured into this file.
  
 Options available via <command> --help
 
 """
-import boto3
-#import shlog
+import boto3, botocore
+import shlog
 import sys
 import os
 
+
+
+CODE_BUCKET_TEMPLATE="code-bucket-{}"
+
+def check_lambda_code_bucket_exists(args, bucket):
+   # Check that there is an appropriatly named code bucket
+   # for each region we will deploy to.
+   # to-do check that it's in the region it's name implies.
+    try:
+        args.s3.meta.client.head_bucket(Bucket=bucket)
+        shlog.normal("prerequisite bucket {} exists".format(bucket))
+        return True
+    except botocore.exceptions.ClientError as e:
+        # If a client error is thrown, then check that it was a 404 error.
+        # If it was a 404 error, then the bucket does not exist.
+        error_code = int(e.response['Error']['Code'])
+        if error_code == 403:
+            shlog.error("cannot access pre-requisite bucket {}".format(bucket))
+            return False
+        elif error_code == 404:
+            shlog.error("pre-requisite bucket {} does not exist".format(bucket))
+            return False
+
 def main(args):
    "perform (or dry run) the indicated rdk command"
+
+   #########################################################################
+   # Check pre-condition -- check them all before quitting to have mercy and
+   # allow parallel debug
+   #########################################################################
+   
+   # Condition 1
+   # Every region must have its own bucket to hold the lambda's code.
+   # Don't thank me, thank aws.
+   args.s3 = boto3.resource('s3')
+   checks =  [check_lambda_code_bucket_exists(args, CODE_BUCKET_TEMPLATE.format(region)
+                                              ) for region in args.regions]
+   if not all(checks) : exit(1)
+
+   #
+   # Formulate the AWS command and run over the indicated regions.
+   #
    for region in args.regions:
-      bucket="code-bucket-{}".format(region)
+      bucket=CODE_BUCKET_TEMPLATE.format(region)
       cmd = "rdk --region {} {} {} --custom-code-bucket {}  ".format(region, args.rdkcmd, args.rdkrule, bucket)
       if not args.dry_run:
-         print(cmd)
+         shlog.normal(cmd)
          status = os.system(cmd)
+         shlog.normal ("command status is".format(status))
       else:
-         print ("would have executed: \n {}".format(cmd))
+         shlog.normal ("would have executed: \n {}".format(cmd))
+
           
 if __name__ == "__main__":
 
@@ -68,6 +110,7 @@ if __name__ == "__main__":
    args = parser.parse_args()
    "use all rules if no rule or ruleset specified"
    if not args.rdkrule: args.rdkrule = "-a"
+   shlog.basicConfig(level=shlog.LEVELDICT[args.loglevel])
    print (args)
    main(args)
 
