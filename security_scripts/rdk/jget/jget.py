@@ -4,14 +4,13 @@ Tiny library to traveres json, and return the requested data.
 The gosls is to have the code look more like declarations than procedural code
 example:
 
-gateways = Jgat(somejson).at("configuration").at("routes").select("gatewayId").get())
+gateways = Jgat(somejson).at("configuration").at("routes").all("gatewayId").get())
 
 Note the implementatation of of the traversal methods "at" and "select" return
 the object identifier. This is the mechanism that allow the chainingf the
 method calls and he tight syntax.
  
 """
-
 
 class Jget:
     """
@@ -41,7 +40,20 @@ class Jget:
         self.json = self.json[string]
         return self
     
-    def select(self,string):
+    def flatten(self):
+        """
+        Flatten an AWS list of tags to json. Store as self.json
+
+        This allows the get operator to pull out a tag value
+        """
+        new_json = {}
+        for d in self.json :
+            new_json[d["Key"]] = d["Value"] 
+        self.json = new_json
+        return self
+    
+
+    def all(self,string):
         """ traverse an array, choosing array elements
             and then travere array elements beginning with string.
         """

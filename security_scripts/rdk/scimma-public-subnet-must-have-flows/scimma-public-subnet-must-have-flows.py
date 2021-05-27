@@ -3,6 +3,7 @@ import sys
 import datetime
 import boto3
 import botocore
+import jget
 
 try:
     import liblogging
@@ -47,23 +48,24 @@ Scenario:  Subnet has a route table that has an internet Gateway, but subnet flo
 
 Scenario: Subnet has a route table that has an internet Gateway, and subnet flows are logged.
         Return COMPLIANT
-"""
+    """
     ###############################
     # Add your custom logic here. #
     ###############################
 
-    does route table have an assocation with this subnet?
-       - no? continue
-       - yes call checks 
-
-    if route-table does not have an igw.
+    #    does route table have an assocation with this subnet?
+    #       - no? continue
+    #       - yes call checks
+    import pdb; pdb.set_trace
+    route_table = configration_item
+    gateways = jget.Jget(route_table).select("routes").select("gateway").get()
     gateways = [g[:4] for g in event["routes"]["gateway"]]
     if "igw-" not in in gateways return NOT_APPLICABLE
     
     
     return 'NOT_APPLICABLE'
-    if route table has an igw.
-    
+ #   if route table has an igw.
+ #   
 
 def evaluate_parameters(rule_parameters):
     """Evaluate the rule parameters dictionary validity. Raise a ValueError for invalid parameters.

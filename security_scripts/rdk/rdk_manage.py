@@ -17,7 +17,7 @@ import os
 
 
 
-CODE_BUCKET_TEMPLATE="code-bucket-{}"
+CODE_BUCKET_TEMPLATE="scimma-processes-{}"
 
 def check_lambda_code_bucket_exists(args, bucket):
    # Check that there is an appropriatly named code bucket
@@ -98,7 +98,7 @@ if __name__ == "__main__":
    parser.add_argument('--dry-run','-n',default=False, action='store_true',
                        help = "dry run just show what would me done")
    parser.add_argument('-r', '--regions', metavar='region',nargs='+',
-                       default = ["us-east-1","us-west-2"],
+                       default = ["us-east-1","us-west-2","us-east-2","us-west-1"],
                        help='perform command in these AWS regions')
    
    parser.add_argument('rdkcmd',  choices=['deploy', 'undeploy', 'modify'], metavar='rdkfunction',

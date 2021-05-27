@@ -11,6 +11,7 @@ intend to use in multiple lambdas,
 import unittest
 import jget
 import pprint
+import pdb
 
 test_json = {
     "version": "1.2",
@@ -24,7 +25,7 @@ test_json = {
     "resourceId": "rtb-50b9b034",
     "awsRegion": "us-east-1",
     "availabilityZone": "Not Applicable",
-    "tags": {},
+    "tags": [{"Key":"Criticality", "Value":"Investigation"}],
     "relatedEvents": [
         "7656056e-4df8-4db6-a2fc-cf83e5461f7f"
     ],
@@ -59,7 +60,7 @@ test_json = {
                 "main": True
             }
         ],
-        "tags": [],
+        "tags": [{"Key":"Criticality", "Value":"Investigation"}],
         "propagatingVgws": []
     },
     "supplementaryConfiguration": {}
@@ -74,6 +75,13 @@ class TestStringMethods(unittest.TestCase):
         self.assertTrue (type(result) == type ({}))
         self.assertTrue ('routes' in result)
 
+    def test_flatten(self):
+        result = jget.Jget(test_json).at("configuration").at("tags").flatten().at("Criticality").get()
+        #expect top level  json to be a dictionary
+        print (result)
+        self.assertTrue (type(result) == type (""))
+        self.assertTrue ( result == "Investigation")
+
 
     def test_traverse_array(self):
         result = jget.Jget(test_json).at("configuration").at("routes").get()
@@ -85,7 +93,7 @@ class TestStringMethods(unittest.TestCase):
         
 
     def test_get_gateways(self):
-        result = jget.Jget(test_json).at("configuration").at("routes").select("gatewayId").get()
+        result = jget.Jget(test_json).at("configuration").at("routes").all("gatewayId").get()
         self.assertTrue (len(result) == 2)
         self.assertTrue (type(result) == type ([]))
         self.assertTrue ('local' in result)
