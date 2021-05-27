@@ -77,6 +77,15 @@ Scenario: Subnet has a route table that has an internet Gateway, and subnet flow
  #   if route table has an igw.
  #
 
+ # new logic:
+ # monitor DEFAULT_RESOURCE_TYPE: subnet, route tables, flow
+ # BUT evaluate subnet only
+ # recieve subnet CI
+ # find it's routes
+ # NOT_APPLICAPLE if no route to the internet
+ # check the ones that do
+ # feed those to subnet_flows_configured_correctly
+
 def subnet_flows_configured_correctly(subnet_id):
     client = boto3.client('ec2') # does this spawn in the right region?
     response = client.describe_flow_logs(
