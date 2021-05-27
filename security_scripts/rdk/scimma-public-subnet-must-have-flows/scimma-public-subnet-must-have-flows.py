@@ -58,11 +58,22 @@ Scenario: Subnet has a route table that has an internet Gateway, and subnet flow
     #       - yes call checks
     import pdb; pdb.set_trace
     route_table = configration_item
-    gateways = jget.Jget(route_table).select("routes").select("gateway").get()
+    gateways = jget.Jget(route_table).all("routes").all("gateway").get()
     gateways = [g[:4] for g in event["routes"]["gateway"]]
     if "igw-" not in in gateways return NOT_APPLICABLE
-    
-    
+
+
+    #get subnets and VPC that have an external route. 
+    relationships = jget.Jget(route_table).all("relationships").all("resourceId").get()
+
+    # Check that a flow log exists.
+    client=boto3.client('ec2')
+    for r in relationships:
+      if "sub-" in r :
+          pass
+      elif "vpc-" in r:
+          pass
+      
     return 'NOT_APPLICABLE'
  #   if route table has an igw.
  #   
