@@ -67,7 +67,6 @@ Scenario: Subnet has a route table that has an internet Gateway, and subnet flow
     relationships = jget.Jget(route_table).all("relationships").all("resourceId").get()
 
     # Check that a flow log exists.
-    client=boto3.client('ec2')
     for r in relationships:
       if "sub-" in r :
           pass
@@ -76,7 +75,27 @@ Scenario: Subnet has a route table that has an internet Gateway, and subnet flow
       
     return 'NOT_APPLICABLE'
  #   if route table has an igw.
- #   
+ #
+
+def subnet_flows_configured_correctly(subnet_id):
+    client = boto3.client('ec2') # does this spawn in the right region?
+    response = client.describe_flow_logs(
+        Filters=[
+            {'Name': 'resource-id',
+             'Values': [subnet_id]}])
+    # check:
+    # loop through all flow logs returned
+    # they all must ahve:
+    # 'FlowLogStatus' = ACTIVE
+    # 'TrafficType' = ACCEPT
+    # 'LogDestinationType' = 's3'
+    # 'scimma-processes' in 'LogDestination'
+    did_pass = False
+    for fl in response["FlowLogs"]:
+        if fl["FlowLogStatus"] == "ACTIVE" and fl["TrafficType"] == "ACCEPT" and fl["LogDestinationType"] == "s3" and 'scimma-processes' in fl["LogDestination"]:
+            did_pass = True
+    return did_pass
+
 
 def evaluate_parameters(rule_parameters):
     """Evaluate the rule parameters dictionary validity. Raise a ValueError for invalid parameters.
