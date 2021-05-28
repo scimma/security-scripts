@@ -12,6 +12,17 @@ method calls and he tight syntax.
  
 """
 
+def error_check(f):
+    def check(self, *args):
+        if not self.error:
+            try:
+                f(self, *args)
+            except:
+                self.error = True
+        return self
+    return check
+
+
 class Jget:
     """
     Very small and lightweight class for  extracting things from json.
@@ -23,7 +34,8 @@ class Jget:
         # by successive function calls.
         # Once an array is traversed, it becomes an array of JSON
         
-        self.json = json  
+        self.json = json
+        self.error = False
 
     def get(self):
         """
@@ -32,27 +44,32 @@ class Jget:
             or list of scalars (if an array was invovled).
           * Travesals to nont termainal elements return json or
             a list of jsons if an array was traversed.
-        """ 
+        """
+        if self.error: return None
         return self.json
-    
+
+    @error_check
     def at(self, string):
-        """ Traverse a single named element"""
+        """ Traverse a single named element """
         self.json = self.json[string]
-        return self
-    
+
+    @error_check
     def flatten(self):
         """
-        Flatten an AWS list of tags to json. Store as self.json
+        Flatten an AWS list of dictionaries  to json. Store as self.json
 
-        This allows the get operator to pull out a tag value
+        The use case is hwo AWS stores tags as a lisit of ....
+        {"Key":"<tag name>", "Value":<value>} dictionaries.
+        Flattening allows the get operator to pull out a tag value
         """
+        if self.error : return self
         new_json = {}
         for d in self.json :
             new_json[d["Key"]] = d["Value"] 
         self.json = new_json
         return self
     
-
+    @error_check
     def all(self,string):
         """ traverse an array, choosing array elements
             and then travere array elements beginning with string.

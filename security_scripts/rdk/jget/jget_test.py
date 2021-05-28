@@ -1,7 +1,7 @@
 """
 A unit test for jget.JGet
 
-Trace a samp,e CI to make sure get what we expect.
+Trace a sample CI to make sure get what we expect.
 
 n.b. I think a unit test is good for all code we
 intend to use in multiple lambdas,
@@ -98,6 +98,15 @@ class TestStringMethods(unittest.TestCase):
         self.assertTrue (type(result) == type ([]))
         self.assertTrue ('local' in result)
         self.assertTrue ('igw-a5f227c1' in result)
+
+    def test_get_array_errors(self):
+        #expect empty list.
+        result = jget.Jget(test_json).at("configuration").at("routes").all("XXXgatewayId").get()
+        self.assertTrue (type(result) == type ([]))
+
+    def test_get_at_errors(self):
+        result = jget.Jget(test_json).at("configuration").at("XXXroutes").all("gatewayId").get()
+        self.assertTrue (type(result) == type (None))
 
 if __name__ == '__main__':
     unittest.main()
