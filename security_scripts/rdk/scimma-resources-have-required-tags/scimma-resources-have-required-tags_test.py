@@ -1,8 +1,6 @@
 import sys
 import unittest
 from unittest.mock import MagicMock
-import botocore
-import botocore.exceptions
 import json
 ##############
 # Parameters #
@@ -18,6 +16,7 @@ DEFAULT_RESOURCE_TYPE = 'AWS::::Account'
 CONFIG_CLIENT_MOCK = MagicMock()
 STS_CLIENT_MOCK = MagicMock()
 
+
 class Boto3Mock():
     @staticmethod
     def client(client_name, *args, **kwargs):
@@ -27,28 +26,30 @@ class Boto3Mock():
             return STS_CLIENT_MOCK
         raise Exception("Attempting to create an unknown client:", client_name)
 
+
 sys.modules['boto3'] = Boto3Mock()
 
 RULE = __import__('scimma-resources-have-required-tags')
+
 
 class ComplianceTest(unittest.TestCase):
 
     rule_parameters = '{"SomeParameterKey":"SomeParameterValue","SomeParameterKey2":"SomeParameterValue2"}'
 
-    invoking_event_template = {"configurationItem":{
-         "relatedEvents":[],
-         "relationships":[],
-         "configuration":{},
-         "tags":{},
-         "configurationItemCaptureTime":"2018-07-02T03:37:52.418Z",
-         "awsAccountId":"123456789012",
+    invoking_event_template = {"configurationItem": {
+         "relatedEvents": [],
+         "relationships": [],
+         "configuration": {},
+         "tags": {},
+         "configurationItemCaptureTime": "2018-07-02T03:37:52.418Z",
+         "awsAccountId": "123456789012",
          "configurationItemStatus": "ResourceDiscovered",
-         "resourceType":"AWS::IAM::Role",
-         "resourceId":"some-resource-id",
-         "resourceName":"some-resource-name",
-         "ARN":"some-arn"},
-         "notificationCreationTime":"2018-07-02T23:05:34.445Z",
-         "messageType":"ConfigurationItemChangeNotification"
+         "resourceType": "AWS::IAM::Role",
+         "resourceId": "some-resource-id",
+         "resourceName": "some-resource-name",
+         "ARN": "some-arn"},
+         "notificationCreationTime": "2018-07-02T23:05:34.445Z",
+         "messageType": "ConfigurationItemChangeNotification"
     }
 
     def setUp(self):
@@ -57,24 +58,22 @@ class ComplianceTest(unittest.TestCase):
     def do_one_ci(self, ci, expected_response):
         """Check response given a file with a test CI"""
 
-        ### build and configuration change event using the CI data ci file.
+        # Build and configuration change event struxcture using the CI data ci file.
         #
-        # The layers of wrapping in the overall system is
-        # (config change (
-        #   'invoking event (           all the following encoded...          
-        #      configurationItem (      ...in a json... 
+        #  The layers of wrapping in the overall system is
+        #  (config change (
+        #   'invoking event (           all the following encoded...
+        #      configurationItem (      ...in a json...
         #            configuration      ...string.
         #  )
         # ')))
-        ci_resource   = ci["resourceType"]
+        ci_resource = ci["resourceType"]
         ci_resourceId = ci["resourceId"]
         invoking_event = self.invoking_event_template
         invoking_event["configurationItem"] = ci
-        invoking_event=json.dumps(invoking_event)
+        invoking_event = json.dumps(invoking_event)
         ci_change_event = build_lambda_configurationchange_event(invoking_event)
-        #import pprint
-        #pprint.pprint(ci_change_event)
-   
+
         RULE.ASSUME_ROLE_MODE = False
         response = RULE.lambda_handler(ci_change_event, {})
         resp_expected = []
@@ -139,7 +138,6 @@ class ComplianceTest(unittest.TestCase):
 
         self.do_one_ci(ci, "NON_COMPLIANT")
 
-
     def test_lacks_service_tag(self):
         ci = {
             "version": "1.2",
@@ -191,7 +189,7 @@ class ComplianceTest(unittest.TestCase):
                 "availabilityZone": "us-east-1a",
                 "defaultForAz": True,
                 "mapPublicIpOnLaunch": True,
-                "tags": [{"key":"Criticality","value":"Production"}],
+                "tags": [{"key": "Criticality", "value": "Production"}],
             },
             "supplementaryConfiguration": {}
         }
@@ -249,17 +247,15 @@ class ComplianceTest(unittest.TestCase):
                 "availabilityZone": "us-east-1a",
                 "defaultForAz": True,
                 "mapPublicIpOnLaunch": True,
-                "tags": [{"key": "Service", "value":"anything will pass"}],
+                "tags": [{"key": "Service", "value": "anything will pass"}],
             },
             "supplementaryConfiguration": {}
         }
 
         self.do_one_ci(ci, "NON_COMPLIANT")
 
-        
-            
     def test_compliant(self):
-        ci ={
+        ci = {
             "version": "1.2",
             "accountId": "264683526309",
             "configurationItemCaptureTime": "2016-09-24T17:47:03.866Z",
@@ -306,7 +302,8 @@ class ComplianceTest(unittest.TestCase):
                         "main": True
                     }
                 ],
-                "tags": [{"key": "Service", "value":"anything will pass"}, {"key":"Criticality","value":"Production"}],
+                "tags": [{"key": "Service", "value": "anything will pass"},
+                         {"key": "Criticality", "value": "Production"}],
                 "propagatingVgws": []
             },
             "supplementaryConfiguration": {}
@@ -314,9 +311,7 @@ class ComplianceTest(unittest.TestCase):
 
         self.do_one_ci(ci, "COMPLIANT")
 
-    
     def x_test_sample_2(self):
-        
         RULE.ASSUME_ROLE_MODE = False
         response = RULE.lambda_handler(build_lambda_configurationchange_event(self.invoking_event_iam_role_sample, self.rule_parameters), {})
         resp_expected = []
@@ -327,34 +322,37 @@ class ComplianceTest(unittest.TestCase):
 # Helper Functions #
 ####################
 
+
 def build_lambda_configurationchange_event(invoking_event, rule_parameters=None):
     event_to_return = {
-        'configRuleName':'myrule',
-        'executionRoleArn':'roleArn',
+        'configRuleName': 'myrule',
+        'executionRoleArn': 'roleArn',
         'eventLeftScope': False,
         'invokingEvent': invoking_event,
         'accountId': '123456789012',
         'configRuleArn': 'arn:aws:config:us-east-1:123456789012:config-rule/config-rule-8fngan',
-        'resultToken':'token'
+        'resultToken': 'token'
     }
     if rule_parameters:
         event_to_return['ruleParameters'] = rule_parameters
     return event_to_return
 
+
 def build_lambda_scheduled_event(rule_parameters=None):
     invoking_event = '{"messageType":"ScheduledNotification","notificationCreationTime":"2017-12-23T22:11:18.158Z"}'
     event_to_return = {
-        'configRuleName':'myrule',
-        'executionRoleArn':'roleArn',
+        'configRuleName': 'myrule',
+        'executionRoleArn': 'roleArn',
         'eventLeftScope': False,
         'invokingEvent': invoking_event,
         'accountId': '123456789012',
         'configRuleArn': 'arn:aws:config:us-east-1:123456789012:config-rule/config-rule-8fngan',
-        'resultToken':'token'
+        'resultToken': 'token'
     }
     if rule_parameters:
         event_to_return['ruleParameters'] = rule_parameters
     return event_to_return
+
 
 def build_expected_response(compliance_type, compliance_resource_id, compliance_resource_type=DEFAULT_RESOURCE_TYPE, annotation=None):
     if not annotation:
@@ -369,6 +367,7 @@ def build_expected_response(compliance_type, compliance_resource_id, compliance_
         'ComplianceResourceType': compliance_resource_type,
         'Annotation': annotation
         }
+
 
 def assert_successful_evaluation(test_class, response, resp_expected, evaluations_count=1):
     if isinstance(response, dict):
@@ -388,6 +387,7 @@ def assert_successful_evaluation(test_class, response, resp_expected, evaluation
             if 'Annotation' in response_expected or 'Annotation' in response[i]:
                 test_class.assertEqual(response_expected['Annotation'], response[i]['Annotation'])
 
+
 def assert_customer_error_response(test_class, response, customer_error_code=None, customer_error_message=None):
     if customer_error_code:
         test_class.assertEqual(customer_error_code, response['customerErrorCode'])
@@ -400,6 +400,7 @@ def assert_customer_error_response(test_class, response, customer_error_code=Non
     if "internalErrorDetails" in response:
         test_class.assertTrue(response['internalErrorDetails'])
 
+
 def sts_mock():
     assume_role_response = {
         "Credentials": {
@@ -408,4 +409,3 @@ def sts_mock():
             "SessionToken": "string"}}
     STS_CLIENT_MOCK.reset_mock(return_value=True)
     STS_CLIENT_MOCK.assume_role = MagicMock(return_value=assume_role_response)
-

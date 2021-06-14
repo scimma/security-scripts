@@ -3,7 +3,7 @@ import sys
 import datetime
 import boto3
 import botocore
-import json 
+
 try:
     import liblogging
 except ImportError:
@@ -16,7 +16,8 @@ except ImportError:
 # Define the default resource to report to Config Rules
 DEFAULT_RESOURCE_TYPE = None  # make it blow up.
 
-# Set to True to get the lambda to assume the Role attached on the Config Service (useful for cross-account).
+# Set to True to get the lambda to assume the Role attached...
+#  ...on the Config Service (useful for cross-account).
 ASSUME_ROLE_MODE = False
 
 # Other parameters (no change needed)
@@ -25,6 +26,7 @@ CONFIG_ROLE_TIMEOUT_SECONDS = 900
 #############
 # Main Code #
 #############
+
 
 def evaluate_compliance(event, configuration_item, valid_rule_parameters):
     """Form the evaluation(s) to be return to Config Rules
@@ -48,27 +50,31 @@ def evaluate_compliance(event, configuration_item, valid_rule_parameters):
     # Add your custom logic here. #
     ###############################
 
-    #Unpack to get to the configuration..
-    tags =  event["invokingEvent"]
-    tags =  json.loads(tags)
-    tags =  tags['configurationItem']
-    tags =  tags['configuration']
-    tags =  tags['tags']
+    # Unpack to get to the configuration..
+    tags = event["invokingEvent"]
+    tags = json.loads(tags)
+    tags = tags['configurationItem']
+    tags = tags['configuration']
+    tags = tags['tags']
 
-    # make the arrary of {Key,: value} dicts into a master dictionary
-    print (tags)
-    flattened = {d["key"]:d["value"] for d in tags}
-    
-    #Scenario: must have Servicne Tag
-    if "Service" not in flattened : return "NON_COMPLIANT"
+    # Make the arrary of {Key,: value} dicts into a master dictionary
+    # print (tags)
+    flattened = {d["key"]: d["value"] for d in tags}
 
-    #Scenraion must have Critiality Tag 
-    if "Criticality" not in flattened : return "NON_COMPLIANT"
+    # Scenario: must have Service Tag
+    if "Service" not in flattened:
+        return "NON_COMPLIANT"
 
-    #Senario: Criticality tags must be one that is n in a specific enumeration 
-    if flattened["Criticality"] not in ["Production","Development","Investigation"]: return "NON_COMPLIANT"
-    
+    # Scenario: must have Critiality tag
+    if "Criticality" not in flattened:
+        return "NON_COMPLIANT"
+
+    # Scenario: Criticality tags must be one that is n in a specific enumeration
+    if flattened["Criticality"] not in ["Production", "Development", "Investigation"]:
+        return "NON_COMPLIANT"
+
     return 'COMPLIANT'
+
 
 def evaluate_parameters(rule_parameters):
     """Evaluate the rule parameters dictionary validity. Raise a ValueError for invalid parameters.
@@ -86,6 +92,7 @@ def evaluate_parameters(rule_parameters):
 # Helper Functions #
 ####################
 
+
 # Build an error to be displayed in the logs when the parameter is invalid.
 def build_parameters_value_error_response(ex):
     """Return an error dictionary when the evaluate_parameters() raises a ValueError.
@@ -93,10 +100,11 @@ def build_parameters_value_error_response(ex):
     Keyword arguments:
     ex -- Exception text
     """
-    return  build_error_response(internal_error_message="Parameter value is invalid",
-                                 internal_error_details="An ValueError was raised during the validation of the Parameter value",
-                                 customer_error_code="InvalidParameterValueException",
-                                 customer_error_message=str(ex))
+    return build_error_response(internal_error_message="Parameter value is invalid",
+                                internal_error_details="An ValueError was raised during the validation of the Parameter value",
+                                customer_error_code="InvalidParameterValueException",
+                                customer_error_message=str(ex))
+
 
 # This gets the client after assuming the Config service role
 # either in the same AWS account or cross-account.
@@ -115,7 +123,8 @@ def get_client(service, event, region=None):
                         aws_secret_access_key=credentials['SecretAccessKey'],
                         aws_session_token=credentials['SessionToken'],
                         region_name=region
-                       )
+                        )
+
 
 # This generate an evaluation for config
 def build_evaluation(resource_id, compliance_type, event, resource_type=DEFAULT_RESOURCE_TYPE, annotation=None):
@@ -136,6 +145,7 @@ def build_evaluation(resource_id, compliance_type, event, resource_type=DEFAULT_
     eval_cc['ComplianceType'] = compliance_type
     eval_cc['OrderingTimestamp'] = str(json.loads(event['invokingEvent'])['notificationCreationTime'])
     return eval_cc
+
 
 def build_evaluation_from_config_item(configuration_item, compliance_type, annotation=None):
     """Form an evaluation as a dictionary. Usually suited to report on configuration change rules.
@@ -158,6 +168,7 @@ def build_evaluation_from_config_item(configuration_item, compliance_type, annot
 # Boilerplate Code #
 ####################
 
+
 # Get execution role for Lambda function
 def get_execution_role_arn(event):
     role_arn = None
@@ -173,11 +184,13 @@ def get_execution_role_arn(event):
 
     return role_arn
 
+
 # Build annotation within Service constraints
 def build_annotation(annotation_string):
     if len(annotation_string) > 256:
         return annotation_string[:244] + " [truncated]"
     return annotation_string
+
 
 # Helper function used to validate input
 def check_defined(reference, reference_name):
@@ -185,15 +198,18 @@ def check_defined(reference, reference_name):
         raise Exception('Error: ', reference_name, 'is not defined')
     return reference
 
+
 # Check whether the message is OversizedConfigurationItemChangeNotification or not
 def is_oversized_changed_notification(message_type):
     check_defined(message_type, 'messageType')
     return message_type == 'OversizedConfigurationItemChangeNotification'
 
+
 # Check whether the message is a ScheduledNotification or not.
 def is_scheduled_notification(message_type):
     check_defined(message_type, 'messageType')
     return message_type == 'ScheduledNotification'
+
 
 # Get configurationItem using getResourceConfigHistory API
 # in case of OversizedConfigurationItemChangeNotification
@@ -205,6 +221,7 @@ def get_configuration(resource_type, resource_id, configuration_capture_time):
         limit=1)
     configuration_item = result['configurationItems'][0]
     return convert_api_configuration(configuration_item)
+
 
 # Convert from the API model to the original invocation model
 def convert_api_configuration(configuration_item):
@@ -221,6 +238,7 @@ def convert_api_configuration(configuration_item):
             configuration_item['relationships'][i]['name'] = configuration_item['relationships'][i]['relationshipName']
     return configuration_item
 
+
 # Based on the type of message get the configuration item
 # either from configurationItem in the invoking event
 # or using the getResourceConfigHistiry API in getConfiguration function.
@@ -232,6 +250,7 @@ def get_configuration_item(invoking_event):
     if is_scheduled_notification(invoking_event['messageType']):
         return None
     return check_defined(invoking_event['configurationItem'], 'configurationItem')
+
 
 # Check whether the resource has been deleted. If it has, then the evaluation is unnecessary.
 def is_applicable(configuration_item, event):
@@ -266,6 +285,7 @@ def get_assume_role_credentials(role_arn, region=None):
             ex.response['Error']['Message'] = "InternalError"
             ex.response['Error']['Code'] = "InternalError"
         raise ex
+
 
 # This removes older evaluation (usually useful for periodic rule not reporting on AWS::::Account).
 def clean_up_old_evaluations(latest_evaluations, event):
@@ -303,13 +323,13 @@ def clean_up_old_evaluations(latest_evaluations, event):
 
     return cleaned_evaluations + latest_evaluations
 
+
 def lambda_handler(event, context):
     if 'liblogging' in sys.modules:
         liblogging.logEvent(event)
 
     global AWS_CONFIG_CLIENT
 
-    #print(event)
     check_defined(event, 'event')
     invoking_event = json.loads(event['invokingEvent'])
     rule_parameters = {}
@@ -388,12 +408,15 @@ def lambda_handler(event, context):
     # Used solely for RDK test to be able to test Lambda function
     return evaluations
 
+
 def is_internal_error(exception):
     return ((not isinstance(exception, botocore.exceptions.ClientError)) or exception.response['Error']['Code'].startswith('5')
             or 'InternalError' in exception.response['Error']['Code'] or 'ServiceError' in exception.response['Error']['Code'])
 
+
 def build_internal_error_response(internal_error_message, internal_error_details=None):
     return build_error_response(internal_error_message, internal_error_details, 'InternalError', 'InternalError')
+
 
 def build_error_response(internal_error_message, internal_error_details=None, customer_error_code=None, customer_error_message=None):
     error_response = {
