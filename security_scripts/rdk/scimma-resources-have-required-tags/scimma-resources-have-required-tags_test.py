@@ -36,24 +36,24 @@ class ComplianceTest(unittest.TestCase):
 
     rule_parameters = '{"SomeParameterKey":"SomeParameterValue","SomeParameterKey2":"SomeParameterValue2"}'
 
-    invoking_event_template = {"configurationItem": {
-         "relatedEvents": [],
-         "relationships": [],
-         "configuration": {},
-         "tags": {},
-         "configurationItemCaptureTime": "2018-07-02T03:37:52.418Z",
-         "awsAccountId": "123456789012",
-         "configurationItemStatus": "ResourceDiscovered",
-         "resourceType": "AWS::IAM::Role",
-         "resourceId": "some-resource-id",
-         "resourceName": "some-resource-name",
-         "ARN": "some-arn"},
-         "notificationCreationTime": "2018-07-02T23:05:34.445Z",
-         "messageType": "ConfigurationItemChangeNotification"
-    }
 
     def setUp(self):
-        pass
+        self.invoking_event_template = {
+            "relatedEvents": [],
+            "relationships": [],
+            "configuration": {},
+            "tags": {},
+            "configurationItemCaptureTime": "2018-07-02T03:37:52.418Z",
+            "awsAccountId": "123456789012",
+            "configurationItemStatus": "ResourceDiscovered",
+            "resourceType": "AWS::IAM::Role",
+            "resourceId": "some-resource-id",
+            "resourceName": "some-resource-name",
+            "ARN": "some-arn",
+            "notificationCreationTime": "2018-07-02T23:05:34.445Z",
+            "messageType": "ConfigurationItemChangeNotification"
+            }
+
 
     def do_one_ci(self, ci, expected_response):
         """Check response given a file with a test CI"""
@@ -67,6 +67,12 @@ class ComplianceTest(unittest.TestCase):
         #            configuration      ...string.
         #  )
         # ')))
+
+        
+        #  Save a few items from the configuraitonItem
+        #  Wrap the configuration Item in an InvokingEvent
+        #  Wrap the invokingEvent in a Config. Change Event (via API)
+        
         ci_resource = ci["resourceType"]
         ci_resourceId = ci["resourceId"]
         invoking_event = self.invoking_event_template
@@ -74,6 +80,10 @@ class ComplianceTest(unittest.TestCase):
         invoking_event = json.dumps(invoking_event)
         ci_change_event = build_lambda_configurationchange_event(invoking_event)
 
+        # Not Mulit -ccount (e.g ASSUME ROLE  = Faluse
+        # Call the Lamda handler
+        # Build Expected response.
+        # Check we got what's expected.
         RULE.ASSUME_ROLE_MODE = False
         response = RULE.lambda_handler(ci_change_event, {})
         resp_expected = []
@@ -360,13 +370,13 @@ def build_expected_response(compliance_type, compliance_resource_id, compliance_
             'ComplianceType': compliance_type,
             'ComplianceResourceId': compliance_resource_id,
             'ComplianceResourceType': compliance_resource_type
-            }
+        }
     return {
         'ComplianceType': compliance_type,
         'ComplianceResourceId': compliance_resource_id,
         'ComplianceResourceType': compliance_resource_type,
         'Annotation': annotation
-        }
+    }
 
 
 def assert_successful_evaluation(test_class, response, resp_expected, evaluations_count=1):
