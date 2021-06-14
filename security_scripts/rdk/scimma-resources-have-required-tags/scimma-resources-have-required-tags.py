@@ -56,7 +56,8 @@ def evaluate_compliance(event, configuration_item, valid_rule_parameters):
     tags =  tags['tags']
 
     # make the arrary of {Key,: value} dicts into a master dictionary
-    flattened = {d["Key"]:d["Value"] for d in tags}
+    print (tags)
+    flattened = {d["key"]:d["value"] for d in tags}
     
     #Scenario: must have Servicne Tag
     if "Service" not in flattened : return "NON_COMPLIANT"

@@ -191,7 +191,7 @@ class ComplianceTest(unittest.TestCase):
                 "availabilityZone": "us-east-1a",
                 "defaultForAz": True,
                 "mapPublicIpOnLaunch": True,
-                "tags": [{"Key":"Criticality","Value":"Production"}],
+                "tags": [{"key":"Criticality","value":"Production"}],
             },
             "supplementaryConfiguration": {}
         }
@@ -249,7 +249,7 @@ class ComplianceTest(unittest.TestCase):
                 "availabilityZone": "us-east-1a",
                 "defaultForAz": True,
                 "mapPublicIpOnLaunch": True,
-                "tags": [{"Key": "Service", "Value":"anything will pass"}],
+                "tags": [{"key": "Service", "value":"anything will pass"}],
             },
             "supplementaryConfiguration": {}
         }
@@ -306,7 +306,7 @@ class ComplianceTest(unittest.TestCase):
                         "main": True
                     }
                 ],
-                "tags": [{"Key": "Service", "Value":"anything will pass"}, {"Key":"Criticality","Value":"Production"}],
+                "tags": [{"key": "Service", "value":"anything will pass"}, {"key":"Criticality","value":"Production"}],
                 "propagatingVgws": []
             },
             "supplementaryConfiguration": {}

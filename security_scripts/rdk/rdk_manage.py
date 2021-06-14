@@ -59,7 +59,7 @@ def main(args):
    #
    for region in args.regions:
       bucket=CODE_BUCKET_TEMPLATE.format(region)
-      cmd = "rdk --region {} {} {} --custom-code-bucket {}  ".format(region, args.rdkcmd, args.rdkrule, bucket)
+      cmd = "echo y | rdk --region {} {} {} --custom-code-bucket {}  ".format(region, args.rdkcmd, args.rdkrule, bucket)
       if not args.dry_run:
          shlog.normal(cmd)
          status = os.system(cmd)
