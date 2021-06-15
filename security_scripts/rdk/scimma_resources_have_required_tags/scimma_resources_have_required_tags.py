@@ -56,7 +56,9 @@ def evaluate_compliance(event, configuration_item, valid_rule_parameters):
     configurationItem = invokingEvent['configurationItem']
     configuration  = configurationItem['configuration']
 
+    #Scenario: we've configureed in a resource that does not suppport tags.
     if "tags" not in configuration :
+
         print ("*********** no tags in {}".format(configurationItem["resourceType"]))
         return "NOT_APPLICABLE"
 
