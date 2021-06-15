@@ -51,19 +51,24 @@ def evaluate_compliance(event, configuration_item, valid_rule_parameters):
     ###############################
 
     # Unpack to get to the configuration..
-    tags = event["invokingEvent"]
-    tags = json.loads(tags)
-    tags = tags['configurationItem']
-    tags = tags['configuration']
-    tags = tags['tags']
+    invokingEvent = event["invokingEvent"]
+    invokingEvent = json.loads(invokingEvent)
+    configurationItem = invokingEvent['configurationItem']
+    configuration  = configurationItem['configuration']
 
-    # Make the arrary of {Key,: value} dicts into a master dictionary
+    if "tags" not in configuration :
+        print ("*********** no tags in {}".format(configurationItem["resourceType"]))
+        return "NOT_APPLICABLE"
+
+    tags = configuration['tags']
+
+    # Make the array of {Key,: value} dicts into a master dictionary
     # print (tags)
     flattened = {d["key"]: d["value"] for d in tags}
 
     # Scenario: must have Service Tag
     if "Service" not in flattened:
-        return "NON_COMPLIANT"
+        return ("NON_COMPLIANT")
 
     # Scenario: must have Critiality tag
     if "Criticality" not in flattened:

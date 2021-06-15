@@ -1,0 +1,14 @@
+{
+  "Version": "1.0",
+  "Parameters": {
+    "RuleName": "scimma_resources_have_required_tags",
+    "Description": "scimma_resources_have_required_tags",
+    "SourceRuntime": "python3.6",
+    "CodeKey": "scimma_resources_have_required_tags.zip",
+    "InputParameters": "{}",
+    "OptionalParameters": "{}",
+      "SourceEvents": "AWS::EC2::Instance,AWS::EC2::Subnet,AWS::EC2::RouteTable,AWS::EC2::SecurityGroup,AWS::EC2::FlowLog,AWS::EC2::VPC,AWS::SecretsManager::Secret,AWS::CloudFormation::Stack,AWS::ACM::Certificate,AWS::CloudWatch::Alarm,AWS::SNS::Topic,AWS::DynamoDB::Table,AWS::ElasticLoadBalancingV2::LoadBalancer,AWS::ElasticLoadBalancing::LoadBalancer"
+  },
+    
+  "Tags": "[{\"Key\": \"Criticality\", \"Value\": \"Development\"}, {\"Key\": \"Service\", \"Value\": \"OpSec\"}]"
+}

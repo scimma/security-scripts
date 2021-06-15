@@ -29,7 +29,7 @@ class Boto3Mock():
 
 sys.modules['boto3'] = Boto3Mock()
 
-RULE = __import__('scimma-resources-have-required-tags')
+RULE = __import__('scimma_resources_have_required_tags')
 
 
 class ComplianceTest(unittest.TestCase):
@@ -90,7 +90,7 @@ class ComplianceTest(unittest.TestCase):
         resp_expected.append(build_expected_response(expected_response, ci_resourceId, ci_resource))
         assert_successful_evaluation(self, response, resp_expected)
 
-    def test_no_tags_at_all(self):
+    def test_empty_tag_list(self):
         ci = {
             "version": "1.2",
             "accountId": "264683526309",
@@ -320,13 +320,62 @@ class ComplianceTest(unittest.TestCase):
         }
 
         self.do_one_ci(ci, "COMPLIANT")
+        
+    def test_lacks_tags_altogether(self):
+        ci = {
+            "version": "1.2",
+            "accountId": "264683526309",
+            "configurationItemCaptureTime": "2016-09-24T17:47:03.866Z",
+            "configurationItemStatus": "OK",
+            "configurationStateId": "949",
+            "configurationItemMD5Hash": "89475da7d6c00dcd9ee1681a997d88ab",
+            "arn": "arn:aws:ec2:us-east-1:264683526309:route-table/rtb-50b9b034",
+            "resourceType": "AWS::EC2::RouteTable",
+            "resourceId": "rtb-50b9b034",
+            "awsRegion": "us-east-1",
+            "availabilityZone": "Not Applicable",
+            "tags": {},
+            "relatedEvents": [
+                "7656056e-4df8-4db6-a2fc-cf83e5461f7f"
+            ],
+            "relationships": [
+                {
+                    "resourceType": "AWS::EC2::VPC",
+                    "resourceId": "vpc-0990dc6d",
+                    "relationshipName": "Is contained in Vpc"
+                }
+            ],
+            "configuration": {
+                "routeTableId": "rtb-50b9b034",
+                "vpcId": "vpc-0990dc6d",
+                "routes": [
+                    {
+                        "destinationCidrBlock": "172.31.0.0/16",
+                        "gatewayId": "local",
+                        "state": "active",
+                        "origin": "CreateRouteTable"
+                    },
+                    {
+                        "destinationCidrBlock": "0.0.0.0/0",
+                        "gatewayId": "igw-a5f227c1",
+                        "state": "active",
+                        "origin": "CreateRoute"
+                    }
+                ],
+                "associations": [
+                    {
+                        "routeTableAssociationId": "rtbassoc-82f661e5",
+                        "routeTableId": "rtb-50b9b034",
+                        "main": True
+                    }
+                ],
+              "propagatingVgws": []
+            },
+            "supplementaryConfiguration": {}
+        }
 
-    def x_test_sample_2(self):
-        RULE.ASSUME_ROLE_MODE = False
-        response = RULE.lambda_handler(build_lambda_configurationchange_event(self.invoking_event_iam_role_sample, self.rule_parameters), {})
-        resp_expected = []
-        resp_expected.append(build_expected_response('NOT_APPLICABLE', 'some-resource-id', 'AWS::IAM::Role'))
-        assert_successful_evaluation(self, response, resp_expected)
+        self.do_one_ci(ci, "NOT_APPLICABLE")
+
 
 ####################
 # Helper Functions #
