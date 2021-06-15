@@ -14,7 +14,63 @@ import boto3, botocore
 import shlog
 import sys
 import os
+import subprocess
+from multiprocessing import Pool
 
+########################
+#
+# Parallel Utilities
+#
+#######################
+
+
+def do(cmdlist):
+    #  run command, capture and return results.
+    #
+    # cmdlist is a two-element list.
+    # - shell command
+    # - Context -- short string.
+    
+    cmd = cmdlist[0]
+    ctx = cmdlist[1]
+    result = subprocess.run(cmd,
+                            capture_output=True,
+                            shell=True,
+                            timeout=600,
+                            text=True)
+    return result.returncode, result.stdout.split("\n"), result.stderr.split("\n"), result.args, ctx
+
+
+def parallelize (args, width, cmdlists):
+    # Run each command in a command list in a seperate process.
+    #
+    # cmdlists is a list of tuples -- (commands, context)
+    # number of processes active at once is contrained to width`
+
+    # just tell user
+    if args.dry_run:
+        for cmd, ctx in cmdlists:
+            shlog.normal ("would have executed: \n {}".format(cmd))
+        return
+
+    #ececute and display results.
+    with Pool(width) as p:
+        for status, stdout, stderr, cmd, ctx in p.map(do, cmdlists):
+            shlog.normal ('*************')
+            shlog.normal ('{}, status: {}, Command {}'.format(ctx, status, cmd))
+            for line in stdout:
+                shlog.normal ("stdout: {} : {}".format(ctx, line))
+            for line in stderr:
+                shlog.normal ("stderr: {} : {}".format(ctx, line))
+
+
+
+
+########################
+#
+# Environment Assertions
+#
+#######################
 
 
 CODE_BUCKET_TEMPLATE="scimma-processes-{}"
@@ -37,35 +93,41 @@ def check_lambda_code_bucket_exists(args, bucket):
         elif error_code == 404:
             shlog.error("pre-requisite bucket {} does not exist".format(bucket))
             return False
+        
+########################
+#
+# Drive Rdk Stuff
+#
+#######################
 
 def main(args):
-   "perform (or dry run) the indicated rdk command"
+    "perform (or dry run) the indicated rdk command"
 
-   #########################################################################
-   # Check pre-condition -- check them all before quitting to have mercy and
-   # allow parallel debug
-   #########################################################################
+    #########################################################################
+    # Check pre-condition -- check them all before quitting to have mercy and
+    # allow parallel debug
+    #########################################################################
    
-   # Condition 1
-   # Every region must have its own bucket to hold the lambda's code.
-   # Don't thank me, thank aws.
-   args.s3 = boto3.resource('s3')
-   checks =  [check_lambda_code_bucket_exists(args, CODE_BUCKET_TEMPLATE.format(region)
+    # Condition 1
+    # Every region must have its own bucket to hold the lambda's code.
+    # Don't thank me, thank aws.
+    args.s3 = boto3.resource('s3')
+    checks =  [check_lambda_code_bucket_exists(args, CODE_BUCKET_TEMPLATE.format(region)
                                               ) for region in args.regions]
-   if not all(checks) : exit(1)
+    if not all(checks) : exit(1)
 
-   #
-   # Formulate the AWS command and run over the indicated regions.
-   #
-   for region in args.regions:
-      bucket=CODE_BUCKET_TEMPLATE.format(region)
-      cmd = "echo y | rdk --region {} {} {} --custom-code-bucket {}  ".format(region, args.rdkcmd, args.rdkrule, bucket)
-      if not args.dry_run:
-         shlog.normal(cmd)
-         status = os.system(cmd)
-         shlog.normal ("command status is".format(status))
-      else:
-         shlog.normal ("would have executed: \n {}".format(cmd))
+    ########################################################################
+    # Formulate the AWS command and run over the indicated regions.
+    #########################################################################
+    cmdlists = []
+    for region in args.regions:
+        bucket=CODE_BUCKET_TEMPLATE.format(region)
+        cmd = "echo y | rdk --region {} {} {} --custom-code-bucket {}  ".format(region, args.rdkcmd, args.rdkrule, bucket)
+        cmdlists.append([cmd, region])
+    width = 5
+    if args.rdkcmd in ["undeploy"]: width = 5 
+    parallelize(args, width, cmdlists)
+
 
           
 if __name__ == "__main__":
