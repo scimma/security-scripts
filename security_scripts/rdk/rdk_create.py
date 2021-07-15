@@ -79,16 +79,15 @@ if __name__ == "__main__":
     # get defaults from configuration system
     # From security_scripts.kli import env_control
     config = configparser.ConfigParser()
-    # rel_path = "../information/defaults.cfg"
-    # cfg_sources = [rel_path,  # built-in config for fallback
-    #               os.path.expanduser(env_control())  # env value
-    #               ]
-    # config.read(cfg_sources)
-
-    # profile  = config.get("TAG_REPORT", "profile")
-    # loglevel = config.get("TAG_REPORT", "loglevel",fallback="NORMAL")
-    loglevel = "NORMAL"
-    profile = "scimma-uiuc-aws-admin"
+    rel_path = "../cfg/defaults.cfg"
+    cfg_sources = [rel_path,  # built-in config for fallback
+                   os.path.expanduser("$HOME/.scimma")  # env value
+                   ]
+    config.read(cfg_sources)
+    profile  = config.get("RDK", "profile")
+    loglevel = config.get("RDK", "loglevel",fallback="NORMAL")
+    #loglevel = "NORMAL"
+    #profile = "scimma-uiuc-aws-admin"
     """Create command line arguments"""
     parser = argparse.ArgumentParser(description=__doc__, formatter_class=argparse.RawDescriptionHelpFormatter)
     parser.add_argument('--loglevel', '-l',
