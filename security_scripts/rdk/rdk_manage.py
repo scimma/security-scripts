@@ -140,16 +140,15 @@ if __name__ == "__main__":
    #from security_scripts.kli import env_control
    config = configparser.ConfigParser()
    import os
-   #rel_path = "../information/defaults.cfg"
-   #cfg_sources = [rel_path,  # built-in config for fallback
-   #               os.path.expanduser(env_control())  # env value
-   #               ]
-   #config.read(cfg_sources)
-
-   #profile  = config.get("TAG_REPORT", "profile")
-   #loglevel = config.get("TAG_REPORT", "loglevel",fallback="NORMAL")
-   loglevel="NORMAL"
-   profile = "scimma-uiuc-aws-admin"
+   config = configparser.ConfigParser()
+   rel_path = "../cfg/defaults.cfg"
+   cfg_sources = [rel_path,  # built-in config for fallback
+                  os.path.expanduser("$HOME/.scimma")  # env value
+                  ]
+   config.read(cfg_sources)
+   profile  = config.get("RDK", "profile")
+   loglevel = config.get("RDK", "loglevel",fallback="NORMAL")
+   regions = config.get("RDK", "regions").split(',')
    """Create command line arguments"""
    parser = argparse.ArgumentParser(description=__doc__, formatter_class=argparse.RawDescriptionHelpFormatter)
    parser.add_argument('--loglevel', '-l', help="Level for reporting e.g. NORMAL, VERBOSE, DEBUG (default: %(default)s)",
@@ -160,7 +159,7 @@ if __name__ == "__main__":
    parser.add_argument('--dry-run','-n',default=False, action='store_true',
                        help = "dry run just show what would me done")
    parser.add_argument('-r', '--regions', metavar='region',nargs='+',
-                       default = ["us-east-1","us-west-2","us-east-2","us-west-1"],
+                       default=regions,
                        help='perform command in these AWS regions')
    
    parser.add_argument('rdkcmd',  choices=['deploy', 'undeploy', 'modify'], metavar='rdkfunction',
