@@ -9,7 +9,7 @@ Example LDAP queries, including best practice to quote this argument.
  '(voPersonID=SCiMMA1000000)'
  '(cn=*and*)'
 
-LDAP passwords are assumeed to be in $HOME/ldap/<server-name>
+LDAP passwords are assumeed to be in $HOME/.ldap/<server-name>
 Note that the files can contain only the password, and not even
 a newline in the file.
 
