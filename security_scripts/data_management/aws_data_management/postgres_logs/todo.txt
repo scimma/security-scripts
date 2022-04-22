@@ -1,0 +1,5 @@
+document terraform  code
+write a README explaing what was invented.
+take a look in the AWS console.
+
+
