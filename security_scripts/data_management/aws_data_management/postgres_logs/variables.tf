@@ -11,22 +11,22 @@ variable "standard_tags" {
 }
 
 variable "table_name" {
-         type = string
-         description = "nam of dynamom DB table holding the processed logs"
+  type        = string
+  description = "nam of dynamom DB table holding the processed logs"
 }
 
 variable "lambda_basicexecutionrole" {
-         type = string
-         description = "Name of the role allowing the lambda to log itself"
+  type        = string
+  description = "Name of the role allowing the lambda to log itself"
 }
 
 variable "postgres_logging_lambda_name" {
-         type = string
-         description = "Name for the lambda fungion doing the logging"
+  type        = string
+  description = "Name for the lambda fungion doing the logging"
 }
 
 variable "dynamodb_put_item_policy" {
-         type = string
-         description = "Names the policy alloing logging to the dynamo DB Table"
+  type        = string
+  description = "Names the policy alloing logging to the dynamo DB Table"
 }
 

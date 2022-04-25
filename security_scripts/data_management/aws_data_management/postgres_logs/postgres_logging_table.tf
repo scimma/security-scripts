@@ -7,7 +7,7 @@
 
 
 resource "aws_dynamodb_table" "postgreslogs-dynamo-db-table" {
-  name           = var.table_name 
+  name           = var.table_name
   hash_key       = "logStream"
   billing_mode   = "PROVISIONED"
   read_capacity  = 1
@@ -42,7 +42,7 @@ resource "aws_iam_policy" "dynamodb-put-item-policy" {
           "dynamodb:PutItem",
         ],
         "Effect"   = "Allow",
-       "Resource" = aws_dynamodb_table.postgreslogs-dynamo-db-table.arn
+        "Resource" = aws_dynamodb_table.postgreslogs-dynamo-db-table.arn
       }
     ]
   })

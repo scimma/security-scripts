@@ -38,17 +38,17 @@ resource "aws_iam_policy" "postgres-logging-lambda-policy" {
 
   policy = jsonencode({
     Version = "2012-10-17"
-  "Statement": [
-    {
-      "Effect": "Allow",
-      "Action": [
-        "logs:CreateLogGroup",
-        "logs:CreateLogStream",
-        "logs:PutLogEvents"
-      ],
-      "Resource": "arn:aws:logs:*:*:*"
-    }
-  ]
+    "Statement" : [
+      {
+        "Effect" : "Allow",
+        "Action" : [
+          "logs:CreateLogGroup",
+          "logs:CreateLogStream",
+          "logs:PutLogEvents"
+        ],
+        "Resource" : "arn:aws:logs:*:*:*"
+      }
+    ]
   })
   tags = var.standard_tags
 }
@@ -57,13 +57,13 @@ resource "aws_iam_policy" "postgres-logging-lambda-policy" {
 // Attach the policy allowing logging the lambda itself to lambda's role 
 resource "aws_iam_role_policy_attachment" "postgres-logging-lambda-policy-attachment" {
   policy_arn = aws_iam_policy.postgres-logging-lambda-policy.arn
-  role = aws_iam_role.postgres-logging-lambda-role.name
+  role       = aws_iam_role.postgres-logging-lambda-role.name
 }
 
 // Attach the policy allowing write access to the Dynamo DB to the lambda
 resource "aws_iam_role_policy_attachment" "dynamodb-lambda-policy-attachment" {
   policy_arn = aws_iam_policy.dynamodb-put-item-policy.arn
-  role = aws_iam_role.postgres-logging-lambda-role.name
+  role       = aws_iam_role.postgres-logging-lambda-role.name
 }
 
 
@@ -91,7 +91,7 @@ resource "aws_lambda_function" "postgres-logging-lambda-function" {
 
   runtime = "python3.9"
   timeout = 63
-  tags = var.standard_tags
+  tags    = var.standard_tags
 }
 
 
@@ -115,21 +115,32 @@ resource "aws_cloudwatch_log_subscription_filter" "logging" {
 }
 
 
-// This identifies the couldwtch log group we will source.
+// This identifies the cloudwatch log group we will source.
 // The log group is not created or managed my this terraform ensemble
 // The data statement allows us to get attribute information
 // Terraform wll not create/destroy/alter the log groups
-data  "aws_cloudwatch_log_group"  "scimma-admin-postgres-group" {
-      name = "/aws/rds/instance/scimma-admin-postgres/postgresql"
+data "aws_cloudwatch_log_group" "scimma-admin-postgres-group" {
+  name = "/aws/rds/instance/scimma-admin-postgres/postgresql"
 }
 
 
-// Source ARN is hardwired in.  -- Stll working ou how thsi data thing works. 
+
+// Permit the log group to invoke the lamba.
+// The log goup is makde by point and click.
+// I think when it's suppsrted in terraform we'd make an
+//    input.tf an dput the data statement (above) in that file
+//    and get the ARN in a proper way.
+// I've treid a number of permutaions and cannot make it work
+// so the  Source ARN is hardwired in.  -- Stll working ou how thsi data thing works.
+// somehow when I give the ARM in plain text. it works.
+// using the data statement about, terrafrom console says the name lacks the terminal ":*"
+//     and terrafrom waints infinitelin for hte subscription filter (above to be created.)
+//      tries many pertrubationsa, but for now, oh well. GOtta figure this ou.t but out of time.
 resource "aws_lambda_permission" "logging" {
   action        = "lambda:InvokeFunction"
   function_name = aws_lambda_function.postgres-logging-lambda-function.function_name
   principal     = "logs.us-west-2.amazonaws.com"
-//*does nto work  source_arn    =  data.aws_cloudwatch_log_group.scimma-admin-postgres-group.arn
-  source_arn    = "arn:aws:logs:us-west-2:585193511743:log-group:/aws/rds/instance/scimma-admin-postgres/postgresql:*"
-  
+  // does nto work source_arn    =  format("%s/%s",data.aws_cloudwatch_log_group.scimma-admin-postgres-group.arn, ":*")
+  source_arn = "arn:aws:logs:us-west-2:585193511743:log-group:/aws/rds/instance/scimma-admin-postgres/postgresql:*"
+
 }
