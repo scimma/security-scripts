@@ -27,7 +27,7 @@ resource "aws_dynamodb_table" "postgreslogs-dynamo-db-table" {
 }
 
 resource "aws_iam_policy" "dynamodb-put-item-policy" {
-  name        = var.dynamodb_put_item_policy
+  name        = var.dynamodb_put_item_policy_name
   path        = "/"
   description = "This policy allows the lamba function to put loga in dynamo db."
 
