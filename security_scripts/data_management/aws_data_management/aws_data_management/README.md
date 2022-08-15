@@ -31,22 +31,27 @@ cd persistent_data/mananage_devel/main.tf ;  terrafrom destroy
 
 #to stop the producion system
 cd collectors/manage_dprod/main.tf ; terrafrom destroy
-Dynammo DB will delete recod when they are three months old.
+@Dynammo DB will delete records when they are three months old.
 
 ```
 
-## Notes:
+## Manual console actions.
 
 Postgres Logging  uses cloudwatch log groups .  The default length of
 retention for cloudwatch is "infinite"  and should be changed.
 Two weeks retention seems reasonable and is the reccomended default for
 this application.
 
-The lanbda funcion itself  generates a cloudwatch log for its suport/
-debug.  One log is geneerates bu the development instance, another by the
-producton instnace.  These are nto currenlty created by terraform, its
-important so manually set the retention period of these cloudatch logs.
-
+The lanbda funcion itself  generates a cloudwatch log for its support/
+debug.  One log is generated buy the development instance, another by the
+producton instnace.  These are not currenlty created by terraform, its
+important so manually set the retention period of these cloudatch logs
+and deleter them if needed (the collectors will re-create these logs,
+if needed, but then one needs to again set the retention datea.
+'''
+/aws/lambda/postgres-logging-lambda-devel
+/aws/lambda/postgres-logging-lambda-prod
+'''
 
 
 
