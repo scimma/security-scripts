@@ -35,11 +35,11 @@ Notes
 
 This should be converted to terraform. the currrent setup  was made by point-and-click.
 
-permissions need to be tightended for the creation of creating the cloudwatch logs. 
+Permissions need to be tightened for the creation the cloudwatch logs. 
 arn:aws:logs:us-west-2:585193511743:log-group:aws//scimma/network/flows/*
 
 The Criticality level is always production, as the collection of 
-information security data is a production activity, even in the
+information security data is a production activity, even the
 delvelopment VPC. "devel" might be used for an alernate cloudwatch
 implementation,
 
