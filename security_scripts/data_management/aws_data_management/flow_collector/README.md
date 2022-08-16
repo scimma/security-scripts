@@ -1,12 +1,12 @@
-#Goal.
-
+Goal
+----
 The goal is to collect and retain flow logs recording communication of
 the SCiMMA production, development and infrastructure VPCs and retain
 these records for operational and information security analysis.
 
 
-#Theory of operation.
-
+Theory of operation.
+--------------------
 The records of each of the production, development and infrastrucuture
 enclaves are kept in distinct cloudwatch log groups as follows.
 Only "active" flowa are kept. 
@@ -29,7 +29,8 @@ The followiing IAM polices and roles suport the ingestion
 scimma-cloudwatch-flow-ingestion-policy
 scimma-cloudwatch-flow-ingestor-role
 
-*** Notes
+Notes
+-----
 
 This should be converted to terraform. the currrent setup  was made by point-and-click.
 
@@ -42,7 +43,8 @@ delvelopment VPC. "devel" might be used for an alernate cloudwatch
 implementation,
 
 
-#Access/Analyis
+Access/Analysis
+---------------
 
 Analysis is via the cloudwatch console, under "log insights"
 
