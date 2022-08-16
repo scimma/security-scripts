@@ -25,10 +25,11 @@ ${version} ${account-id} ${interface-id} ${srcaddr} ${dstaddr} ${srcport} ${dstp
 us}
 ```
 
-The followiing IAM polices and roles suport the ingestion
+The following IAM polices and roles support the ingestion
+```
 scimma-cloudwatch-flow-ingestion-policy
 scimma-cloudwatch-flow-ingestor-role
-
+```
 Notes
 -----
 
