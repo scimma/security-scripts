@@ -113,6 +113,7 @@ resource "aws_cloudwatch_log_subscription_filter" "logging" {
 }
 
 
+
 // This identifies the cloudwatch log group we will source.
 // The log group is not created or managed my this terraform ensemble
 // The data statement allows us to get attribute information
@@ -138,5 +139,22 @@ resource "aws_lambda_permission" "logging" {
   principal     = "logs.us-west-2.amazonaws.com"
   // does not work source_arn    =  format("%s/%s",data.aws_cloudwatch_log_group.scimma-admin-postgres-group.arn, ":*")
   source_arn = "arn:aws:logs:us-west-2:585193511743:log-group:/aws/rds/instance/scimma-admin-postgres/postgresql:*"
+}
+
+//new
+resource "aws_cloudwatch_log_subscription_filter" "keycloak-logging" {
+  depends_on      = [aws_lambda_permission.keycloak-logging]
+  destination_arn = aws_lambda_function.postgres-logging-lambda-function.arn
+  filter_pattern  = "" #pass everyting 
+  log_group_name  = "/aws/rds/instance/keycloak-test-postgres/postgresql"
+  name            = "keycloak_logging_default"
+}
+
+resource "aws_lambda_permission" "keycloak-logging" {
+  action        = "lambda:InvokeFunction"
+  function_name = aws_lambda_function.postgres-logging-lambda-function.function_name
+  principal     = "logs.us-west-2.amazonaws.com"
+  // does not work source_arn    =  format("%s/%s",data.aws_cloudwatch_log_group.scimma-admin-postgres-group.arn, ":*")
+  source_arn = "arn:aws:logs:us-west-2:585193511743:log-group:/aws/rds/instance/keycloak-test-postgres/postgresql:*"
 }
 

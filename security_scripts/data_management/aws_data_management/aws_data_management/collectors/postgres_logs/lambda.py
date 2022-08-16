@@ -16,10 +16,13 @@ import boto3
 import zlib
 from base64 import b64decode
 import logging
+import uuid
 
 # Information securty dats is retained for 3 months.
 # the TTL retntions  is set in seconds in the future.
 TTL_RETENTION_SEC = 3*30*24*60*60
+logger = logging.getLogger()
+logger.setLevel(logging.INFO)
 
 def decode(data):
     #inflate the cloudtrail event into useable JSON.
@@ -39,8 +42,6 @@ def load_log_item(event, dynamodb=None):
 def lambda_handler(event, context):
     # Unpack, flatten mulitp logfile entries into single-line records in dynamo db
 
-    logger = logging.getLogger()
-    logger.setLevel(logging.INFO)
 
     logger.info("raw cloudwatch event : {}".format(event))
     event = decode(event["awslogs"]["data"])
@@ -57,6 +58,7 @@ def lambda_handler(event, context):
         j["timestamp"]      = entry["timestamp"]
         j["message"]        = entry["message"]
         j["expTime"]        = entry["timestamp"] + TTL_RETENTION_SEC
+        j["uuid"]           = str(uuid.uuid1())
         logger.info ("cleaned event {}".format(j))
         load_log_item(j)
 

@@ -6,14 +6,15 @@
 //    (do not want test data polluting production data)
 
 
+// uuid as hash kkey prevents any ecord frm begn a duplicate and over  written
 resource "aws_dynamodb_table" "postgreslogs-dynamo-db-table" {
   name           = var.table_name
-  hash_key       = "logStream"
+  hash_key       = "uuid"
   billing_mode   = "PROVISIONED"
   read_capacity  = 1
   write_capacity = 1
   attribute {
-    name = "logStream"
+    name = "uuid"
     type = "S"
   }
 
