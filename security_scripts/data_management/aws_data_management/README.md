@@ -13,9 +13,13 @@ We will try to apply these  as we work on items.
 Time
 ----
 
-Note that and OSCF timestamp_t is in *milliseconds*  since the epoch
+Note that an OSCF timestamp_t is in *milliseconds*  since the epoch
 
 * ref_time:string  (original event time as encoded by the even producer. A string, because the producer could haev done anything.
 
 * _time:timestamp_t "normalized" event occurrence time. (roughly the logger's belief when the time of the original event integer milliseconnds scine epoch.
 
+other
+-----
+
+* Profile:string  Use like tags to identify what's collected and help with queries.
