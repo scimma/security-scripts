@@ -41,14 +41,14 @@ def load_log_item(event, dynamodb=None):
 
 
 def lambda_handler(event, context):
-    # Unpack, flatten mulitple logfile entries into single-line records in dynamo db
+    # Unpack, flatten multiple logfile entries into single-line records in dynamo db
 
     logger.info("raw cloudwatch event : {}".format(event))
     event = decode(event["awslogs"]["data"])
     logger.info("decoded event : {}".format(event))
 
     
-    # Fatten/cleand into one long entry per line                                                                                               
+    # Fatten/clean into one long entry per line                                                                                               
     # TBD if we can robustly parse the postgres log message                                                                            
     for entry in event["logEvents"]:
         if "checkpoint" in entry["message"] :
@@ -58,12 +58,20 @@ def lambda_handler(event, context):
         j["messageType"]    = event["messageType"]
         j["logGroup"]       = event["logGroup"]
         j["logStream"]      = event["logGroup"]
-        j["_time"]          = entry["timestamp"]
-        j["message"]        = entry["message"]
         j["expTime"]        = int(time.time()) + TTL_RETENTION_SEC
         j["uuid"]           = str(uuid.uuid1())
-        j["profile"]        = "postgress_logs"
-        j["ref_time"]       = entry["message"][:20]
+        #
+        # OSCF keywords below here
+        # see https://schema.ocsf.io/categories/database?extensions=
+        #
+        j["activity"]       = "Logging event (filtered)"
+        j["activity_id"]    = -1                  #other   
+        j["_time"]          = entry["timestamp"]
+        j["category"]       = "database"
+        j["category_uid"]   = 7                   #Database Activity events.
+        j["message"]        = entry["message"]
+        j["profiles"]       = ["postgress_logs"]
+        j["ref_time"]       = entry["message"][:19]
         logger.info ("cleaned event {}".format(j))
         load_log_item(j)
 
