@@ -22,4 +22,4 @@ Note that an OSCF timestamp_t is in *milliseconds*  since the epoch
 other
 -----
 
-* Profile:string  Use like tags to identify what's collected and help with queries.
+* profile:string  Use like tags to identify what's collected and help with queries.
