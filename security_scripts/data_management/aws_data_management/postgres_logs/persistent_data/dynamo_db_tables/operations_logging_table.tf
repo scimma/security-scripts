@@ -7,16 +7,31 @@
 
 
 // uuid as hash kkey prevents any ecord frm begn a duplicate and over  written
-resource "aws_dynamodb_table" "postgreslogs-dynamo-db-table" {
+resource "aws_dynamodb_table" "operations-dynamo-db-table" {
   name           = var.table_name
   hash_key       = "uuid"
   billing_mode   = "PROVISIONED"
-  read_capacity  = 1
-  write_capacity = 1
+  read_capacity  = 5
+  write_capacity = 5
+
+  attribute {
+    name = "profile"
+    type = "S"
+  }
+
   attribute {
     name = "uuid"
     type = "S"
   }
+
+global_secondary_index {
+    name               = "profileIndex"
+    hash_key           = "profile"
+    write_capacity     = 10
+    read_capacity      = 10
+    projection_type    = "KEYS_ONLY"
+  }
+
 
   ttl {
     attribute_name = "expTime"
@@ -30,7 +45,7 @@ resource "aws_dynamodb_table" "postgreslogs-dynamo-db-table" {
 resource "aws_iam_policy" "dynamodb-put-item-policy" {
   name        = var.dynamodb_put_item_policy_name
   path        = "/"
-  description = "This policy allows the lamba function to put loga in dynamo db."
+  description = "This policy allows a  lamba function to put loga in dynamo db."
 
   # Terraform's "jsonencode" function converts a
   # Terraform expression result to valid JSON syntax.
@@ -43,7 +58,7 @@ resource "aws_iam_policy" "dynamodb-put-item-policy" {
           "dynamodb:PutItem",
         ],
         "Effect"   = "Allow",
-        "Resource" = aws_dynamodb_table.postgreslogs-dynamo-db-table.arn
+        "Resource" = aws_dynamodb_table.operations-dynamo-db-table.arn
       }
     ]
   })

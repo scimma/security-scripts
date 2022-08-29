@@ -11,17 +11,17 @@ terraform {
 //
 module "dynamo_db_tables" {
   source = "../dynamo_db_tables"
-  table_name = "PostgresLogs_prod"
+  table_name = "OpsLogs_prod"
 
   dynamodb_put_item_policy_name =  "dynamodb-put-item-policy-prod"
   standard_tags = {
                  "createdBy":"securityAdmin",
                  "repo":"github.com:scimma/security-scripts",
                  "lifetime":"forever",
-                 "Service":"postgreslogs",
+                 "Service":"opslogs",
                  "OwnerEmail":"petravic@illinois.edu",
                  "Criticality":"Production",
-                 "Name":"Table to save postgres logs"
+                 "Name":"Table to save operations logs"
                  }
 }
 
@@ -34,7 +34,7 @@ module "dynamo_db_tables" {
 /// still a newbie at this time
 ///
 output "table_name" {
-    value = "PostgresLogs_prod"
+    value = "OpsLogs_prod"
    }
 
 output "put_item_policy" {

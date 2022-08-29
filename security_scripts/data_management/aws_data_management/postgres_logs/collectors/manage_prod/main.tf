@@ -6,21 +6,31 @@ terraform {
   }
 }
 
+
+
+
 module "postgres_logs" {
   source = "../postgres_logs"
 
-  table_name  = "PostgresLogs_prod"
+
+
+
+
+
+table_name  = "OpsLogs_prod"
+  dynamodb_put_item_policy   = "dynamodb-put-item-policy-prod"
+
   lambda_basicexecutionrole  =  "lambda-basicexecutionrole-prod"
   postgres_logging_lambda_name = "postgres-logging-lambda-prod"
-  dynamodb_put_item_policy   = "dynamodb-put-item-policy-prod"
+
   standard_tags = {
                  "createdBy":"securityAdmin",
-                 "repo":"github.com:scimma/securit-scripts",
+                 "repo":"github.com:scimma/security-scripts",
                  "lifetime":"forever",
-                 "Service":"postgreslogs",
+                 "Service":"opsLogs",
                  "OwnerEmail":"petravic@illinois.edu",
                  "Criticality":"Production",
-                 "Name":"Save postgres logs"
+                 "Name":"Save operations logs"
 
 
                  }

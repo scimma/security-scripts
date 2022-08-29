@@ -17,7 +17,7 @@ module "postgres_logs" {
 // but I've not learned how to do that yet.
 // so senseless duplications for now
 
-  table_name  = "PostgresLogs_devel"
+  table_name  = "OpsLogs_devel"
   dynamodb_put_item_policy = "dynamodb-put-item-policy-devel"
 
   lambda_basicexecutionrole  =  "lambda-basicexecutionrole-devel"
@@ -27,10 +27,10 @@ module "postgres_logs" {
                  "createdBy":"securityAdmin",
                  "repo":"github.com:scimma/securit-scripts",
                  "lifetime":"forever",
-                 "Service":"postgreslogs",
+                 "Service":"opsLogs",
                  "OwnerEmail":"petravic@illinois.edu",
                  "Criticality":"Development",
-                 "Name":"Save postgres logs"
+                 "Name":"Save operations logs"
 
 
                  }

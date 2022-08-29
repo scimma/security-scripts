@@ -35,13 +35,13 @@ def load_log_item(event, dynamodb=None):
     dynamodb = boto3.resource('dynamodb')
     table_name = os.getenv('DB_TABLE')
     table = dynamodb.Table(table_name)
-    table.put_item(Item=event)
+    status = table.put_item(Item=event)
+    logger.info("put_timestatus : {}".format(status))
 
 
 
 def lambda_handler(event, context):
-    # Unpack, flatten mulitp logfile entries into single-line records in dynamo db
-
+    # Unpack, flatten mulitple logfile entries into single-line records in dynamo db
 
     logger.info("raw cloudwatch event : {}".format(event))
     event = decode(event["awslogs"]["data"])
@@ -51,14 +51,19 @@ def lambda_handler(event, context):
     # Fatten/cleand into one long entry per line                                                                                               
     # TBD if we can robustly parse the postgres log message                                                                            
     for entry in event["logEvents"]:
+        if "checkpoint" in entry["message"] :
+            logging.info ("dropping: {}".format(entry["message"]))
+            continue
         j ={}  #clean dict (for sanity)
         j["messageType"]    = event["messageType"]
         j["logGroup"]       = event["logGroup"]
         j["logStream"]      = event["logGroup"]
-        j["timestamp"]      = entry["timestamp"]
+        j["_time"]          = entry["timestamp"]
         j["message"]        = entry["message"]
         j["expTime"]        = int(time.time()) + TTL_RETENTION_SEC
         j["uuid"]           = str(uuid.uuid1())
+        j["profile"]        = "postgress_logs"
+        j["ref_time"]       = entry["message"][:20]
         logger.info ("cleaned event {}".format(j))
         load_log_item(j)
 
