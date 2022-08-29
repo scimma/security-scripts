@@ -57,7 +57,7 @@ def lambda_handler(event, context):
         j["logStream"]      = event["logGroup"]
         j["timestamp"]      = entry["timestamp"]
         j["message"]        = entry["message"]
-        j["expTime"]        = entry["timestamp"] + TTL_RETENTION_SEC
+        j["expTime"]        = int(time.time()) + TTL_RETENTION_SEC
         j["uuid"]           = str(uuid.uuid1())
         logger.info ("cleaned event {}".format(j))
         load_log_item(j)
