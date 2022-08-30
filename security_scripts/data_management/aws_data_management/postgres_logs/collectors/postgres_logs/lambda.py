@@ -17,6 +17,8 @@ import zlib
 from base64 import b64decode
 import logging
 import uuid
+import datetime
+
 
 # Information securty dats is retained for 3 months.
 # the TTL retntions  is set in seconds in the future.
@@ -60,6 +62,8 @@ def lambda_handler(event, context):
         j["logStream"]      = event["logGroup"]
         j["expTime"]        = int(time.time()) + TTL_RETENTION_SEC
         j["uuid"]           = str(uuid.uuid1())
+        j['utc_date']      = datetime.datetime.fromtimestamp(time.time(), 
+                                        tz=datetime.timezone.utc).isoformat()[:10]
         #
         # OSCF keywords below here
         # see https://schema.ocsf.io/categories/database?extensions=
