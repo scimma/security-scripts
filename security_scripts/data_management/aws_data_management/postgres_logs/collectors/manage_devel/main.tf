@@ -1,3 +1,4 @@
+
 terraform {
     backend "s3" {
     bucket = "scimma-processes-us-west-2"
@@ -7,7 +8,26 @@ terraform {
 }
 
 
+module "flow_logs" {
+  source = "../flow_logs"
 
+  table_name  = "OpsLogs_devel"
+  dynamodb_put_item_policy = "dynamodb-put-item-policy-devel"
+  lambda_basicexecutionrole  =  "lambda-basicexecutionrole-flow-devel"
+  flow_logging_lambda_name = "flow-logging-lambda-devel"
+
+  standard_tags = {
+                 "createdBy":"securityAdmin",
+                 "repo":"github.com:scimma/securit-scripts",
+                 "lifetime":"forever",
+                 "Service":"opsLogs",
+                 "OwnerEmail":"petravic@illinois.edu",
+                 "Criticality":"Development",
+                 "Name":"Save flow logs"
+
+
+                 }
+}
 
 module "postgres_logs" {
   source = "../postgres_logs"

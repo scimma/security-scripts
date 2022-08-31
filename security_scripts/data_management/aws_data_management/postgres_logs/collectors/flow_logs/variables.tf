@@ -20,7 +20,7 @@ variable "lambda_basicexecutionrole" {
   description = "Name of the role allowing the lambda to log itself"
 }
 
-variable "postgres_logging_lambda_name" {
+variable "flow_logging_lambda_name" {
   type        = string
   description = "Name for the lambda fungion doing the logging"
 }

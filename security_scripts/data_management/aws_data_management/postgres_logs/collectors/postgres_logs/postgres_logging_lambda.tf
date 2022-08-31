@@ -158,3 +158,4 @@ resource "aws_lambda_permission" "keycloak-logging" {
   source_arn = "arn:aws:logs:us-west-2:585193511743:log-group:/aws/rds/instance/keycloak-test-postgres/postgresql:*"
 }
 
+

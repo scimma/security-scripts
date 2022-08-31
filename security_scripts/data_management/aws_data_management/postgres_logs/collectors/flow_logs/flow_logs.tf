@@ -30,6 +30,7 @@ resource "aws_iam_role" "flow-logging-lambda-role" {
 }
 
 
+
 // Make  a policy allowing the lambda function to log itself
 resource "aws_iam_policy" "flow-logging-lambda-policy" {
   name = var.lambda_basicexecutionrole
@@ -94,22 +95,21 @@ resource "aws_lambda_function" "flow-logging-lambda-function" {
 
 
 
-
 //
 // Hook up the input -- form clouddwatch  to the function
 // ==============================================
-// - Identify the flow log gooup.
+// - Identify the flow log goup.
 // - Identify a "filter" between the log group and our lambda
 // - Identify the function in our lambda the event should be sent to.
 //  Refernece https://registry.terraform.io/providers/hashicorp/aws/latest/docs/resources/lambda_permission
 //  Referencehttps://registry.terraform.io/providers/hashicorp/aws/latest/docs/resources/cloudwatch_log_subscription_filter
 
-resource "aws_flow_log_subscription_filter" "logging" {
+resource "aws_cloudwatch_log_subscription_filter" "logging" {
   depends_on      = [aws_lambda_permission.logging]
   destination_arn = aws_lambda_function.flow-logging-lambda-function.arn
   filter_pattern  = "" #pass everyting 
-  log_group_name  = "/aws/rds/instance/scimma-admin-flow/flowl"
-  name            = "logging_default"
+  log_group_name  = "/scimma/raw/flow-logs"
+  name            = "scimm-rae-flow-logs"
 }
 
 
@@ -117,8 +117,8 @@ resource "aws_flow_log_subscription_filter" "logging" {
 // The log group is not created or managed my this terraform ensemble
 // The data statement allows us to get attribute information
 // Terraform wll not create/destroy/alter the log groups
-data "aws_cloudwatch_log_group" "scimma-admin-flow-group" {
-  name = "/aws/rds/instance/scimma-admin-flow/flow"
+data "aws_cloudwatch_log_group" "scimma-prod-flow-group" {
+  name = "/scimma/raw/flow-logs"
 }
 
 
@@ -132,11 +132,12 @@ data "aws_cloudwatch_log_group" "scimma-admin-flow-group" {
 // somehow when I give the ARM in plain text. it works.
 // using the data statement about, terraform console says the name lacks the terminal ":*"
 //      tries many perturbations  but for now, oh well. Gotta figure this out but out of time.
-resource "aws_flow_permission" "logging" {
+resource "aws_lambda_permission" "logging" {
   action        = "lambda:InvokeFunction"
   function_name = aws_lambda_function.flow-logging-lambda-function.function_name
   principal     = "logs.us-west-2.amazonaws.com"
   // does not work source_arn    =  format("%s/%s",data.aws_cloudwatch_log_group.scimma-admin-flow-group.arn, ":*")
-  source_arn = "arn:aws:logs:us-west-2:585193511743:log-group:/aws/rds/instance/scimma-admin-flow/flow:*"
+  source_arn = "arn:aws:logs:us-west-2:585193511743:log-group:/scimma/raw/flow-logs:*"
 }
+
 
