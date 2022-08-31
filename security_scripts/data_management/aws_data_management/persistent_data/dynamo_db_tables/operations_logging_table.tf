@@ -11,22 +11,36 @@ resource "aws_dynamodb_table" "operations-dynamo-db-table" {
   name           = var.table_name
   hash_key       = "uuid"
   billing_mode   = "PROVISIONED"
-  read_capacity  = 5
-  write_capacity = 5
-
-  attribute {
-    name = "profile"
-    type = "S"
-  }
+  read_capacity  = 10
+  write_capacity = 10
 
   attribute {
     name = "uuid"
     type = "S"
   }
 
+  attribute {
+    name = "activity"
+    type = "S"
+  }
+
+  attribute {
+   name = "utc_date"
+   type = "S"
+  }
+
+
 global_secondary_index {
-    name               = "profileIndex"
-    hash_key           = "profile"
+    name               = "activityIndex"
+    hash_key           = "activity"
+    write_capacity     = 10
+    read_capacity      = 10
+    projection_type    = "KEYS_ONLY"
+  }
+
+global_secondary_index {
+    name               = "utc_date_index"
+    hash_key           = "utc_date"
     write_capacity     = 10
     read_capacity      = 10
     projection_type    = "KEYS_ONLY"

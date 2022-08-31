@@ -54,7 +54,7 @@ def lambda_handler(event, context):
         output['dst_private']  = ipaddress.ip_address(output['dst_ip']).is_private
         output['ref_time']     = "{}".format(timestamp) # string verison...
                                  #... required by standard original timestamp 
-        output['uiud']         = "{}".format(uuid.uuid1())
+        output['uuid']         = "{}".format(uuid.uuid1())
         output['utc_date']      = datetime.datetime.fromtimestamp(time.time(), 
                                         tz=datetime.timezone.utc).isoformat()[:10]
         #additional from https://schema.ocsf.io/classes/network_activity?extensions=
