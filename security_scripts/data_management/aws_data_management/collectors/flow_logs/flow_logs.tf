@@ -59,6 +59,7 @@ resource "aws_iam_role_policy_attachment" "flow-logging-lambda-policy-attachment
   role       = aws_iam_role.flow-logging-lambda-role.name
 }
 
+
 // Attach the policy allowing write access to the Dynamo DB to the lambda
 resource "aws_iam_role_policy_attachment" "dynamodb-flow-policy-attachment" {
   policy_arn = data.aws_iam_policy.dynamodb-put-item-policy.arn
@@ -84,7 +85,7 @@ resource "aws_lambda_function" "flow-logging-lambda-function" {
   source_code_hash = filebase64sha256("../flow_logs/lambda.zip")
   environment {
     variables = {
-      DB_TABLE = data.aws_dynamodb_table.flowlogs-dynamo-db-table.name
+      DB_TABLE = var.table_name
     }
   }
 

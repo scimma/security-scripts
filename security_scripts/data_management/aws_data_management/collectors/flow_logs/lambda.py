@@ -91,7 +91,6 @@ def decode(data):
 def load_log_item(event, dynamodb=None):
     #load on record into dynamo db
     dynamodb = boto3.resource('dynamodb')
-    os.environ["DB_TABLE"] = "OpsLogs_devel"
     table_name = os.getenv('DB_TABLE')
     table = dynamodb.Table(table_name)
     status = table.put_item(Item=event)

@@ -4,6 +4,7 @@
 //    aws_iam_policy.flowlogs-put-item-policy
 //    table name will vary  between devel and production.
 //    (do not want test data polluting production data)
+
 data "aws_dynamodb_table" "flowlogs-dynamo-db-table" {
   name           = var.table_name
 }
