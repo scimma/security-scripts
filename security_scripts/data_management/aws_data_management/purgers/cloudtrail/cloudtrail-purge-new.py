@@ -1,13 +1,14 @@
 #!/usr/bin/env python
 """
 Scrub the cloudwatch bucket of all files older than
-the retention period.  It does this by looping over all
-Keys, and deleting objects older than the retention
-period.;
+the retention period.  It does this by using the
+sprage model for cloud trail, teh code probed for keys
+containing "region/year/month/date" consisnten with being
+90 -100 datgs old.  It deltes evrything under those paths.
 
-This can be time-consuming, but its simple and workks.
-and makes few assumtions abotu the strucure of the
-repository
+thsi saves time, and API-call fees  compared to looping
+over all paths and finding objects over 90 days old.
+
 """
 
 import boto3
@@ -49,8 +50,9 @@ def begin():
             for object_record in item['Contents']:
                 key = object_record['Key']
                 resp = client.delete_object(Bucket=BUCKET, Key=key)
-                n_deletes = n_deletes + 1
+                
                 if n_deletes & 100 == 0:
+                    n_delete += 1
                     logging.debug ("deletes, key: {} {}".format(n_deletes, key))
     runtime = time.time()-start_time
     logging.info("Objects deleted, runtime(sec): {} {}".format(
