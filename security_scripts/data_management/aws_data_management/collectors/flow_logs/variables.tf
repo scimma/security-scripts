@@ -4,11 +4,7 @@
 // insitantiaing moddule.  (eg Main from production or development)
 //
 
-variable "standard_tags" {
 
-  description = "standard tags' applied to all taggable resources"
-  type        = map(string)
-}
 
 variable "table_name" {
   type        = string

@@ -37,7 +37,8 @@ ROOTS = [
     ]
 
 
-def begin():
+def lambda_handler(event, context):
+
     n_deletes = 0
     start_time = time.time()
     client = boto3.client('s3')
@@ -45,19 +46,23 @@ def begin():
     for root in next_root():
         page = paginator.paginate(Bucket=BUCKET, Prefix=root)
         for item in page:
-            logging.debug("KeyCount:{KeyCount},Prefix:{Prefix}".format(**item))
             if 'Contents' not in item: continue
+            logging.info("KeyCount:{KeyCount},Prefix:{Prefix}".format(**item))
             for object_record in item['Contents']:
                 key = object_record['Key']
                 resp = client.delete_object(Bucket=BUCKET, Key=key)
-                
                 if n_deletes & 100 == 0:
-                    n_delete += 1
-                    logging.debug ("deletes, key: {} {}".format(n_deletes, key))
+                    n_deletes += 1
+                    logging.info ("deletes, key: {} {}".format(n_deletes, key))
+            logging.info("total deletes so far:{}".format(n_deletes))
     runtime = time.time()-start_time
     logging.info("Objects deleted, runtime(sec): {} {}".format(
         n_deletes, runtime)
                  )
+    return {
+        'statusCode': 200,
+        'body': json.dumps('Hello from Lambda!')
+    }
                 
                 
 def next_root():
@@ -78,4 +83,5 @@ def next_root():
 
 
 if __name__ == "__main__":
-    begin()
+    lambda_handler(None, None)
+
