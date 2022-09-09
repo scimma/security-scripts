@@ -1,6 +1,6 @@
 ///
 /// 1) setup the lambda
-/// 2) Setup periodc running of the lambda
+/// 2) Setup periodic running of the lambda
 
 
 //1_ Setup the lambda
@@ -9,8 +9,8 @@
 /// 1) setup the lambda
 /// 2) Setup periodc running of the lambda
 
-resource "aws_iam_role" "iam_for_lambda" {
-  name = "iam_for_lambda"
+resource "aws_iam_role" "cloudwatch_s3_purge_lambda_role" {
+  name = "cloudwatch_s3_purge_lambda_role"
 
   assume_role_policy = jsonencode(
 {
@@ -33,21 +33,21 @@ resource "aws_iam_role" "iam_for_lambda" {
 
 // Make  a policy allowing the lambda function to log itself
 // and to purge stuff in the S3 bucket(scimma-proccesses)
- 
-resource "aws_iam_policy" "flow-logging-lambda-policy" {
-  name = "Event_trail_S3_purge_allow_policy"
+
+resource "aws_iam_policy" "cloudwatch_s3_lambda_logging_policy" {
+  name = "cloudwatch_s3_lambda_logging_policy"
 
   policy = jsonencode(
   {
   "Version": "2012-10-17",
   "Statement": [
     {
-        "Effect" : "Allow",
-        "Action" : [
+         "Action" : [
           "logs:CreateLogGroup",
           "logs:CreateLogStream",
           "logs:PutLogEvents"
         ],
+        "Effect" : "Allow",
         "Resource" : "arn:aws:logs:*:*:*"
     }
     ]
@@ -58,8 +58,8 @@ resource "aws_iam_policy" "flow-logging-lambda-policy" {
 }
 
 
-
-resource "aws_iam_policy" "allow_purge_polcy" {
+resource "aws_iam_policy" "cloudwatch_s3_lambda_purge_policy" {
+  name = "cloudwatch_s3_lambda_purge_policy"
   policy = jsonencode({
   "Version": "2012-10-17",
   "Statement": [
@@ -78,15 +78,27 @@ resource "aws_iam_policy" "allow_purge_polcy" {
   tags = var.standard_tags
 }
 
+// Attach the policys  allowing logging the lambda itself to lambda's role
+
+resource "aws_iam_role_policy_attachment" "purge-policy-attachment" {
+  policy_arn = aws_iam_policy.cloudwatch_s3_lambda_purge_policy.arn
+  role       = aws_iam_role.cloudwatch_s3_purge_lambda_role.name
+}
+
+resource "aws_iam_role_policy_attachment" "lambda_logging_policy" {
+  policy_arn = aws_iam_policy.cloudwatch_s3_lambda_logging_policy.arn
+  role       = aws_iam_role.cloudwatch_s3_purge_lambda_role.name
+}
 
 
-resource "aws_lambda_function" "cludwatch_purge_lambda" {
+resource "aws_lambda_function" "cloudwatch_s3_purge_lambda" {
   # If the file is not in the current working directory you will need to include a 
   # path.module in the filename.
   filename      = "lambda.zip"
-  function_name = "lambda_handler"
-  role          = aws_iam_role.iam_for_lambda.arn
-  handler       = "index.test"
+  function_name = "cloudwatch_s3_purge_prod"
+  role          = aws_iam_role.cloudwatch_s3_purge_lambda_role.arn
+  handler       = "lambda.lambda_handler"
+  timeout       = 120
 
   # The filebase64sha256() function is available in Terraform 0.11.12 and later
   # For Terraform 0.11.11 and earlier, use the base64sha256() function and the file() function:
@@ -103,8 +115,8 @@ resource "aws_lambda_function" "cludwatch_purge_lambda" {
 }
 
 
+/**********
 
-/*
 //2)  Setup periodic stimulatipn of thelambda.
 //============================================
 
