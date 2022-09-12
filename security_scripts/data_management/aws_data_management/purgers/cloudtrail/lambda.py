@@ -21,7 +21,6 @@ import json
 TTL_DAYS = 90 #remove stuff older than these many days.
 BUCKET="scimma-processes"
 
-logger=logging.getLogger()
 logging.basicConfig(level=logging.INFO)
 
 AZLIST=["ap-northeast-1", "ap-northeast-2", "ap-northeast-3",
@@ -39,7 +38,7 @@ ROOTS = [
 
 
 def lambda_handler(event, context):
-
+    print("Begin")
     n_deletes = 0
     start_time = time.time()
     client = boto3.client('s3')
@@ -48,7 +47,7 @@ def lambda_handler(event, context):
         page = paginator.paginate(Bucket=BUCKET, Prefix=root)
         for item in page:
             if 'Contents' not in item: continue
-            logging.info("KeyCount:{KeyCount},Prefix:{Prefix}".format(**item))
+            print("KeyCount:{KeyCount},Prefix:{Prefix}".format(**item))
             for object_record in item['Contents']:
                 key = object_record['Key']
                 resp = client.delete_object(Bucket=BUCKET, Key=key)
@@ -57,13 +56,10 @@ def lambda_handler(event, context):
                     logging.info ("deletes, key: {} {}".format(n_deletes, key))
             logging.info("total deletes so far:{}".format(n_deletes))
     runtime = time.time()-start_time
-    logging.info("Objects deleted, runtime(sec): {} {}".format(
+    print("Objects deleted, runtime(sec): {} {}".format(
         n_deletes, runtime)
                  )
-    return {
-        'statusCode': 200,
-        'body': json.dumps('Hello from Lambda!')
-    }
+    return None
                 
                 
 def next_root():
@@ -75,7 +71,7 @@ def next_root():
             "month" : str(purgedate.month).zfill(2),
             "day" :   str(purgedate.day).zfill(2)  ,
         }
-        logging.info("examining {year}/{month}/{day}".format(**d))
+        print("examining {year}/{month}/{day}".format(**d))
         for az in AZLIST :
             d["az"] = az
             for root in ROOTS :
